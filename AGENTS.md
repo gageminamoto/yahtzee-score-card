@@ -37,20 +37,19 @@ className="hover:bg-white/10 dark:hover:bg-black/10"
 
 ## Icon Usage
 
-**Always use Hugeicons** for all icons in this project. The project uses `@hugeicons/react` and `@hugeicons/core-free-icons`.
+**Always use Basil Icons** for all icons in this project. The project uses `@iconify/react` with Basil solid icons.
 
 ### Import Pattern
 
 ```jsx
-import { HugeiconsIcon } from '@hugeicons/react';
-import { IconName } from '@hugeicons/core-free-icons';
+import { Icon } from '@iconify/react';
 ```
 
 ### Usage Example
 
 ```jsx
-<HugeiconsIcon 
-  icon={IconName} 
+<Icon 
+  icon="basil:icon-name-solid" 
   className="w-6 h-6" 
   style={{ color: textColor }}
 />
@@ -58,18 +57,18 @@ import { IconName } from '@hugeicons/core-free-icons';
 
 ### Common Icons Used
 
-- `ArrowLeft01Icon` - Back/previous navigation
-- `ArrowRight01Icon` - Forward/next navigation
-- `CheckmarkCircle01Icon` - Success/completed states
-- `Close` - Close/remove/delete actions (no Icon suffix)
-- `DiceIcon` - Dice-related features
-- `Lightning` - Quick/instant actions (no Icon suffix)
-- `LockIcon` - Locked/restricted features
+- `basil:arrow-left-solid` - Back/previous navigation
+- `basil:arrow-right-solid` - Forward/next navigation
+- `basil:check-solid` - Success/completed states
+- `basil:close-solid` - Close/remove/delete actions
+- `basil:dice-solid` - Dice-related features
+- `basil:lightning-solid` - Quick/instant actions
+- `basil:lock-solid` - Locked/restricted features
 
-**Important:** Icon naming is inconsistent in the Hugeicons library:
-- Some icons end with `Icon` suffix (e.g., `ArrowLeft01Icon`, `DiceIcon`, `LockIcon`)
-- Some icons don't have the suffix (e.g., `Lightning`, `Close`)
-- Always verify the exact export name when adding new icons
+**Important:** 
+- Always use the **solid** version of Basil icons (suffix: `-solid`)
+- Icon names follow the pattern: `basil:icon-name-solid`
+- Browse available icons at [basicons.xyz](https://basicons.xyz) or [yesicon.app/basil](https://yesicon.app/basil)
 
 ### Icon Sizing Guidelines
 
