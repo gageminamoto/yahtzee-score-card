@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button, Card } from '../components';
-import { getColorByIndex } from '../utils/colors';
+import { getColorByIndex, getTextColorForBackground } from '../utils/colors';
 
 /**
  * Winner announcement screen
@@ -11,6 +11,7 @@ import { getColorByIndex } from '../utils/colors';
 export default function Winner({ players, onPlayAgain, onGoHome }) {
   const [colorIndex] = useState(() => Math.floor(Math.random() * 5));
   const backgroundColor = getColorByIndex(colorIndex);
+  const textColor = getTextColorForBackground(backgroundColor);
   const [showConfetti, setShowConfetti] = useState(true);
 
   // Sort players by score
@@ -57,26 +58,35 @@ export default function Winner({ players, onPlayAgain, onGoHome }) {
       <div className="max-w-2xl w-full z-10">
         {/* Winner Announcement */}
         <div className="text-center mb-12 animate-scaleIn">
-          <h1 className="font-serif text-headline md:text-display text-white mb-6">
+          <h1
+            className="font-serif text-headline md:text-display mb-6"
+            style={{ color: textColor }}
+          >
             WINNER
           </h1>
           <div className="flex items-center justify-center gap-4 mb-4">
             <div
-              className="w-20 h-20 rounded-full border-6 border-black"
+              className="w-20 h-20 rounded-full"
               style={{ backgroundColor: winner.color }}
             />
-            <h2 className="font-serif text-title md:text-headline text-white">
+            <h2
+              className="font-serif text-title md:text-headline"
+              style={{ color: textColor }}
+            >
               {winner.name.toUpperCase()}
             </h2>
           </div>
-          <p className="font-serif text-subtitle text-white">
+          <p className="font-serif text-subtitle" style={{ color: textColor }}>
             {winner.totalScore} points
           </p>
         </div>
 
         {/* Final Scores */}
         <Card padding="large" className="mb-8">
-          <h3 className="font-serif text-subtitle text-white mb-6 text-center">
+          <h3
+            className="font-serif text-subtitle mb-6 text-center"
+            style={{ color: textColor }}
+          >
             FINAL SCORES
           </h3>
           <div className="space-y-4">
@@ -88,18 +98,27 @@ export default function Winner({ players, onPlayAgain, onGoHome }) {
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <span className="font-serif text-body-lg text-white opacity-70 min-w-[3rem]">
+                  <span
+                    className="font-serif text-body-lg opacity-70 min-w-[3rem]"
+                    style={{ color: textColor }}
+                  >
                     #{index + 1}
                   </span>
                   <div
-                    className="w-10 h-10 rounded-full border-4 border-black"
+                    className="w-10 h-10 rounded-full"
                     style={{ backgroundColor: player.color }}
                   />
-                  <span className="font-sans text-body-lg font-bold text-white">
+                  <span
+                    className="font-sans text-body-lg font-bold"
+                    style={{ color: textColor }}
+                  >
                     {player.name}
                   </span>
                 </div>
-                <span className="font-serif text-body-lg font-bold text-white">
+                <span
+                  className="font-serif text-body-lg font-bold"
+                  style={{ color: textColor }}
+                >
                   {player.totalScore}
                 </span>
               </div>

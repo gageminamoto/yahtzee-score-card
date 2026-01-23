@@ -14,18 +14,21 @@ import { UPPER_SECTION_BONUS_THRESHOLD } from '../utils/gameConstants';
 /**
  * Scorecard component displaying all Yahtzee categories
  */
-export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer }) {
+export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer, textColor = '#FFFFFF' }) {
   const upperSum = calculateUpperSectionSum(scorecard);
   const upperBonus = calculateUpperBonus(scorecard);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Upper Section */}
-      <Card padding="medium">
-        <h3 className="font-serif text-subtitle text-white mb-4 border-b-4 border-black pb-2">
+      <Card padding="small">
+        <h3
+          className="font-serif text-body-lg mb-2 border-b-2 border-white border-opacity-30 pb-1"
+          style={{ color: textColor }}
+        >
           UPPER SECTION
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-0">
           {UPPER_SECTION_CATEGORIES.map(category => (
             <CategoryRow
               key={category.id}
@@ -34,16 +37,17 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer 
               isScored={isCategoryScored(scorecard, category.id)}
               onClick={() => onCategoryClick(category.id)}
               isClickable={isCurrentPlayer && !isCategoryScored(scorecard, category.id)}
+              textColor={textColor}
             />
           ))}
 
           {/* Upper Section Bonus */}
-          <div className="border-t-4 border-black pt-2 mt-4">
-            <div className="flex justify-between items-center py-2">
-              <span className="font-sans text-body text-white">
+          <div className="border-t-2 border-white border-opacity-30 pt-1 mt-1">
+            <div className="flex justify-between items-center py-1 px-2">
+              <span className="font-sans text-ui" style={{ color: textColor }}>
                 BONUS ({upperSum}/{UPPER_SECTION_BONUS_THRESHOLD})
               </span>
-              <span className="font-serif text-body-lg font-bold text-white">
+              <span className="font-serif text-body font-bold" style={{ color: textColor }}>
                 {upperBonus > 0 ? `+${upperBonus}` : '—'}
               </span>
             </div>
@@ -52,11 +56,14 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer 
       </Card>
 
       {/* Lower Section */}
-      <Card padding="medium">
-        <h3 className="font-serif text-subtitle text-white mb-4 border-b-4 border-black pb-2">
+      <Card padding="small">
+        <h3
+          className="font-serif text-body-lg mb-2 border-b-2 border-white border-opacity-30 pb-1"
+          style={{ color: textColor }}
+        >
           LOWER SECTION
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-0">
           {LOWER_SECTION_CATEGORIES.map(category => (
             <CategoryRow
               key={category.id}
@@ -65,6 +72,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer 
               isScored={isCategoryScored(scorecard, category.id)}
               onClick={() => onCategoryClick(category.id)}
               isClickable={isCurrentPlayer && !isCategoryScored(scorecard, category.id)}
+              textColor={textColor}
             />
           ))}
         </div>
@@ -77,13 +85,14 @@ Scorecard.propTypes = {
   scorecard: PropTypes.object.isRequired,
   onCategoryClick: PropTypes.func.isRequired,
   isCurrentPlayer: PropTypes.bool,
+  textColor: PropTypes.string,
 };
 
 /**
  * Individual category row
  */
-function CategoryRow({ category, score, isScored, onClick, isClickable }) {
-  const baseStyles = "flex justify-between items-center py-3 px-4 transition-all duration-150";
+function CategoryRow({ category, score, isScored, onClick, isClickable, textColor = '#FFFFFF' }) {
+  const baseStyles = "flex justify-between items-center py-1.5 px-2 transition-[background-color] duration-100 ease-[cubic-bezier(0.215,0.61,0.355,1)]";
 
   const interactiveStyles = isClickable
     ? "cursor-pointer hover:bg-white hover:bg-opacity-10 active:bg-opacity-20"
@@ -96,29 +105,24 @@ function CategoryRow({ category, score, isScored, onClick, isClickable }) {
       className={`${baseStyles} ${interactiveStyles} ${scoredStyles}`}
       onClick={isClickable ? onClick : undefined}
     >
-      <div>
-        <div className="font-sans text-body font-bold text-white uppercase">
-          {category.name}
-        </div>
-        <div className="font-sans text-ui text-white opacity-70">
-          {category.description}
-        </div>
-      </div>
+      <span className="font-sans text-body font-bold uppercase" style={{ color: textColor }}>
+        {category.name}
+      </span>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         {isScored ? (
           <>
-            <span className="font-sans text-ui text-white opacity-50">✓</span>
-            <span className="font-serif text-body-lg font-bold text-white min-w-[3rem] text-right">
+            <span className="font-sans text-ui opacity-50" style={{ color: textColor }}>✓</span>
+            <span className="font-serif text-body font-bold min-w-[2.5rem] text-right" style={{ color: textColor }}>
               {score}
             </span>
           </>
         ) : (
           <>
             {isClickable && (
-              <span className="font-sans text-body-lg text-white opacity-50">→</span>
+              <span className="font-sans text-body opacity-50" style={{ color: textColor }}>→</span>
             )}
-            <span className="font-serif text-body-lg text-white opacity-30 min-w-[3rem] text-right">
+            <span className="font-serif text-body opacity-30 min-w-[2.5rem] text-right" style={{ color: textColor }}>
               —
             </span>
           </>
@@ -134,4 +138,5 @@ CategoryRow.propTypes = {
   isScored: PropTypes.bool.isRequired,
   onClick: PropTypes.func.isRequired,
   isClickable: PropTypes.bool.isRequired,
+  textColor: PropTypes.string,
 };

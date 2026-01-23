@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Input, Card } from '../components';
-import { getColorByIndex, getPlayerColor } from '../utils/colors';
+import { getColorByScheme, getPlayerColorByScheme, getTextColorForBackground } from '../utils/colors';
+import { useSettings } from '../context/SettingsContext';
 
 /**
  * Single Device Setup Screen
@@ -9,12 +10,15 @@ import { getColorByIndex, getPlayerColor } from '../utils/colors';
  * - Start game when ready
  */
 export default function SingleDeviceSetup({ onStartGame, onBack }) {
+  const { settings } = useSettings();
+  const colorScheme = settings.visual.colorScheme;
   const [colorIndex] = useState(() => Math.floor(Math.random() * 5));
-  const backgroundColor = getColorByIndex(colorIndex);
+  const backgroundColor = getColorByScheme(colorIndex, colorScheme);
+  const textColor = getTextColorForBackground(backgroundColor);
 
   const [players, setPlayers] = useState([
-    { id: 1, name: '', color: getPlayerColor(0) },
-    { id: 2, name: '', color: getPlayerColor(1) },
+    { id: 1, name: '', color: getPlayerColorByScheme(0, colorScheme) },
+    { id: 2, name: '', color: getPlayerColorByScheme(1, colorScheme) },
   ]);
 
   const handleNameChange = (id, name) => {
@@ -26,7 +30,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack }) {
       const newId = players.length + 1;
       setPlayers([
         ...players,
-        { id: newId, name: '', color: getPlayerColor(players.length) }
+        { id: newId, name: '', color: getPlayerColorByScheme(players.length, colorScheme) }
       ]);
     }
   };
@@ -53,15 +57,22 @@ export default function SingleDeviceSetup({ onStartGame, onBack }) {
       <div className="max-w-2xl mx-auto">
         <button
           onClick={onBack}
-          className="font-sans text-body text-white mb-8 hover:opacity-70 transition-opacity"
+          className="font-sans text-body mb-8 hover:opacity-70 transition-opacity"
+          style={{ color: textColor }}
         >
           ← Back
         </button>
 
-        <h1 className="font-serif text-title md:text-headline text-white mb-4">
+        <h1
+          className="font-serif text-title md:text-headline mb-4"
+          style={{ color: textColor }}
+        >
           PLAYERS
         </h1>
-        <p className="font-sans text-body text-white opacity-90 mb-12">
+        <p
+          className="font-sans text-body opacity-90 mb-12"
+          style={{ color: textColor }}
+        >
           Enter 2-6 player names to begin
         </p>
 
@@ -71,7 +82,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack }) {
             <div key={player.id} className="flex items-center gap-4">
               {/* Color Indicator */}
               <div
-                className="w-12 h-12 rounded-full border-4 border-black flex-shrink-0"
+                className="w-12 h-12 rounded-full flex-shrink-0 border-4 border-white"
                 style={{ backgroundColor: player.color }}
               />
 
@@ -90,7 +101,8 @@ export default function SingleDeviceSetup({ onStartGame, onBack }) {
               {players.length > 2 && (
                 <button
                   onClick={() => removePlayer(player.id)}
-                  className="w-12 h-12 flex items-center justify-center text-white text-2xl font-bold hover:opacity-70 transition-opacity"
+                  className="w-12 h-12 flex items-center justify-center text-2xl font-bold hover:opacity-70 transition-opacity"
+                  style={{ color: textColor }}
                 >
                   ×
                 </button>
@@ -124,7 +136,10 @@ export default function SingleDeviceSetup({ onStartGame, onBack }) {
         </Button>
 
         {!canStart && (
-          <p className="font-sans text-ui text-white opacity-70 text-center mt-4">
+          <p
+            className="font-sans text-ui opacity-70 text-center mt-4"
+            style={{ color: textColor }}
+          >
             Enter at least 2 player names to start
           </p>
         )}

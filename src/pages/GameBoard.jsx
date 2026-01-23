@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { Button, Card } from '../components';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
-import { getColorByIndex } from '../utils/colors';
 import {
   createEmptyScorecard,
   calculateTotalScore,
@@ -10,6 +8,7 @@ import {
   isGameComplete,
 } from '../utils/scoring';
 import { TOTAL_ROUNDS } from '../utils/gameConstants';
+import { getTextColorForBackground } from '../utils/colors';
 
 /**
  * Main game board for single device mode
@@ -19,9 +18,6 @@ import { TOTAL_ROUNDS } from '../utils/gameConstants';
  * - Navigates to winner screen when complete
  */
 export default function GameBoard({ players: initialPlayers, onGameComplete, onQuit }) {
-  const [colorIndex] = useState(() => Math.floor(Math.random() * 5));
-  const backgroundColor = getColorByIndex(colorIndex);
-
   // Initialize players with empty scorecards
   const [players] = useState(() =>
     initialPlayers.map(p => ({
@@ -32,10 +28,11 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
 
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [showScores, setShowScores] = useState(false);
   const [completedTurns, setCompletedTurns] = useState(0);
 
   const currentPlayer = players[currentPlayerIndex];
+  const backgroundColor = currentPlayer.color;
+  const textColor = getTextColorForBackground(backgroundColor);
   const currentRound = Math.floor(completedTurns / players.length) + 1;
 
   const handleCategoryClick = (categoryId) => {
@@ -79,42 +76,72 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
 
   return (
     <div
-      className="min-h-screen p-4 md:p-8 transition-colors duration-500"
+      className="min-h-screen p-3 md:p-6 transition-colors duration-500"
       style={{ backgroundColor }}
     >
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        {/* Header with Quit and Round */}
+        <div className="flex justify-between items-center mb-2">
           <button
             onClick={onQuit}
-            className="font-sans text-body text-white hover:opacity-70 transition-opacity"
+            className="font-sans text-ui hover:opacity-70 transition-opacity"
+            style={{ color: textColor }}
           >
             ← Quit
           </button>
-          <div className="font-sans text-ui text-white opacity-90 text-right">
-            ROUND {currentRound} / {TOTAL_ROUNDS}
+          <div
+            className="font-sans text-ui opacity-90"
+            style={{ color: textColor }}
+          >
+            R{currentRound}/{TOTAL_ROUNDS}
           </div>
         </div>
 
-        {/* Current Player */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
+        {/* VS Score Display */}
+        <div className="flex items-center justify-center gap-3 mb-4">
+          {/* Current Player */}
+          <div className="flex items-center gap-2">
             <div
-              className="w-16 h-16 rounded-full border-4 border-black flex-shrink-0"
-              style={{ backgroundColor: currentPlayer.color }}
+              className="w-8 h-8 rounded-full border-3 border-white"
+              style={{ backgroundColor: currentPlayer.color, boxShadow: '0 0 0 2px black' }}
             />
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="font-sans text-body text-white opacity-70">★</span>
-                <h2 className="font-serif text-subtitle md:text-title text-white">
-                  {currentPlayer.name.toUpperCase()}
-                </h2>
-              </div>
-              <p className="font-sans text-body-lg text-white opacity-90">
-                {calculateTotalScore(currentPlayer.scorecard)} pts
-              </p>
-            </div>
+            <span
+              className="font-serif text-subtitle md:text-title"
+              style={{ color: textColor }}
+            >
+              {calculateTotalScore(currentPlayer.scorecard)}
+            </span>
           </div>
+
+          {/* VS */}
+          {players.length > 1 && (
+            <>
+              <span
+                className="font-sans text-body opacity-70"
+                style={{ color: textColor }}
+              >
+                vs
+              </span>
+
+              {/* Opponents */}
+              {players
+                .filter((_, idx) => idx !== currentPlayerIndex)
+                .map(player => (
+                  <div key={player.id} className="flex items-center gap-2">
+                    <span
+                      className="font-serif text-subtitle md:text-title"
+                      style={{ color: textColor }}
+                    >
+                      {calculateTotalScore(player.scorecard)}
+                    </span>
+                    <div
+                      className="w-8 h-8 rounded-full"
+                      style={{ backgroundColor: player.color }}
+                    />
+                  </div>
+                ))}
+            </>
+          )}
         </div>
 
         {/* Scorecard */}
@@ -122,58 +149,9 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           scorecard={currentPlayer.scorecard}
           onCategoryClick={handleCategoryClick}
           isCurrentPlayer={true}
+          textColor={textColor}
         />
 
-        {/* Other Players Button */}
-        <div className="mt-8">
-          <Button
-            variant="outline"
-            size="medium"
-            fullWidth
-            onClick={() => setShowScores(!showScores)}
-          >
-            {showScores ? 'Hide Scores' : 'Show All Scores'}
-          </Button>
-        </div>
-
-        {/* All Player Scores */}
-        {showScores && (
-          <Card padding="medium" className="mt-6">
-            <h3 className="font-serif text-subtitle text-white mb-4">
-              LEADERBOARD
-            </h3>
-            <div className="space-y-4">
-              {players
-                .map(p => ({
-                  ...p,
-                  totalScore: calculateTotalScore(p.scorecard),
-                }))
-                .sort((a, b) => b.totalScore - a.totalScore)
-                .map((player, index) => (
-                  <div
-                    key={player.id}
-                    className="flex items-center justify-between py-3 border-b-2 border-white border-opacity-20 last:border-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="font-serif text-body-lg text-white opacity-50">
-                        #{index + 1}
-                      </span>
-                      <div
-                        className="w-8 h-8 rounded-full border-2 border-black"
-                        style={{ backgroundColor: player.color }}
-                      />
-                      <span className="font-sans text-body font-bold text-white">
-                        {player.name}
-                      </span>
-                    </div>
-                    <span className="font-serif text-body-lg font-bold text-white">
-                      {player.totalScore} pts
-                    </span>
-                  </div>
-                ))}
-            </div>
-          </Card>
-        )}
       </div>
 
       {/* Score Entry Modal */}

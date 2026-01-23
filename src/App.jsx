@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { SettingsProvider } from './context/SettingsContext';
 import Home from './pages/Home';
 import SingleDeviceSetup from './pages/SingleDeviceSetup';
 import GameBoard from './pages/GameBoard';
 import Winner from './pages/Winner';
+import Settings from './pages/Settings';
 
 /**
  * Main App component
@@ -13,6 +15,7 @@ function App() {
   const [gameMode, setGameMode] = useState(null);
   const [players, setPlayers] = useState([]);
   const [finalPlayers, setFinalPlayers] = useState([]);
+  const [homeColorIndex] = useState(() => Math.floor(Math.random() * 5));
 
   // Navigation handlers
   const handleSelectMode = (mode) => {
@@ -58,11 +61,29 @@ function App() {
     setGameMode(null);
   };
 
+  const handleOpenSettings = () => {
+    setScreen('settings');
+  };
+
+  const handleBackFromSettings = () => {
+    setScreen('home');
+  };
+
   // Render appropriate screen
   return (
-    <>
+    <SettingsProvider>
       {screen === 'home' && (
-        <Home onSelectMode={handleSelectMode} />
+        <Home
+          onSelectMode={handleSelectMode}
+          onOpenSettings={handleOpenSettings}
+        />
+      )}
+
+      {screen === 'settings' && (
+        <Settings
+          onBack={handleBackFromSettings}
+          colorIndex={homeColorIndex}
+        />
       )}
 
       {screen === 'setup' && gameMode === 'single' && (
@@ -87,7 +108,7 @@ function App() {
           onGoHome={handleGoHome}
         />
       )}
-    </>
+    </SettingsProvider>
   );
 }
 

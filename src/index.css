@@ -6,7 +6,7 @@
   /* CMYK Color Palette */
   --color-electric-blue: #0066FF;
   --color-hot-magenta: #FF0099;
-  --color-bright-yellow: #FFDD00;
+  --color-golden-yellow: #E6B800;
   --color-vivid-orange: #FF6600;
   --color-deep-purple: #6600CC;
   --color-bright-green: #00FF66;
@@ -29,9 +29,21 @@
   --radius-none: 0;
   --radius-sm: 4px;
 
+  /* Easing curves - sorted weak to strong */
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+
   /* Transitions */
-  --transition-fast: 150ms ease-out;
-  --transition-normal: 300ms ease-out;
+  --transition-fast: 100ms var(--ease-out-cubic);
+  --transition-normal: 150ms var(--ease-out-cubic);
+  --transition-slow: 200ms var(--ease-out-cubic);
+
+  /* Settings-controlled variables */
+  --font-size-multiplier: 1;
+  --button-min-height: 60px;
+  --animation-duration: 200ms;
 }
 
 * {
@@ -73,11 +85,22 @@ button {
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -89,13 +112,107 @@ button {
 }
 
 .animate-fadeIn {
-  animation: fadeIn var(--transition-normal) ease-out;
+  animation: fadeIn var(--animation-duration) var(--ease-out-quart);
 }
 
 .animate-scaleIn {
-  animation: scaleIn var(--transition-normal) ease-out;
+  animation: scaleIn var(--animation-duration) var(--ease-out-quart);
+}
+
+.animate-slideUp {
+  animation: slideUp var(--animation-duration) var(--ease-out-quart);
 }
 
 .animate-fall {
   animation: fall 3s linear forwards;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --border-width: 6px;
+}
+
+.high-contrast * {
+  border-width: var(--border-width) !important;
+}
+
+.high-contrast .bg-opacity-20,
+.high-contrast .bg-opacity-30 {
+  opacity: 1 !important;
+}
+
+/* Dark Mode */
+.dark-mode {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.dark-mode img,
+.dark-mode video {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Reduced Motion - disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Also respect app-level reduced motion setting via class */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation: none;
+  transition: none;
+}
+
+/* Font Size Scaling - applies multiplier to Tailwind typography classes */
+.text-display {
+  font-size: calc(120px * var(--font-size-multiplier));
+}
+
+.text-headline {
+  font-size: calc(96px * var(--font-size-multiplier));
+}
+
+.text-title {
+  font-size: calc(64px * var(--font-size-multiplier));
+}
+
+.text-subtitle {
+  font-size: calc(48px * var(--font-size-multiplier));
+}
+
+.text-body-lg {
+  font-size: calc(24px * var(--font-size-multiplier));
+}
+
+.text-body {
+  font-size: calc(18px * var(--font-size-multiplier));
+}
+
+.text-ui {
+  font-size: calc(14px * var(--font-size-multiplier));
+}
+
+/* Responsive font size overrides */
+@media (min-width: 768px) {
+  .md\:text-display {
+    font-size: calc(120px * var(--font-size-multiplier));
+  }
+
+  .md\:text-headline {
+    font-size: calc(96px * var(--font-size-multiplier));
+  }
+
+  .md\:text-title {
+    font-size: calc(64px * var(--font-size-multiplier));
+  }
+
+  .md\:text-subtitle {
+    font-size: calc(48px * var(--font-size-multiplier));
+  }
 }

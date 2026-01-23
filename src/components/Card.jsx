@@ -13,11 +13,12 @@ export default function Card({
   border = true,
 }) {
   const baseStyles = "bg-black bg-opacity-20";
-  const borderStyles = border ? "border-4 border-black" : "";
+  const borderStyles = "";
 
   const paddingStyles = {
     none: "p-0",
-    small: "p-4",
+    xs: "p-2",
+    small: "p-3",
     medium: "p-6",
     large: "p-8",
   };
@@ -32,6 +33,6 @@ export default function Card({
 Card.propTypes = {
   children: PropTypes.node.isRequired,
   className: PropTypes.string,
-  padding: PropTypes.oneOf(['none', 'small', 'medium', 'large']),
+  padding: PropTypes.oneOf(['none', 'xs', 'small', 'medium', 'large']),
   border: PropTypes.bool,
 };

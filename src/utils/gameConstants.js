@@ -104,9 +104,36 @@ export const ALL_CATEGORIES = [
   ...LOWER_SECTION_CATEGORIES,
 ];
 
-export const UPPER_SECTION_BONUS_THRESHOLD = 63;
-export const UPPER_SECTION_BONUS_POINTS = 35;
+// Default values - can be overridden by settings
+export const DEFAULT_UPPER_SECTION_BONUS_THRESHOLD = 63;
+export const DEFAULT_UPPER_SECTION_BONUS_POINTS = 35;
+export const DEFAULT_YAHTZEE_BONUS = 100;
 export const TOTAL_ROUNDS = 13;
+
+// Legacy exports for backward compatibility
+export const UPPER_SECTION_BONUS_THRESHOLD = DEFAULT_UPPER_SECTION_BONUS_THRESHOLD;
+export const UPPER_SECTION_BONUS_POINTS = DEFAULT_UPPER_SECTION_BONUS_POINTS;
+
+/**
+ * Get upper section bonus threshold (can be overridden by settings)
+ */
+export const getUpperBonusThreshold = (settings) => {
+  return settings?.gameRules?.upperBonusThreshold ?? DEFAULT_UPPER_SECTION_BONUS_THRESHOLD;
+};
+
+/**
+ * Get upper section bonus points (can be overridden by settings)
+ */
+export const getUpperBonusPoints = (settings) => {
+  return settings?.gameRules?.upperBonusPoints ?? DEFAULT_UPPER_SECTION_BONUS_POINTS;
+};
+
+/**
+ * Get Yahtzee bonus points (can be overridden by settings)
+ */
+export const getYahtzeeBonus = (settings) => {
+  return settings?.gameRules?.yahtzeeBonus ?? DEFAULT_YAHTZEE_BONUS;
+};
 
 /**
  * Get category by ID

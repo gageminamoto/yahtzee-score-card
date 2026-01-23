@@ -1,7 +1,7 @@
 import {
   UPPER_SECTION_CATEGORIES,
-  UPPER_SECTION_BONUS_THRESHOLD,
-  UPPER_SECTION_BONUS_POINTS,
+  getUpperBonusThreshold,
+  getUpperBonusPoints,
 } from './gameConstants';
 
 /**
@@ -45,11 +45,13 @@ export const calculateUpperSectionSum = (scorecard) => {
 };
 
 /**
- * Calculate upper section bonus (35 points if sum >= 63)
+ * Calculate upper section bonus (35 points if sum >= 63, or custom values from settings)
  */
-export const calculateUpperBonus = (scorecard) => {
+export const calculateUpperBonus = (scorecard, settings = null) => {
   const upperSum = calculateUpperSectionSum(scorecard);
-  return upperSum >= UPPER_SECTION_BONUS_THRESHOLD ? UPPER_SECTION_BONUS_POINTS : 0;
+  const threshold = getUpperBonusThreshold(settings);
+  const bonusPoints = getUpperBonusPoints(settings);
+  return upperSum >= threshold ? bonusPoints : 0;
 };
 
 /**
@@ -81,9 +83,9 @@ export const calculateLowerSectionSum = (scorecard) => {
 /**
  * Calculate total score
  */
-export const calculateTotalScore = (scorecard) => {
+export const calculateTotalScore = (scorecard, settings = null) => {
   const upperSum = calculateUpperSectionSum(scorecard);
-  const upperBonus = calculateUpperBonus(scorecard);
+  const upperBonus = calculateUpperBonus(scorecard, settings);
   const lowerSum = calculateLowerSectionSum(scorecard);
 
   return upperSum + upperBonus + lowerSum;

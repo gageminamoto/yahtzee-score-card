@@ -15,7 +15,7 @@ export default function Button({
   fullWidth = false,
   className = ''
 }) {
-  const baseStyles = "font-sans font-bold uppercase tracking-wide transition-all duration-150 cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed border-4 border-black";
+  const baseStyles = "font-sans font-bold uppercase tracking-wide cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,opacity] duration-150 ease-[cubic-bezier(0.215,0.61,0.355,1)] active:scale-[0.97] hover:scale-[1.01]";
 
   const variants = {
     primary: "bg-black bg-opacity-20 text-white hover:bg-black hover:bg-opacity-100",

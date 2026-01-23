@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '../components';
-import { getColorByScheme } from '../utils/colors';
+import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
 
 /**
@@ -15,6 +15,7 @@ export default function Home({ onSelectMode, onOpenSettings }) {
   const { settings } = useSettings();
   const [colorIndex] = useState(() => Math.floor(Math.random() * 5));
   const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
+  const textColor = getTextColorForBackground(backgroundColor);
 
   return (
     <div
@@ -34,10 +35,16 @@ export default function Home({ onSelectMode, onOpenSettings }) {
 
       {/* Main Title - Instrument Serif, massive scale */}
       <div className="text-center mb-16">
-        <h1 className="font-serif text-headline md:text-display text-white mb-4 tracking-tight">
+        <h1
+          className="font-serif text-headline md:text-display mb-4 tracking-tight"
+          style={{ color: textColor }}
+        >
           YAHTZEE
         </h1>
-        <p className="font-sans text-body-lg text-white opacity-90">
+        <p
+          className="font-sans text-body-lg opacity-90"
+          style={{ color: textColor }}
+        >
           Score Tracker
         </p>
       </div>
@@ -80,7 +87,10 @@ export default function Home({ onSelectMode, onOpenSettings }) {
 
       {/* Footer */}
       <div className="absolute bottom-8 text-center">
-        <p className="font-sans text-ui text-white opacity-70">
+        <p
+          className="font-sans text-ui opacity-70"
+          style={{ color: textColor }}
+        >
           Open Source • Free Forever • No Ads
         </p>
       </div>
