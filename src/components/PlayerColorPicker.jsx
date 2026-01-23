@@ -83,7 +83,7 @@ export default function PlayerColorPicker({
     return otherPlayersColors.includes(color);
   };
 
-  // Close popup when clicking outside
+  // Close popup when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -97,16 +97,28 @@ export default function PlayerColorPicker({
       }
     };
 
+    const handleEscape = (event) => {
+      if (isOpen && event.key === 'Escape') {
+        setIsOpen(false);
+        // Return focus to the button that opened the popup
+        if (buttonRef.current) {
+          buttonRef.current.focus();
+        }
+      }
+    };
+
     if (isOpen) {
-      // Add listener when popup is open
+      // Add listeners when popup is open
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
     }
 
-    // Cleanup listener when popup closes or component unmounts
+    // Cleanup listeners when popup closes or component unmounts
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
     };
   }, [isOpen]);
 

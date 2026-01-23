@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { CircleLock01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from '@iconify/react';
 import { Button, DiceAnimation } from '../components';
 import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
@@ -93,7 +92,7 @@ export default function Home({ onSelectMode, onOpenSettings, colorIndex, onTitle
         >
           <span className="flex items-center justify-center gap-2">
             Multiplayer
-            <HugeiconsIcon icon={CircleLock01Icon} className="w-5 h-5" />
+            <Icon icon="basil:lock-solid" className="w-5 h-5" />
           </span>
         </Button>
 

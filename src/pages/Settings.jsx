@@ -4,8 +4,7 @@
 
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from '@iconify/react';
 import { Button, Card } from '../components';
 import SettingToggle from '../components/SettingToggle';
 import SettingButtonGroup from '../components/SettingButtonGroup';
@@ -68,7 +67,7 @@ export default function Settings({ onBack, colorIndex }) {
             className="font-sans text-body hover:opacity-70 transition-opacity flex items-center gap-2"
             style={{ color: textColor }}
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} className="w-6 h-6" />
+            <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
             Back
           </button>
           <h1

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from './';
 import TabSwitcher from './TabSwitcher';
@@ -19,6 +19,8 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
   const [activeTab, setActiveTab] = useState(() => getInputMode());
   const [score, setScore] = useState(0);
   const category = getCategoryById(categoryId);
+  const modalRef = useRef(null);
+  const firstTabRef = useRef(null);
 
   // Save tab preference when it changes
   useEffect(() => {
@@ -42,12 +44,64 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
     setActiveTab(tabId);
   };
 
-  // Handle submit
-  const handleSubmit = () => {
+  // Handle submit - memoized to avoid recreating on every render
+  const handleSubmit = useCallback(() => {
     if (isValidScore(categoryId, score)) {
       onSubmit(score);
     }
-  };
+  }, [categoryId, score, onSubmit]);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Escape key closes the modal
+      if (e.key === 'Escape') {
+        onCancel();
+        return;
+      }
+
+      // Enter key confirms the score (if valid)
+      if (e.key === 'Enter' && isValidScore(categoryId, score)) {
+        // Don't trigger if user is typing in an input field
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          handleSubmit();
+        }
+        return;
+      }
+
+      // Number keys (0-9) can be used for quick score entry
+      // Only if we're not in an input field
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        const num = parseInt(e.key);
+        if (!isNaN(num) && num >= 0 && num <= 9) {
+          // For single digits, append to score
+          // For multi-digit, we'd need more complex logic, so we'll keep it simple
+          // Users can use the number pad or adjust input for larger numbers
+        }
+      }
+    };
+
+    // Add event listener when modal is open
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Focus the first tab button for keyboard navigation
+    // Small delay to ensure modal is rendered
+    const focusTimer = setTimeout(() => {
+      // Try to focus the first tab button, otherwise focus the modal container
+      if (firstTabRef.current) {
+        firstTabRef.current.focus();
+      } else if (modalRef.current) {
+        modalRef.current.focus();
+      }
+    }, 100);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      clearTimeout(focusTimer);
+    };
+  }, [categoryId, score, onCancel, handleSubmit]);
 
   // Handle fixed score click (for fixed-score categories)
   const handleFixedScoreClick = (scoreValue) => {
@@ -63,17 +117,25 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
   const isFixedScoreCategory = category.fixedScore !== undefined;
 
   return (
-    <div className="fixed inset-0 bg-black/80 dark:bg-black/90 flex items-center justify-center p-4 z-popover animate-fadeIn">
+    <div 
+      className="fixed inset-0 bg-black/80 dark:bg-black/90 flex items-center justify-center p-4 z-popover animate-fadeIn"
+      onClick={onCancel}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
       <div
-        className="bg-electric-blue dark:bg-electric-blue max-w-md w-full p-8 animate-scaleIn"
+        ref={modalRef}
+        tabIndex={-1}
+        className="bg-electric-blue dark:bg-electric-blue max-w-md w-full p-6 md:p-8 animate-scaleIn focus:outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Category Info */}
-        <div className="mb-8">
-          <h2 className="font-serif text-title text-white mb-2">
+        <div className="mb-4 md:mb-6">
+          <h2 id="modal-title" className="font-serif text-subtitle md:text-title text-white mb-2">
             {category.name.toUpperCase()}
           </h2>
-          <p className="font-sans text-body text-white opacity-90">
+          <p className="font-sans text-ui md:text-body text-white opacity-90">
             {category.description}
           </p>
         </div>
@@ -83,7 +145,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
           <div className="space-y-3">
             <Button
               variant="solid"
-              size="large"
+              size="medium"
               fullWidth
               onClick={() => handleFixedScoreClick(category.fixedScore)}
             >
@@ -91,7 +153,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
             </Button>
             <Button
               variant="outline"
-              size="large"
+              size="medium"
               fullWidth
               onClick={() => handleFixedScoreClick(0)}
             >
@@ -99,7 +161,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
             </Button>
             <Button
               variant="outline"
-              size="medium"
+              size="small"
               fullWidth
               onClick={onCancel}
             >
@@ -109,12 +171,16 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
         ) : (
           <>
             {/* Tab Switcher */}
-            <TabSwitcher activeTab={activeTab} onTabChange={handleTabChange} />
+            <TabSwitcher 
+              activeTab={activeTab} 
+              onTabChange={handleTabChange}
+              firstTabRef={firstTabRef}
+            />
 
             {/* Score Display */}
-            <div className="mb-6">
-              <div className="bg-black/20 dark:bg-white/20 p-6 text-center">
-                <div className="font-serif text-headline text-white dark:text-black min-h-[80px] flex items-center justify-center tabular-nums">
+            <div className="mb-4 md:mb-6">
+              <div className="bg-black/20 dark:bg-white/20 p-4 md:p-6 text-center">
+                <div className="font-serif text-subtitle md:text-headline text-white dark:text-black min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums">
                   {score}
                 </div>
               </div>
@@ -126,7 +192,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
             </div>
 
             {/* Input Area - Show different input based on active tab */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               {activeTab === 'dice' && (
                 <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} />
               )}
@@ -155,7 +221,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
               </Button>
               <Button
                 variant="outline"
-                size="medium"
+                size="small"
                 fullWidth
                 onClick={onCancel}
               >

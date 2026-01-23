@@ -3,8 +3,7 @@
  */
 
 import PropTypes from 'prop-types';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { CheckmarkCircle01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from '@iconify/react';
 import { colorSchemes, getTextColorForBackground } from '../utils/colors';
 
 export default function ColorSchemeCard({ scheme, label, isSelected, onClick }) {
@@ -42,8 +41,8 @@ export default function ColorSchemeCard({ scheme, label, isSelected, onClick }) 
       {/* Selected indicator */}
       {isSelected && (
         <div className="absolute top-2 right-2 w-6 h-6 bg-white dark:bg-black rounded-full flex items-center justify-center">
-          <HugeiconsIcon 
-            icon={CheckmarkCircle01Icon} 
+          <Icon 
+            icon="basil:check-solid" 
             className="w-4 h-4 text-black dark:text-white"
           />
         </div>

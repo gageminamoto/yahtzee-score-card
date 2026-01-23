@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { ArrowLeft01Icon, Close } from '@hugeicons/core-free-icons';
+import { Icon } from '@iconify/react';
 import { Button, Input, Card, PlayerColorPicker } from '../components';
 import { getColorByScheme, getPlayerColorByScheme, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
 
 /**
  * Single Device Setup Screen
- * - Enter 2-6 player names
+ * - Add 2-6 players (names optional)
  * - Auto-assign colors
  * - Start game when ready
  */
@@ -47,11 +46,12 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
     }
   };
 
-  const canStart = players.filter(p => p.name.trim() !== '').length >= 2;
+  // Allow starting with at least 2 players (names are optional)
+  const canStart = players.length >= 2;
 
   const handleStart = () => {
-    const validPlayers = players.filter(p => p.name.trim() !== '');
-    onStartGame(validPlayers);
+    // Pass all players to the game (names are optional, will show as "Player 1", "Player 2", etc.)
+    onStartGame(players);
   };
 
   return (
@@ -66,7 +66,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
           className="font-sans text-body mb-8 hover:opacity-70 transition-opacity flex items-center gap-2"
           style={{ color: textColor }}
         >
-          <HugeiconsIcon icon={ArrowLeft01Icon} className="w-6 h-6" />
+          <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
           Back
         </button>
 
@@ -80,7 +80,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
           className="font-sans text-body opacity-90 mb-12 text-pretty"
           style={{ color: textColor }}
         >
-          Enter 2-6 player names to begin
+          Add 2-6 players to begin (names optional)
         </p>
 
         {/* Player Inputs */}
@@ -114,7 +114,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
                   style={{ color: textColor }}
                   aria-label={`Remove ${player.name || `Player ${index + 1}`}`}
                 >
-                  <HugeiconsIcon icon={Close} className="w-6 h-6" />
+                  <Icon icon="basil:close-solid" className="w-6 h-6" />
                 </button>
               )}
             </div>
@@ -150,7 +150,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
             className="font-sans text-ui opacity-70 text-center mt-4"
             style={{ color: textColor }}
           >
-            Enter at least 2 player names to start
+            Add at least 2 players to start
           </p>
         )}
       </div>
