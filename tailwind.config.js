@@ -4,6 +4,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class', // Enable class-based dark mode
   theme: {
     extend: {
       colors: {
@@ -33,6 +34,15 @@ export default {
       borderWidth: {
         '6': '6px',
         '8': '8px',
+      },
+      zIndex: {
+        // Fixed z-index scale - use these instead of arbitrary values
+        'base': '0',
+        'dropdown': '10',
+        'sticky': '20',
+        'overlay': '30',
+        'modal': '40',
+        'popover': '50',
       },
     },
   },

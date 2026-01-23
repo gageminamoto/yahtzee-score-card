@@ -65,19 +65,19 @@ export const colorSchemes = {
   },
   pastel: {
     primary: [
-      '#6BA3D6', // Muted Blue (darkened for contrast)
-      '#D6789E', // Muted Rose (darkened for contrast)
-      '#C9A832', // Muted Gold (darkened for contrast)
-      '#D68F5E', // Muted Orange (darkened for contrast)
-      '#9B6BC9', // Muted Purple (darkened for contrast)
+      '#5BA8FF', // Bright Sky Blue (vibrant but light)
+      '#FF7EB3', // Bright Pink (saturated pastel)
+      '#FFD84D', // Sunny Yellow (warm and bright)
+      '#FFA366', // Coral Orange (vibrant pastel)
+      '#B57FFF', // Bright Violet (saturated lavender)
     ],
     player: [
-      '#6BA3D6', // Muted Blue
-      '#D6789E', // Muted Rose
-      '#D68F5E', // Muted Orange
-      '#5EAD7A', // Muted Green (darkened for contrast)
-      '#9B6BC9', // Muted Purple
-      '#C9A832', // Muted Gold
+      '#5BA8FF', // Bright Sky Blue
+      '#FF7EB3', // Bright Pink
+      '#FFA366', // Coral Orange
+      '#5DD9A3', // Mint Green (bright and fresh)
+      '#B57FFF', // Bright Violet
+      '#FFD84D', // Sunny Yellow
     ],
   },
   'high-contrast': {

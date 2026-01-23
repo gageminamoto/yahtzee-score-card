@@ -2,6 +2,7 @@ import {
   UPPER_SECTION_CATEGORIES,
   getUpperBonusThreshold,
   getUpperBonusPoints,
+  getCategoryById,
 } from './gameConstants';
 
 /**
@@ -120,4 +121,40 @@ export const updateScorecard = (scorecard, categoryId, score) => {
     ...scorecard,
     [categoryId]: score,
   };
+};
+
+/**
+ * Get all valid scores for a category
+ * Returns an array of valid score values based on category type
+ */
+export const getValidScoresForCategory = (categoryId) => {
+  const category = getCategoryById(categoryId);
+  
+  if (!category) return [];
+  
+  // Fixed score categories: only 0 and the fixed score
+  if (category.fixedScore !== undefined) {
+    return [0, category.fixedScore];
+  }
+  
+  // Upper section categories: 0 to maxScore (multiples of die value)
+  if (category.section === 'upper' && category.maxScore !== undefined) {
+    const dieValue = category.maxScore / 5; // e.g., 15 / 5 = 3 for threes
+    const scores = [];
+    for (let i = 0; i <= 5; i++) {
+      scores.push(i * dieValue);
+    }
+    return scores;
+  }
+  
+  // Lower section variable categories (3 of a Kind, 4 of a Kind, Chance)
+  if (category.section === 'lower' && category.maxScore !== undefined) {
+    // Common presets: 0, 5, 10, 15, 20, 25, 30
+    const presets = [0, 5, 10, 15, 20, 25, 30];
+    // Filter to only include scores <= maxScore
+    return presets.filter(score => score <= category.maxScore);
+  }
+  
+  // Fallback: return empty array
+  return [];
 };

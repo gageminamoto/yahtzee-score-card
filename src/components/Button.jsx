@@ -15,12 +15,13 @@ export default function Button({
   fullWidth = false,
   className = ''
 }) {
-  const baseStyles = "font-sans font-bold uppercase tracking-wide cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,opacity] duration-150 ease-[cubic-bezier(0.215,0.61,0.355,1)] active:scale-[0.97] hover:scale-[1.01]";
+  const baseStyles = "font-sans font-bold uppercase cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,opacity] duration-150 ease-out active:scale-[0.97] hover:scale-[1.01]";
 
+  // Theme-aware button variants with proper contrast in both modes
   const variants = {
-    primary: "bg-black bg-opacity-20 text-white hover:bg-black hover:bg-opacity-100",
-    solid: "bg-black text-white hover:bg-opacity-80",
-    outline: "bg-transparent text-white border-white hover:bg-white hover:text-black",
+    primary: "bg-black/20 dark:bg-white/20 text-white dark:text-black hover:bg-black/100 dark:hover:bg-white/100 hover:text-white dark:hover:text-black",
+    solid: "bg-black dark:bg-white text-white dark:text-black hover:bg-black/80 dark:hover:bg-white/80",
+    outline: "bg-transparent text-white dark:text-black border-white dark:border-black hover:bg-white dark:hover:bg-black hover:text-black dark:hover:text-white",
   };
 
   const sizes = {

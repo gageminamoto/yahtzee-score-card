@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   settings: `yahtzee_settings_v${STORAGE_VERSION}`,
   gameState: `yahtzee_game_state_v${STORAGE_VERSION}`,
   gameHistory: `yahtzee_game_history_v${STORAGE_VERSION}`,
+  inputMode: `yahtzee_input_mode_v${STORAGE_VERSION}`,
 };
 
 /**
@@ -226,4 +227,43 @@ export function clearAllData() {
  */
 function generateGameId() {
   return `game_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Get the preferred input mode (dice, quick, or adjust)
+ * Defaults to 'dice' if not set
+ */
+export function getInputMode() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.inputMode);
+    if (!stored) return 'dice';
+    
+    const mode = stored;
+    // Validate that it's one of the allowed modes
+    if (['dice', 'quick', 'adjust'].includes(mode)) {
+      return mode;
+    }
+    return 'dice';
+  } catch (error) {
+    console.error('Error loading input mode:', error);
+    return 'dice';
+  }
+}
+
+/**
+ * Save the preferred input mode
+ */
+export function setInputMode(mode) {
+  try {
+    // Validate mode before saving
+    if (!['dice', 'quick', 'adjust'].includes(mode)) {
+      console.warn('Invalid input mode:', mode);
+      return false;
+    }
+    localStorage.setItem(STORAGE_KEYS.inputMode, mode);
+    return true;
+  } catch (error) {
+    console.error('Error saving input mode:', error);
+    return false;
+  }
 }

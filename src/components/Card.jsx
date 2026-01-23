@@ -12,7 +12,8 @@ export default function Card({
   padding = 'medium',
   border = true,
 }) {
-  const baseStyles = "bg-black bg-opacity-20";
+  // Use theme-aware overlay colors that work in both light and dark modes
+  const baseStyles = "bg-black/20 dark:bg-white/20";
   const borderStyles = "";
 
   const paddingStyles = {

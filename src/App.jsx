@@ -9,19 +9,55 @@ import Settings from './pages/Settings';
 /**
  * Main App component
  * Handles routing between screens using state
+ * Includes slide animation transitions between screens
  */
 function App() {
   const [screen, setScreen] = useState('home');
   const [gameMode, setGameMode] = useState(null);
   const [players, setPlayers] = useState([]);
   const [finalPlayers, setFinalPlayers] = useState([]);
-  const [homeColorIndex] = useState(() => Math.floor(Math.random() * 5));
+  const [homeColorIndex, setHomeColorIndex] = useState(() => Math.floor(Math.random() * 5));
+  // Use homeColorIndex for setup page so color changes from Home page reflect there too
+  const setupColorIndex = homeColorIndex;
+  const [winnerColorIndex] = useState(() => Math.floor(Math.random() * 5));
+  
+  // Transition state for slide animations
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [previousScreen, setPreviousScreen] = useState(null);
+  const [nextScreen, setNextScreen] = useState('home');
+
+  /**
+   * Helper function to transition between screens with slide animation
+   * @param {string} newScreen - The screen to transition to
+   * @param {Function} callback - Optional callback to run after transition starts
+   */
+  const transitionToScreen = (newScreen, callback) => {
+    // If already transitioning, don't start a new transition
+    if (isTransitioning) return;
+    
+    // Store the current screen as previous
+    setPreviousScreen(screen);
+    // Set the next screen
+    setNextScreen(newScreen);
+    // Start transition
+    setIsTransitioning(true);
+    
+    // Run callback if provided (for setting gameMode, players, etc.)
+    if (callback) callback();
+    
+    // After animation completes (200ms), update the actual screen state
+    setTimeout(() => {
+      setScreen(newScreen);
+      setIsTransitioning(false);
+      setPreviousScreen(null);
+    }, 200);
+  };
 
   // Navigation handlers
   const handleSelectMode = (mode) => {
     setGameMode(mode);
     if (mode === 'single') {
-      setScreen('setup');
+      transitionToScreen('setup');
     } else {
       // Multi-device mode (future implementation)
       alert('Multi-device mode coming soon!');
@@ -30,24 +66,25 @@ function App() {
 
   const handleStartGame = (gamePlayers) => {
     setPlayers(gamePlayers);
-    setScreen('game');
+    transitionToScreen('game');
   };
 
   const handleGameComplete = (completedPlayers) => {
     setFinalPlayers(completedPlayers);
-    setScreen('winner');
+    transitionToScreen('winner');
   };
 
   const handlePlayAgain = () => {
     // Keep same players but reset game
-    setScreen('game');
+    transitionToScreen('game');
   };
 
   const handleGoHome = () => {
-    setScreen('home');
-    setGameMode(null);
-    setPlayers([]);
-    setFinalPlayers([]);
+    transitionToScreen('home', () => {
+      setGameMode(null);
+      setPlayers([]);
+      setFinalPlayers([]);
+    });
   };
 
   const handleQuit = () => {
@@ -57,57 +94,205 @@ function App() {
   };
 
   const handleBackFromSetup = () => {
-    setScreen('home');
-    setGameMode(null);
+    transitionToScreen('home', () => {
+      setGameMode(null);
+    });
   };
 
   const handleOpenSettings = () => {
-    setScreen('settings');
+    transitionToScreen('settings');
   };
 
   const handleBackFromSettings = () => {
-    setScreen('home');
+    transitionToScreen('home');
   };
 
-  // Render appropriate screen
+  /**
+   * Handle title click on Home screen
+   * Cycles through background colors by incrementing the color index
+   */
+  const handleHomeTitleClick = () => {
+    setHomeColorIndex((prev) => (prev + 1) % 5);
+  };
+
+  /**
+   * Render a screen component with optional animation class
+   * Wraps the screen in a fixed container for slide animations
+   * @param {string} screenName - The screen identifier
+   * @param {JSX.Element} component - The component to render
+   * @param {string} animationClass - Optional animation class to apply
+   */
+  const renderScreen = (screenName, component, animationClass = '') => {
+    const zIndexClass = screenName === nextScreen ? 'z-dropdown' : 'z-base';
+    return (
+      <div
+        key={screenName}
+        className={`fixed inset-0 ${zIndexClass} ${animationClass}`}
+      >
+        {component}
+      </div>
+    );
+  };
+
+  // Render appropriate screen(s)
   return (
     <SettingsProvider>
-      {screen === 'home' && (
-        <Home
-          onSelectMode={handleSelectMode}
-          onOpenSettings={handleOpenSettings}
-        />
-      )}
+      <div className="relative w-full min-h-dvh overflow-hidden">
+        {/* Render previous screen with slide-out animation during transition */}
+        {isTransitioning && previousScreen && (
+          <>
+            {previousScreen === 'home' && renderScreen(
+              'home',
+              <Home
+                onSelectMode={handleSelectMode}
+                onOpenSettings={handleOpenSettings}
+                colorIndex={homeColorIndex}
+                onTitleClick={handleHomeTitleClick}
+              />,
+              'animate-slideOutToLeft'
+            )}
+            
+            {previousScreen === 'settings' && renderScreen(
+              'settings',
+              <Settings
+                onBack={handleBackFromSettings}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideOutToLeft'
+            )}
+            
+            {previousScreen === 'setup' && gameMode === 'single' && renderScreen(
+              'setup',
+              <SingleDeviceSetup
+                onStartGame={handleStartGame}
+                onBack={handleBackFromSetup}
+                colorIndex={setupColorIndex}
+              />,
+              'animate-slideOutToLeft'
+            )}
+            
+            {previousScreen === 'game' && renderScreen(
+              'game',
+              <GameBoard
+                players={players}
+                onGameComplete={handleGameComplete}
+                onQuit={handleQuit}
+              />,
+              'animate-slideOutToLeft'
+            )}
+            
+            {previousScreen === 'winner' && renderScreen(
+              'winner',
+              <Winner
+                players={finalPlayers}
+                onPlayAgain={handlePlayAgain}
+                onGoHome={handleGoHome}
+                colorIndex={winnerColorIndex}
+              />,
+              'animate-slideOutToLeft'
+            )}
+          </>
+        )}
 
-      {screen === 'settings' && (
-        <Settings
-          onBack={handleBackFromSettings}
-          colorIndex={homeColorIndex}
-        />
-      )}
+        {/* Render next screen with slide-in animation during transition, or current screen normally */}
+        {isTransitioning ? (
+          <>
+            {nextScreen === 'home' && renderScreen(
+              'home',
+              <Home
+                onSelectMode={handleSelectMode}
+                onOpenSettings={handleOpenSettings}
+                colorIndex={homeColorIndex}
+                onTitleClick={handleHomeTitleClick}
+              />,
+              'animate-slideInFromRight'
+            )}
+            
+            {nextScreen === 'settings' && renderScreen(
+              'settings',
+              <Settings
+                onBack={handleBackFromSettings}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideInFromRight'
+            )}
+            
+            {nextScreen === 'setup' && gameMode === 'single' && renderScreen(
+              'setup',
+              <SingleDeviceSetup
+                onStartGame={handleStartGame}
+                onBack={handleBackFromSetup}
+                colorIndex={setupColorIndex}
+              />,
+              'animate-slideInFromRight'
+            )}
+            
+            {nextScreen === 'game' && renderScreen(
+              'game',
+              <GameBoard
+                players={players}
+                onGameComplete={handleGameComplete}
+                onQuit={handleQuit}
+              />,
+              'animate-slideInFromRight'
+            )}
+            
+            {nextScreen === 'winner' && renderScreen(
+              'winner',
+              <Winner
+                players={finalPlayers}
+                onPlayAgain={handlePlayAgain}
+                onGoHome={handleGoHome}
+                colorIndex={winnerColorIndex}
+              />,
+              'animate-slideInFromRight'
+            )}
+          </>
+        ) : (
+          <>
+            {screen === 'home' && (
+              <Home
+                onSelectMode={handleSelectMode}
+                onOpenSettings={handleOpenSettings}
+                colorIndex={homeColorIndex}
+                onTitleClick={handleHomeTitleClick}
+              />
+            )}
 
-      {screen === 'setup' && gameMode === 'single' && (
-        <SingleDeviceSetup
-          onStartGame={handleStartGame}
-          onBack={handleBackFromSetup}
-        />
-      )}
+            {screen === 'settings' && (
+              <Settings
+                onBack={handleBackFromSettings}
+                colorIndex={homeColorIndex}
+              />
+            )}
 
-      {screen === 'game' && (
-        <GameBoard
-          players={players}
-          onGameComplete={handleGameComplete}
-          onQuit={handleQuit}
-        />
-      )}
+            {screen === 'setup' && gameMode === 'single' && (
+              <SingleDeviceSetup
+                onStartGame={handleStartGame}
+                onBack={handleBackFromSetup}
+                colorIndex={setupColorIndex}
+              />
+            )}
 
-      {screen === 'winner' && (
-        <Winner
-          players={finalPlayers}
-          onPlayAgain={handlePlayAgain}
-          onGoHome={handleGoHome}
-        />
-      )}
+            {screen === 'game' && (
+              <GameBoard
+                players={players}
+                onGameComplete={handleGameComplete}
+                onQuit={handleQuit}
+              />
+            )}
+
+            {screen === 'winner' && (
+              <Winner
+                players={finalPlayers}
+                onPlayAgain={handlePlayAgain}
+                onGoHome={handleGoHome}
+                colorIndex={winnerColorIndex}
+              />
+            )}
+          </>
+        )}
+      </div>
     </SettingsProvider>
   );
 }

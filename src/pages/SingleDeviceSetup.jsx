@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Button, Input, Card } from '../components';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowLeft01Icon, Close } from '@hugeicons/core-free-icons';
+import { Button, Input, Card, PlayerColorPicker } from '../components';
 import { getColorByScheme, getPlayerColorByScheme, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
 
@@ -9,10 +11,9 @@ import { useSettings } from '../context/SettingsContext';
  * - Auto-assign colors
  * - Start game when ready
  */
-export default function SingleDeviceSetup({ onStartGame, onBack }) {
+export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
   const { settings } = useSettings();
   const colorScheme = settings.visual.colorScheme;
-  const [colorIndex] = useState(() => Math.floor(Math.random() * 5));
   const backgroundColor = getColorByScheme(colorIndex, colorScheme);
   const textColor = getTextColorForBackground(backgroundColor);
 
@@ -23,6 +24,11 @@ export default function SingleDeviceSetup({ onStartGame, onBack }) {
 
   const handleNameChange = (id, name) => {
     setPlayers(players.map(p => p.id === id ? { ...p, name } : p));
+  };
+
+  // Handle color change for a player
+  const handleColorChange = (id, newColor) => {
+    setPlayers(players.map(p => p.id === id ? { ...p, color: newColor } : p));
   };
 
   const addPlayer = () => {
@@ -50,27 +56,28 @@ export default function SingleDeviceSetup({ onStartGame, onBack }) {
 
   return (
     <div
-      className="min-h-screen p-8 transition-colors duration-500"
+      className="min-h-dvh p-8 transition-colors duration-500"
       style={{ backgroundColor }}
     >
       {/* Header */}
       <div className="max-w-2xl mx-auto">
         <button
           onClick={onBack}
-          className="font-sans text-body mb-8 hover:opacity-70 transition-opacity"
+          className="font-sans text-body mb-8 hover:opacity-70 transition-opacity flex items-center gap-2"
           style={{ color: textColor }}
         >
-          ← Back
+          <HugeiconsIcon icon={ArrowLeft01Icon} className="w-6 h-6" />
+          Back
         </button>
 
         <h1
-          className="font-serif text-title md:text-headline mb-4"
+          className="font-serif text-title md:text-headline mb-4 text-balance"
           style={{ color: textColor }}
         >
           PLAYERS
         </h1>
         <p
-          className="font-sans text-body opacity-90 mb-12"
+          className="font-sans text-body opacity-90 mb-12 text-pretty"
           style={{ color: textColor }}
         >
           Enter 2-6 player names to begin
@@ -80,10 +87,12 @@ export default function SingleDeviceSetup({ onStartGame, onBack }) {
         <div className="space-y-6 mb-8">
           {players.map((player, index) => (
             <div key={player.id} className="flex items-center gap-4">
-              {/* Color Indicator */}
-              <div
-                className="w-12 h-12 rounded-full flex-shrink-0 border-4 border-white"
-                style={{ backgroundColor: player.color }}
+              {/* Color Picker - Clickable color circle with popup */}
+              <PlayerColorPicker
+                currentColor={player.color}
+                usedColors={players.map(p => p.color)}
+                colorScheme={colorScheme}
+                onColorChange={(newColor) => handleColorChange(player.id, newColor)}
               />
 
               {/* Name Input */}
@@ -101,10 +110,11 @@ export default function SingleDeviceSetup({ onStartGame, onBack }) {
               {players.length > 2 && (
                 <button
                   onClick={() => removePlayer(player.id)}
-                  className="w-12 h-12 flex items-center justify-center text-2xl font-bold hover:opacity-70 transition-opacity"
+                  className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity"
                   style={{ color: textColor }}
+                  aria-label={`Remove ${player.name || `Player ${index + 1}`}`}
                 >
-                  ×
+                  <HugeiconsIcon icon={Close} className="w-6 h-6" />
                 </button>
               )}
             </div>

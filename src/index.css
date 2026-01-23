@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  /* CMYK Color Palette */
+  /* CMYK Color Palette - work in both light and dark modes */
   --color-electric-blue: #0066FF;
   --color-hot-magenta: #FF0099;
   --color-golden-yellow: #E6B800;
@@ -13,6 +13,18 @@
   --color-bright-red: #FF0033;
   --color-white: #FFFFFF;
   --color-black: #000000;
+
+  /* Light Mode Theme Colors */
+  --bg-surface: #FFFFFF;
+  --bg-overlay: rgba(0, 0, 0, 0.2);
+  --bg-overlay-hover: rgba(0, 0, 0, 0.3);
+  --bg-overlay-active: rgba(0, 0, 0, 0.4);
+  --text-primary: #000000;
+  --text-secondary: rgba(0, 0, 0, 0.7);
+  --text-muted: rgba(0, 0, 0, 0.5);
+  --border-color: rgba(255, 255, 255, 1);
+  --border-color-muted: rgba(255, 255, 255, 0.5);
+  --border-color-subtle: rgba(255, 255, 255, 0.2);
 
   /* Typography */
   --font-serif: 'Instrument Serif', serif;
@@ -44,6 +56,20 @@
   --font-size-multiplier: 1;
   --button-min-height: 60px;
   --animation-duration: 200ms;
+}
+
+/* Dark Mode Theme Colors */
+.dark {
+  --bg-surface: #1a1a1a;
+  --bg-overlay: rgba(255, 255, 255, 0.2);
+  --bg-overlay-hover: rgba(255, 255, 255, 0.3);
+  --bg-overlay-active: rgba(255, 255, 255, 0.4);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --border-color: rgba(255, 255, 255, 1);
+  --border-color-muted: rgba(255, 255, 255, 0.5);
+  --border-color-subtle: rgba(255, 255, 255, 0.2);
 }
 
 * {
@@ -93,6 +119,18 @@ button {
   }
 }
 
+/* Origin-aware popover animation - respects transform-origin set on element */
+@keyframes popoverScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -108,6 +146,24 @@ button {
   to {
     transform: translateY(100vh) rotate(360deg);
     opacity: 0;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
   }
 }
 
@@ -127,6 +183,14 @@ button {
   animation: fall 3s linear forwards;
 }
 
+.animate-slideInFromRight {
+  animation: slideInFromRight 200ms ease-out forwards;
+}
+
+.animate-slideOutToLeft {
+  animation: slideOutToLeft 200ms ease-out forwards;
+}
+
 /* High Contrast Mode */
 .high-contrast {
   --border-width: 6px;
@@ -141,15 +205,8 @@ button {
   opacity: 1 !important;
 }
 
-/* Dark Mode */
-.dark-mode {
-  filter: invert(1) hue-rotate(180deg);
-}
-
-.dark-mode img,
-.dark-mode video {
-  filter: invert(1) hue-rotate(180deg);
-}
+/* Dark Mode - Now handled via CSS variables and Tailwind dark: variants */
+/* Removed filter-based dark mode in favor of proper theme system */
 
 /* Reduced Motion - disable all animations */
 @media (prefers-reduced-motion: reduce) {
@@ -158,6 +215,13 @@ button {
   *::after {
     animation: none;
     transition: none;
+  }
+  
+  /* Ensure popovers still appear but without animation */
+  [style*="popoverScaleIn"] {
+    animation: none;
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -215,4 +279,10 @@ button {
   .md\:text-subtitle {
     font-size: calc(48px * var(--font-size-multiplier));
   }
+}
+
+/* Dice Animation - ensure canvas doesn't block pointer events */
+.dice-animation-overlay,
+.dice-animation-overlay canvas {
+  pointer-events: none !important;
 }

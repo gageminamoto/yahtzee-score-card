@@ -127,11 +127,11 @@ function applyThemeSettings(settings) {
     root.classList.remove('high-contrast');
   }
 
-  // Dark mode
+  // Dark mode - use 'dark' class for Tailwind compatibility
   if (settings.visual.enableDarkMode) {
-    root.classList.add('dark-mode');
+    root.classList.add('dark');
   } else {
-    root.classList.remove('dark-mode');
+    root.classList.remove('dark');
   }
 }
 

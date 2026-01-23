@@ -1,4 +1,6 @@
 import PropTypes from 'prop-types';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { CheckmarkCircle01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import { Card } from './';
 import {
   UPPER_SECTION_CATEGORIES,
@@ -23,7 +25,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
       {/* Upper Section */}
       <Card padding="small">
         <h3
-          className="font-serif text-body-lg mb-2 border-b-2 border-white border-opacity-30 pb-1"
+          className="font-serif text-body-lg mb-2 border-b-2 border-white/30 dark:border-black/30 pb-1 text-balance"
           style={{ color: textColor }}
         >
           UPPER SECTION
@@ -42,12 +44,12 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
           ))}
 
           {/* Upper Section Bonus */}
-          <div className="border-t-2 border-white border-opacity-30 pt-1 mt-1">
+          <div className="border-t-2 border-white/30 dark:border-black/30 pt-1 mt-1">
             <div className="flex justify-between items-center py-1 px-2">
               <span className="font-sans text-ui" style={{ color: textColor }}>
                 BONUS ({upperSum}/{UPPER_SECTION_BONUS_THRESHOLD})
               </span>
-              <span className="font-serif text-body font-bold" style={{ color: textColor }}>
+              <span className="font-serif text-body font-bold tabular-nums" style={{ color: textColor }}>
                 {upperBonus > 0 ? `+${upperBonus}` : '—'}
               </span>
             </div>
@@ -58,7 +60,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
       {/* Lower Section */}
       <Card padding="small">
         <h3
-          className="font-serif text-body-lg mb-2 border-b-2 border-white border-opacity-30 pb-1"
+          className="font-serif text-body-lg mb-2 border-b-2 border-white/30 dark:border-black/30 pb-1 text-balance"
           style={{ color: textColor }}
         >
           LOWER SECTION
@@ -92,13 +94,14 @@ Scorecard.propTypes = {
  * Individual category row
  */
 function CategoryRow({ category, score, isScored, onClick, isClickable, textColor = '#FFFFFF' }) {
-  const baseStyles = "flex justify-between items-center py-1.5 px-2 transition-[background-color] duration-100 ease-[cubic-bezier(0.215,0.61,0.355,1)]";
+  const baseStyles = "flex justify-between items-center py-1.5 px-2 transition-[background-color] duration-100 ease-out";
 
+  // Theme-aware interactive and scored styles
   const interactiveStyles = isClickable
-    ? "cursor-pointer hover:bg-white hover:bg-opacity-10 active:bg-opacity-20"
+    ? "cursor-pointer hover:bg-white/10 dark:hover:bg-black/10 active:bg-white/20 dark:active:bg-black/20"
     : "";
 
-  const scoredStyles = isScored ? "bg-black bg-opacity-20" : "";
+  const scoredStyles = isScored ? "bg-black/20 dark:bg-white/20" : "";
 
   return (
     <div
@@ -112,15 +115,23 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
       <div className="flex items-center gap-2">
         {isScored ? (
           <>
-            <span className="font-sans text-ui opacity-50" style={{ color: textColor }}>✓</span>
-            <span className="font-serif text-body font-bold min-w-[2.5rem] text-right" style={{ color: textColor }}>
+            <HugeiconsIcon 
+              icon={CheckmarkCircle01Icon} 
+              className="w-5 h-5 opacity-50" 
+              style={{ color: textColor }}
+            />
+            <span className="font-serif text-body font-bold min-w-[2.5rem] text-right tabular-nums" style={{ color: textColor }}>
               {score}
             </span>
           </>
         ) : (
           <>
             {isClickable && (
-              <span className="font-sans text-body opacity-50" style={{ color: textColor }}>→</span>
+              <HugeiconsIcon 
+                icon={ArrowRight01Icon} 
+                className="w-5 h-5 opacity-50" 
+                style={{ color: textColor }}
+              />
             )}
             <span className="font-serif text-body opacity-30 min-w-[2.5rem] text-right" style={{ color: textColor }}>
               —

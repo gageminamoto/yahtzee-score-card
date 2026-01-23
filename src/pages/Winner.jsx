@@ -8,8 +8,7 @@ import { getColorByIndex, getTextColorForBackground } from '../utils/colors';
  * - Displays final scores
  * - Options to play again or go home
  */
-export default function Winner({ players, onPlayAgain, onGoHome }) {
-  const [colorIndex] = useState(() => Math.floor(Math.random() * 5));
+export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
   const backgroundColor = getColorByIndex(colorIndex);
   const textColor = getTextColorForBackground(backgroundColor);
   const [showConfetti, setShowConfetti] = useState(true);
@@ -26,7 +25,7 @@ export default function Winner({ players, onPlayAgain, onGoHome }) {
 
   return (
     <div
-      className="min-h-screen p-8 flex items-center justify-center transition-colors duration-500 relative overflow-hidden"
+      className="min-h-dvh p-8 flex items-center justify-center transition-colors duration-500 relative overflow-hidden"
       style={{ backgroundColor }}
     >
       {/* Confetti effect (simple version) */}
@@ -55,11 +54,11 @@ export default function Winner({ players, onPlayAgain, onGoHome }) {
         </div>
       )}
 
-      <div className="max-w-2xl w-full z-10">
+      <div className="max-w-2xl w-full z-dropdown">
         {/* Winner Announcement */}
         <div className="text-center mb-12 animate-scaleIn">
           <h1
-            className="font-serif text-headline md:text-display mb-6"
+            className="font-serif text-headline md:text-display mb-6 text-balance"
             style={{ color: textColor }}
           >
             WINNER
@@ -70,13 +69,13 @@ export default function Winner({ players, onPlayAgain, onGoHome }) {
               style={{ backgroundColor: winner.color }}
             />
             <h2
-              className="font-serif text-title md:text-headline"
+              className="font-serif text-title md:text-headline text-balance"
               style={{ color: textColor }}
             >
               {winner.name.toUpperCase()}
             </h2>
           </div>
-          <p className="font-serif text-subtitle" style={{ color: textColor }}>
+          <p className="font-serif text-subtitle text-pretty tabular-nums" style={{ color: textColor }}>
             {winner.totalScore} points
           </p>
         </div>
@@ -84,7 +83,7 @@ export default function Winner({ players, onPlayAgain, onGoHome }) {
         {/* Final Scores */}
         <Card padding="large" className="mb-8">
           <h3
-            className="font-serif text-subtitle mb-6 text-center"
+            className="font-serif text-subtitle mb-6 text-center text-balance"
             style={{ color: textColor }}
           >
             FINAL SCORES
@@ -94,7 +93,7 @@ export default function Winner({ players, onPlayAgain, onGoHome }) {
               <div
                 key={player.id}
                 className={`flex items-center justify-between py-4 px-4 ${
-                  index === 0 ? 'bg-bright-green bg-opacity-20' : ''
+                  index === 0 ? 'bg-bright-green/20 dark:bg-bright-green/20' : ''
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -116,7 +115,7 @@ export default function Winner({ players, onPlayAgain, onGoHome }) {
                   </span>
                 </div>
                 <span
-                  className="font-serif text-body-lg font-bold"
+                  className="font-serif text-body-lg font-bold tabular-nums"
                   style={{ color: textColor }}
                 >
                   {player.totalScore}

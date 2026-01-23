@@ -3,6 +3,8 @@
  */
 
 import PropTypes from 'prop-types';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { CheckmarkCircle01Icon } from '@hugeicons/core-free-icons';
 import { colorSchemes, getTextColorForBackground } from '../utils/colors';
 
 export default function ColorSchemeCard({ scheme, label, isSelected, onClick }) {
@@ -17,10 +19,10 @@ export default function ColorSchemeCard({ scheme, label, isSelected, onClick }) 
   return (
     <button
       onClick={onClick}
-      className={`relative w-full p-4 bg-white bg-opacity-20 transition-[transform] duration-150 ease-[cubic-bezier(0.215,0.61,0.355,1)] ${
+      className={`relative w-full p-4 bg-white/20 dark:bg-black/20 transition-[transform] duration-150 ease-out ${
         isSelected
-          ? 'scale-[1.02] bg-opacity-30'
-          : 'hover:bg-opacity-25 hover:scale-[1.01]'
+          ? 'scale-[1.02] bg-opacity-30 dark:bg-opacity-30'
+          : 'hover:bg-opacity-25 dark:hover:bg-opacity-25 hover:scale-[1.01]'
       }`}
     >
       {/* Color preview circles */}
@@ -34,13 +36,16 @@ export default function ColorSchemeCard({ scheme, label, isSelected, onClick }) 
         ))}
       </div>
       {/* Label */}
-      <div className="font-sans text-body font-bold text-white">
+      <div className="font-sans text-body font-bold text-white dark:text-black">
         {label}
       </div>
       {/* Selected indicator */}
       {isSelected && (
-        <div className="absolute top-2 right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center">
-          <span className="text-black font-bold text-sm">✓</span>
+        <div className="absolute top-2 right-2 w-6 h-6 bg-white dark:bg-black rounded-full flex items-center justify-center">
+          <HugeiconsIcon 
+            icon={CheckmarkCircle01Icon} 
+            className="w-4 h-4 text-black dark:text-white"
+          />
         </div>
       )}
     </button>

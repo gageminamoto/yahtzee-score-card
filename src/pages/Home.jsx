@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Button } from '../components';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { CircleLock01Icon } from '@hugeicons/core-free-icons';
+import { Button, DiceAnimation } from '../components';
 import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
 
@@ -11,38 +13,60 @@ import { useSettings } from '../context/SettingsContext';
  * - Two primary action buttons
  * - Settings button
  */
-export default function Home({ onSelectMode, onOpenSettings }) {
+export default function Home({ onSelectMode, onOpenSettings, colorIndex, onTitleClick }) {
   const { settings } = useSettings();
-  const [colorIndex] = useState(() => Math.floor(Math.random() * 5));
+  const [diceKey, setDiceKey] = useState(0);
+  const [diceFromTop, setDiceFromTop] = useState(false);
   const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
   const textColor = getTextColorForBackground(backgroundColor);
 
+  const handleTitleClick = () => {
+    // Title click: dice come from their default position (not from top)
+    setDiceFromTop(false);
+    setDiceKey(prev => prev + 1);
+    // Also swap the background color when title is clicked
+    if (onTitleClick) {
+      onTitleClick();
+    }
+  };
+
+  /**
+   * Handle Single Device button click
+   * Triggers dice animation from the top, then navigates to setup screen after delay
+   * This gives time for the dice falling animation to complete
+   */
+  const handleSingleDeviceClick = () => {
+    // Single device button: dice come from the top of the screen
+    setDiceFromTop(true);
+    setDiceKey(prev => prev + 1);
+    
+    // Wait for animation to complete before transitioning
+    // Dice have random delays (0-500ms) plus falling time
+    setTimeout(() => {
+      onSelectMode('single');
+    }, 1000); // 1 second delay to allow animation to play
+  };
+
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-8 transition-colors duration-500"
+      className="min-h-dvh flex flex-col items-center justify-center p-8 transition-colors duration-500"
       style={{ backgroundColor }}
     >
-      {/* Settings Button - Top Right */}
-      <div className="absolute top-8 right-8">
-        <Button
-          variant="outline"
-          size="small"
-          onClick={onOpenSettings}
-        >
-          Settings
-        </Button>
-      </div>
+      {/* Dice Animation Overlay */}
+      {/* fromTop prop determines if dice start from top (button click) or default position (title click) */}
+      {diceKey > 0 && <DiceAnimation key={diceKey} fromTop={diceFromTop} />}
 
       {/* Main Title - Instrument Serif, massive scale */}
       <div className="text-center mb-16">
         <h1
-          className="font-serif text-headline md:text-display mb-4 tracking-tight"
+          className="font-serif text-headline md:text-display mb-4 cursor-pointer select-none active:scale-95 transition-transform text-balance tracking-wide"
           style={{ color: textColor }}
+          onClick={handleTitleClick}
         >
           YAHTZEE
         </h1>
         <p
-          className="font-sans text-body-lg opacity-90"
+          className="font-sans text-body-lg opacity-90 text-pretty"
           style={{ color: textColor }}
         >
           Score Tracker
@@ -55,7 +79,7 @@ export default function Home({ onSelectMode, onOpenSettings }) {
           variant="primary"
           size="large"
           fullWidth
-          onClick={() => onSelectMode('single')}
+          onClick={handleSingleDeviceClick}
         >
           Single Device
         </Button>
@@ -69,19 +93,17 @@ export default function Home({ onSelectMode, onOpenSettings }) {
         >
           <span className="flex items-center justify-center gap-2">
             Multiplayer
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                fillRule="evenodd"
-                d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <HugeiconsIcon icon={CircleLock01Icon} className="w-5 h-5" />
           </span>
+        </Button>
+
+        <Button
+          variant="primary"
+          size="large"
+          fullWidth
+          onClick={onOpenSettings}
+        >
+          Settings
         </Button>
       </div>
 

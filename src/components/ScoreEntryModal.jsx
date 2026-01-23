@@ -1,58 +1,71 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from './';
+import TabSwitcher from './TabSwitcher';
+import DiceInput from './DiceInput';
+import QuickInput from './QuickInput';
+import AdjustInput from './AdjustInput';
 import { getCategoryById, isValidScore } from '../utils/gameConstants';
+import { getInputMode, setInputMode } from '../utils/storage';
 
 /**
- * Modal for entering scores with a number pad
+ * Modal for entering scores with three input methods:
+ * 1. Dice Selector - tap dice icons to build roll
+ * 2. Quick Presets - category-aware preset buttons
+ * 3. Adjust - increment/decrement buttons
  */
 export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
-  const [score, setScore] = useState('');
+  // Load saved input mode preference, default to 'dice'
+  const [activeTab, setActiveTab] = useState(() => getInputMode());
+  const [score, setScore] = useState(0);
   const category = getCategoryById(categoryId);
+
+  // Save tab preference when it changes
+  useEffect(() => {
+    setInputMode(activeTab);
+  }, [activeTab]);
+
+  // Reset score when category changes
+  useEffect(() => {
+    setScore(0);
+  }, [categoryId]);
 
   if (!category) return null;
 
-  const handleNumberClick = (num) => {
-    if (score.length < 2) {
-      setScore(score + num);
-    }
+  // Handle score changes from input components
+  const handleScoreChange = (newScore) => {
+    setScore(newScore);
   };
 
-  const handleBackspace = () => {
-    setScore(score.slice(0, -1));
+  // Handle tab change
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
   };
 
-  const handleZeroOut = () => {
-    setScore('0');
-  };
-
-  const handleClear = () => {
-    setScore('');
-  };
-
+  // Handle submit
   const handleSubmit = () => {
-    const numScore = parseInt(score) || 0;
-    if (isValidScore(categoryId, numScore)) {
-      onSubmit(numScore);
+    if (isValidScore(categoryId, score)) {
+      onSubmit(score);
     }
   };
 
+  // Handle fixed score click (for fixed-score categories)
   const handleFixedScoreClick = (scoreValue) => {
     if (isValidScore(categoryId, scoreValue)) {
       onSubmit(scoreValue);
     }
   };
 
-  const numScore = parseInt(score) || 0;
-  const isValid = score !== '' && isValidScore(categoryId, numScore);
+  // Validate current score
+  const isValid = isValidScore(categoryId, score);
 
   // Check if this is a fixed-score category
   const isFixedScoreCategory = category.fixedScore !== undefined;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/80 dark:bg-black/90 flex items-center justify-center p-4 z-popover animate-fadeIn">
       <div
-        className="bg-electric-blue max-w-md w-full p-8 animate-scaleIn"
+        className="bg-electric-blue dark:bg-electric-blue max-w-md w-full p-8 animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Category Info */}
@@ -66,7 +79,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
         </div>
 
         {isFixedScoreCategory ? (
-          /* Fixed Score Buttons */
+          /* Fixed Score Buttons - Keep existing behavior for fixed categories */
           <div className="space-y-3">
             <Button
               variant="solid"
@@ -95,49 +108,38 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
           </div>
         ) : (
           <>
+            {/* Tab Switcher */}
+            <TabSwitcher activeTab={activeTab} onTabChange={handleTabChange} />
+
             {/* Score Display */}
-            <div className="mb-8">
-              <div className="bg-black bg-opacity-20 p-6 text-center">
-                <div className="font-serif text-headline text-white min-h-[120px] flex items-center justify-center">
-                  {score || '—'}
+            <div className="mb-6">
+              <div className="bg-black/20 dark:bg-white/20 p-6 text-center">
+                <div className="font-serif text-headline text-white dark:text-black min-h-[80px] flex items-center justify-center tabular-nums">
+                  {score}
                 </div>
               </div>
-              {!isValid && score !== '' && (
+              {!isValid && score !== 0 && (
                 <p className="font-sans text-ui text-bright-red mt-2 text-center">
                   Invalid score for this category
                 </p>
               )}
             </div>
 
-            {/* Number Pad */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {[7, 8, 9, 4, 5, 6, 1, 2, 3].map(num => (
-                <button
-                  key={num}
-                  onClick={() => handleNumberClick(num.toString())}
-                  className="bg-black bg-opacity-20 text-white font-serif text-subtitle py-4 hover:bg-opacity-40 active:scale-[0.97] transition-[transform,background-color] duration-100 ease-[cubic-bezier(0.215,0.61,0.355,1)]"
-                >
-                  {num}
-                </button>
-              ))}
-              <button
-                onClick={handleZeroOut}
-                className="bg-black bg-opacity-20 text-white font-sans text-body-lg py-4 hover:bg-opacity-40 active:scale-[0.97] transition-[transform,background-color] duration-100 ease-[cubic-bezier(0.215,0.61,0.355,1)]"
-              >
-                X
-              </button>
-              <button
-                onClick={() => handleNumberClick('0')}
-                className="bg-black bg-opacity-20 text-white font-serif text-subtitle py-4 hover:bg-opacity-40 active:scale-[0.97] transition-[transform,background-color] duration-100 ease-[cubic-bezier(0.215,0.61,0.355,1)]"
-              >
-                0
-              </button>
-              <button
-                onClick={handleBackspace}
-                className="bg-black bg-opacity-20 text-white font-sans text-body-lg py-4 hover:bg-opacity-40 active:scale-[0.97] transition-[transform,background-color] duration-100 ease-[cubic-bezier(0.215,0.61,0.355,1)]"
-              >
-                ←
-              </button>
+            {/* Input Area - Show different input based on active tab */}
+            <div className="mb-6">
+              {activeTab === 'dice' && (
+                <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} />
+              )}
+              {activeTab === 'quick' && (
+                <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} />
+              )}
+              {activeTab === 'adjust' && (
+                <AdjustInput 
+                  categoryId={categoryId} 
+                  onScoreChange={handleScoreChange}
+                  initialValue={score}
+                />
+              )}
             </div>
 
             {/* Action Buttons */}

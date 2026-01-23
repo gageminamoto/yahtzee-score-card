@@ -14,13 +14,13 @@ export default function SettingSlider({ label, description, value, options, onCh
   };
 
   return (
-    <div className="py-4 border-b-2 border-white border-opacity-20 last:border-0">
+    <div className="py-4 border-b-2 border-white/20 dark:border-black/20 last:border-0">
       <div className="mb-3">
-        <div className="font-sans text-body font-bold text-white mb-1">
+        <div className="font-sans text-body font-bold text-white dark:text-black mb-1">
           {label}
         </div>
         {description && (
-          <div className="font-sans text-ui text-white opacity-70">
+          <div className="font-sans text-ui text-white/70 dark:text-black/70">
             {description}
           </div>
         )}
@@ -32,9 +32,9 @@ export default function SettingSlider({ label, description, value, options, onCh
           max={optionKeys.length - 1}
           value={currentIndex}
           onChange={handleChange}
-          className="flex-1 h-2 bg-black bg-opacity-30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:cursor-pointer"
+          className="flex-1 h-2 bg-black/30 dark:bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:dark:bg-black [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:dark:bg-black [&::-moz-range-thumb]:cursor-pointer"
         />
-        <div className="font-sans text-body font-bold text-white min-w-[120px] text-right">
+        <div className="font-sans text-body font-bold text-white dark:text-black min-w-[120px] text-right">
           {options[value]}
         </div>
       </div>

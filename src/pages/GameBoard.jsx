@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
 import {
@@ -30,7 +32,18 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [completedTurns, setCompletedTurns] = useState(0);
 
+  // Guard: If players array is empty (e.g., during quit transition), return null
+  // This prevents crashes when the parent clears players before unmounting
+  if (players.length === 0) {
+    return null;
+  }
+
   const currentPlayer = players[currentPlayerIndex];
+  // Additional safety check in case currentPlayerIndex is out of bounds
+  if (!currentPlayer) {
+    return null;
+  }
+
   const backgroundColor = currentPlayer.color;
   const textColor = getTextColorForBackground(backgroundColor);
   const currentRound = Math.floor(completedTurns / players.length) + 1;
@@ -74,9 +87,17 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
     setSelectedCategory(null);
   };
 
+  // Handle clicking on a player's color to switch to that player
+  const handlePlayerSwitch = (playerIndex) => {
+    // Only allow switching if not currently entering a score
+    if (!selectedCategory) {
+      setCurrentPlayerIndex(playerIndex);
+    }
+  };
+
   return (
     <div
-      className="min-h-screen p-3 md:p-6 transition-colors duration-500"
+      className="min-h-dvh p-3 md:p-6 transition-colors duration-500"
       style={{ backgroundColor }}
     >
       <div className="max-w-4xl mx-auto">
@@ -84,10 +105,11 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
         <div className="flex justify-between items-center mb-2">
           <button
             onClick={onQuit}
-            className="font-sans text-ui hover:opacity-70 transition-opacity"
+            className="font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2"
             style={{ color: textColor }}
           >
-            ← Quit
+            <HugeiconsIcon icon={ArrowLeft01Icon} className="w-5 h-5" />
+            Quit
           </button>
           <div
             className="font-sans text-ui opacity-90"
@@ -97,51 +119,73 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           </div>
         </div>
 
-        {/* VS Score Display */}
-        <div className="flex items-center justify-center gap-3 mb-4">
-          {/* Current Player */}
-          <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 rounded-full border-3 border-white"
-              style={{ backgroundColor: currentPlayer.color, boxShadow: '0 0 0 2px black' }}
-            />
-            <span
-              className="font-serif text-subtitle md:text-title"
-              style={{ color: textColor }}
-            >
-              {calculateTotalScore(currentPlayer.scorecard)}
-            </span>
-          </div>
-
-          {/* VS */}
-          {players.length > 1 && (
-            <>
-              <span
-                className="font-sans text-body opacity-70"
-                style={{ color: textColor }}
+        {/* Player Selector - Shows all players with names and clickable colors */}
+        <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
+          {players.map((player, index) => {
+            const isActive = index === currentPlayerIndex;
+            const playerScore = calculateTotalScore(player.scorecard);
+            
+            return (
+              <button
+                key={player.id}
+                onClick={() => handlePlayerSwitch(index)}
+                disabled={!!selectedCategory}
+                className={`
+                  flex flex-col items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200
+                  ${isActive 
+                    ? 'bg-white/20 dark:bg-black/20 scale-105' 
+                    : 'hover:bg-white/10 dark:hover:bg-black/10 hover:scale-[1.02]'
+                  }
+                  ${selectedCategory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-black focus:ring-offset-2
+                `}
+                aria-label={`Switch to ${player.name || `Player ${index + 1}`}`}
+                type="button"
               >
-                vs
-              </span>
-
-              {/* Opponents */}
-              {players
-                .filter((_, idx) => idx !== currentPlayerIndex)
-                .map(player => (
-                  <div key={player.id} className="flex items-center gap-2">
-                    <span
-                      className="font-serif text-subtitle md:text-title"
-                      style={{ color: textColor }}
-                    >
-                      {calculateTotalScore(player.scorecard)}
-                    </span>
-                    <div
-                      className="w-8 h-8 rounded-full"
-                      style={{ backgroundColor: player.color }}
-                    />
-                  </div>
-                ))}
-            </>
-          )}
+                {/* Player Color Circle - Clickable */}
+                <div
+                  className={`
+                    w-12 h-12 rounded-full border-4 transition-all duration-200
+                    ${isActive 
+                      ? 'border-white dark:border-black ring-4 ring-white/50 dark:ring-black/50 scale-110' 
+                      : 'border-white/50 dark:border-black/50 hover:border-white dark:hover:border-black hover:scale-105'
+                    }
+                  `}
+                  style={{ backgroundColor: player.color }}
+                />
+                
+                {/* Player Name */}
+                <span
+                  className={`
+                    font-sans text-body font-medium text-center max-w-[80px] truncate
+                    ${isActive ? 'opacity-100' : 'opacity-80'}
+                  `}
+                  style={{ color: textColor }}
+                >
+                  {player.name || `Player ${index + 1}`}
+                </span>
+                
+                {/* Player Score */}
+                <span
+                  className={`
+                    font-serif text-subtitle tabular-nums
+                    ${isActive ? 'opacity-100 font-bold' : 'opacity-70'}
+                  `}
+                  style={{ color: textColor }}
+                >
+                  {playerScore}
+                </span>
+                
+                {/* Active Indicator */}
+                {isActive && (
+                  <div
+                    className="w-2 h-2 rounded-full mt-1"
+                    style={{ backgroundColor: textColor }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Scorecard */}

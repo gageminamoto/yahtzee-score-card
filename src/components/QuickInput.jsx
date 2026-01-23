@@ -1,0 +1,124 @@
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { getCategoryById } from '../utils/gameConstants';
+import { getValidScoresForCategory } from '../utils/scoring';
+
+/**
+ * Quick Input Component
+ * Shows category-aware preset buttons for quick score selection
+ * Upper section: multiples of die value (0 to 5×value)
+ * Lower variable: common presets (0, 5, 10, 15, 20, 25, 30) + fine-tune
+ */
+export default function QuickInput({ categoryId, onScoreChange }) {
+  const [selectedScore, setSelectedScore] = useState(null);
+  const category = getCategoryById(categoryId);
+  
+  // Get valid scores for this category
+  const validScores = getValidScoresForCategory(categoryId);
+  
+  // For lower variable categories, we'll show presets + fine-tune
+  const isLowerVariable = category?.section === 'lower' && 
+                          category?.maxScore !== undefined && 
+                          !category?.fixedScore;
+
+  // Handle preset button click
+  const handlePresetClick = (score) => {
+    setSelectedScore(score);
+    onScoreChange(score);
+  };
+
+  // Fine-tune handlers for lower variable categories
+  const handleFineTune = (delta) => {
+    if (selectedScore === null) {
+      // Start from 0 if nothing selected
+      const newScore = Math.max(0, Math.min(delta, category.maxScore));
+      setSelectedScore(newScore);
+      onScoreChange(newScore);
+    } else {
+      const newScore = Math.max(0, Math.min(selectedScore + delta, category.maxScore));
+      setSelectedScore(newScore);
+      onScoreChange(newScore);
+    }
+  };
+
+  // Reset when category changes
+  useEffect(() => {
+    setSelectedScore(null);
+  }, [categoryId]);
+
+  return (
+    <div className="space-y-4">
+      {/* Preset Buttons Grid */}
+      <div className={`grid gap-3 ${
+        validScores.length <= 6 ? 'grid-cols-6' : 'grid-cols-7'
+      }`}>
+        {validScores.map((score) => {
+          const isSelected = selectedScore === score;
+          return (
+            <button
+              key={score}
+              onClick={() => handlePresetClick(score)}
+              className={`
+                py-4 px-2 bg-black/20 dark:bg-white/20 text-white dark:text-black 
+                font-serif text-subtitle rounded-md
+                transition-all duration-150 ease-out
+                active:scale-[0.95]
+                ${
+                  isSelected
+                    ? 'bg-electric-blue bg-opacity-80 dark:bg-opacity-80 ring-2 ring-white dark:ring-black'
+                    : 'hover:bg-opacity-40 dark:hover:bg-opacity-40'
+                }
+              `}
+            >
+              {score}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Fine-tune controls for lower variable categories */}
+      {isLowerVariable && (
+        <div className="space-y-3 pt-2 border-t border-white/20 dark:border-black/20">
+          <p className="font-sans text-ui text-white/90 dark:text-black/90 text-center">
+            Fine tune:
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => handleFineTune(-5)}
+              disabled={selectedScore !== null && selectedScore <= 0}
+              className="px-6 py-3 bg-black/20 dark:bg-white/20 text-white dark:text-black font-sans text-body-lg rounded-md hover:bg-opacity-40 dark:hover:bg-opacity-40 active:scale-[0.97] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              -5
+            </button>
+            <button
+              onClick={() => handleFineTune(-1)}
+              disabled={selectedScore !== null && selectedScore <= 0}
+              className="px-6 py-3 bg-black/20 dark:bg-white/20 text-white dark:text-black font-sans text-body-lg rounded-md hover:bg-opacity-40 dark:hover:bg-opacity-40 active:scale-[0.97] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              -1
+            </button>
+            <button
+              onClick={() => handleFineTune(1)}
+              disabled={selectedScore !== null && selectedScore >= category.maxScore}
+              className="px-6 py-3 bg-black/20 dark:bg-white/20 text-white dark:text-black font-sans text-body-lg rounded-md hover:bg-opacity-40 dark:hover:bg-opacity-40 active:scale-[0.97] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              +1
+            </button>
+            <button
+              onClick={() => handleFineTune(5)}
+              disabled={selectedScore !== null && selectedScore >= category.maxScore}
+              className="px-6 py-3 bg-black/20 dark:bg-white/20 text-white dark:text-black font-sans text-body-lg rounded-md hover:bg-opacity-40 dark:hover:bg-opacity-40 active:scale-[0.97] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              +5
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+QuickInput.propTypes = {
+  categoryId: PropTypes.string.isRequired,
+  onScoreChange: PropTypes.func.isRequired,
+};
