@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -5,8 +6,9 @@ import PropTypes from 'prop-types';
  * - Bold, high-contrast styling
  * - Large tap targets (minimum 60px height)
  * - Clear visual states
+ * - Keyboard accessible (Enter and Space keys work)
  */
-export default function Button({
+const Button = forwardRef(function Button({
   children,
   onClick,
   variant = 'primary',
@@ -14,7 +16,7 @@ export default function Button({
   disabled = false,
   fullWidth = false,
   className = ''
-}) {
+}, ref) {
   const baseStyles = "font-sans font-bold uppercase cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,opacity] duration-150 ease-out active:scale-[0.97] hover:scale-[1.01]";
 
   // Theme-aware button variants with proper contrast in both modes
@@ -28,12 +30,14 @@ export default function Button({
     large: "text-body-lg py-5 px-8 min-h-[80px]",
     medium: "text-body py-4 px-6 min-h-[60px]",
     small: "text-ui py-3 px-5 min-h-[48px]",
+    xs: "text-xs py-2 px-4 min-h-[36px]",
   };
 
   const widthClass = fullWidth ? "w-full" : "";
 
   return (
     <button
+      ref={ref}
       onClick={onClick}
       disabled={disabled}
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${className}`}
@@ -41,7 +45,7 @@ export default function Button({
       {children}
     </button>
   );
-}
+});
 
 Button.propTypes = {
   children: PropTypes.node.isRequired,
@@ -52,3 +56,6 @@ Button.propTypes = {
   fullWidth: PropTypes.bool,
   className: PropTypes.string,
 };
+
+// Export Button as the default export so it can be imported via index.js
+export default Button;
