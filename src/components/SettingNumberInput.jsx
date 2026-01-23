@@ -1,0 +1,74 @@
+/**
+ * Number input component for numeric settings (e.g., bonus thresholds)
+ */
+
+import PropTypes from 'prop-types';
+
+export default function SettingNumberInput({ label, description, value, min, max, onChange }) {
+  const handleIncrement = () => {
+    if (value < max) {
+      onChange(value + 1);
+    }
+  };
+
+  const handleDecrement = () => {
+    if (value > min) {
+      onChange(value - 1);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const newValue = parseInt(e.target.value);
+    if (!isNaN(newValue) && newValue >= min && newValue <= max) {
+      onChange(newValue);
+    }
+  };
+
+  return (
+    <div className="py-4 border-b-2 border-white border-opacity-20 last:border-0">
+      <div className="mb-3">
+        <div className="font-sans text-body font-bold text-white mb-1">
+          {label}
+        </div>
+        {description && (
+          <div className="font-sans text-ui text-white opacity-70">
+            {description}
+          </div>
+        )}
+      </div>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={handleDecrement}
+          disabled={value <= min}
+          className="w-12 h-12 bg-white font-sans text-body-lg font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-opacity-90 active:scale-[0.97] transition-[transform,opacity] duration-100 ease-[cubic-bezier(0.215,0.61,0.355,1)]"
+        >
+          −
+        </button>
+        <input
+          type="number"
+          value={value}
+          onChange={handleInputChange}
+          min={min}
+          max={max}
+          className="flex-1 h-12 px-4 bg-white font-sans text-body-lg font-bold text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+        <button
+          onClick={handleIncrement}
+          disabled={value >= max}
+          className="w-12 h-12 bg-white font-sans text-body-lg font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-opacity-90 active:scale-[0.97] transition-[transform,opacity] duration-100 ease-[cubic-bezier(0.215,0.61,0.355,1)]"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+SettingNumberInput.propTypes = {
+  label: PropTypes.string.isRequired,
+  description: PropTypes.string,
+  value: PropTypes.number.isRequired,
+  min: PropTypes.number.isRequired,
+  max: PropTypes.number.isRequired,
+  onChange: PropTypes.func.isRequired,
+};
