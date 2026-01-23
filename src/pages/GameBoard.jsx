@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
 import {
@@ -21,7 +20,8 @@ import { getTextColorForBackground } from '../utils/colors';
  */
 export default function GameBoard({ players: initialPlayers, onGameComplete, onQuit }) {
   // Initialize players with empty scorecards
-  const [players] = useState(() =>
+  // Using setPlayers to update state when scores change
+  const [players, setPlayers] = useState(() =>
     initialPlayers.map(p => ({
       ...p,
       scorecard: createEmptyScorecard(),
@@ -61,6 +61,9 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
       score
     );
 
+    // Update the players state with the new scorecard
+    // This ensures the UI and finish game button always have current scores
+    setPlayers(updatedPlayers);
     setSelectedCategory(null);
     setCompletedTurns(completedTurns + 1);
 
@@ -95,97 +98,150 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
     }
   };
 
+  // Handle finishing the game early
+  // This allows players to end the game before all categories are filled
+  // It calculates current scores and navigates to the winner screen
+  const handleFinishGame = () => {
+    // Check if user is currently entering a score - if so, don't allow finishing
+    if (selectedCategory) {
+      return;
+    }
+
+    // Ask for confirmation before finishing early
+    const allComplete = players.every(p => isGameComplete(p.scorecard));
+    const confirmMessage = allComplete
+      ? 'Finish game and see results?'
+      : 'Finish game early? Current scores will be used to determine the winner.';
+    
+    if (window.confirm(confirmMessage)) {
+      // Calculate final scores for all players (even if not all categories are filled)
+      const finalPlayers = players.map(p => ({
+        ...p,
+        totalScore: calculateTotalScore(p.scorecard),
+      }));
+      // Navigate to winner screen
+      onGameComplete(finalPlayers);
+    }
+  };
+
   return (
     <div
       className="min-h-dvh p-3 md:p-6 transition-colors duration-500"
       style={{ backgroundColor }}
     >
-      <div className="max-w-4xl mx-auto">
-        {/* Header with Quit and Round */}
+      <div className="max-w-6xl mx-auto">
+        {/* Header with Quit, Finish Game, and Round */}
         <div className="flex justify-between items-center mb-2">
           <button
             onClick={onQuit}
             className="font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2"
             style={{ color: textColor }}
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} className="w-5 h-5" />
+            <Icon icon="basil:arrow-left-solid" className="w-5 h-5" />
             Quit
           </button>
-          <div
-            className="font-sans text-ui opacity-90"
-            style={{ color: textColor }}
-          >
-            R{currentRound}/{TOTAL_ROUNDS}
+          <div className="flex items-center gap-4">
+            {/* Finish Game Button */}
+            <button
+              onClick={handleFinishGame}
+              disabled={!!selectedCategory}
+              className={`
+                font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2
+                ${selectedCategory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+              `}
+              style={{ color: textColor }}
+              aria-label="Finish game and see results"
+            >
+              <Icon icon="basil:check-solid" className="w-5 h-5" />
+              Finish Game
+            </button>
+            {/* Round Display */}
+            <div
+              className="font-sans text-ui opacity-90"
+              style={{ color: textColor }}
+            >
+              R{currentRound}/{TOTAL_ROUNDS}
+            </div>
           </div>
         </div>
 
-        {/* Player Selector - Shows all players with names and clickable colors */}
-        <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
-          {players.map((player, index) => {
-            const isActive = index === currentPlayerIndex;
-            const playerScore = calculateTotalScore(player.scorecard);
-            
-            return (
-              <button
-                key={player.id}
-                onClick={() => handlePlayerSwitch(index)}
-                disabled={!!selectedCategory}
-                className={`
-                  flex flex-col items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200
-                  ${isActive 
-                    ? 'bg-white/20 dark:bg-black/20 scale-105' 
-                    : 'hover:bg-white/10 dark:hover:bg-black/10 hover:scale-[1.02]'
-                  }
-                  ${selectedCategory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                  focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-black focus:ring-offset-2
-                `}
-                aria-label={`Switch to ${player.name || `Player ${index + 1}`}`}
-                type="button"
-              >
-                {/* Player Color Circle - Clickable */}
-                <div
+        {/* Player Switcher - Segmented control style */}
+        <div className="flex justify-center mb-6">
+          <div 
+            className="inline-flex items-center p-1.5 bg-black/10 dark:bg-white/10 rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full"
+            role="tablist"
+            aria-label="Player switcher"
+          >
+            {players.map((player, index) => {
+              const isActive = index === currentPlayerIndex;
+              const playerScore = calculateTotalScore(player.scorecard);
+              
+              // Determine tab colors based on active state and theme
+              // When active, we want high contrast (white in light mode, black in dark mode)
+              const activeBg = "bg-white dark:bg-black shadow-md";
+              const activeText = "text-black dark:text-white";
+              
+              return (
+                <button
+                  key={player.id}
+                  onClick={() => handlePlayerSwitch(index)}
+                  disabled={!!selectedCategory}
+                  role="tab"
+                  aria-selected={isActive}
                   className={`
-                    w-12 h-12 rounded-full border-4 transition-all duration-200
+                    relative flex items-center gap-3 px-4 py-2.5 rounded-xl min-w-fit
+                    transition-[background-color,opacity,transform] duration-150 ease-out
+                    motion-reduce:transition-none
                     ${isActive 
-                      ? 'border-white dark:border-black ring-4 ring-white/50 dark:ring-black/50 scale-110' 
-                      : 'border-white/50 dark:border-black/50 hover:border-white dark:hover:border-black hover:scale-105'
+                      ? `${activeBg} ${activeText}` 
+                      : `hover:bg-white/10 dark:hover:bg-black/10 opacity-70 hover:opacity-100`
                     }
+                    ${selectedCategory ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
+                    focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-black focus:ring-offset-2
+                    active:scale-[0.97] motion-reduce:active:scale-100
                   `}
-                  style={{ backgroundColor: player.color }}
-                />
-                
-                {/* Player Name */}
-                <span
-                  className={`
-                    font-sans text-body font-medium text-center max-w-[80px] truncate
-                    ${isActive ? 'opacity-100' : 'opacity-80'}
-                  `}
-                  style={{ color: textColor }}
+                  aria-label={`Switch to ${player.name || `Player ${index + 1}`}`}
+                  type="button"
                 >
-                  {player.name || `Player ${index + 1}`}
-                </span>
-                
-                {/* Player Score */}
-                <span
-                  className={`
-                    font-serif text-subtitle tabular-nums
-                    ${isActive ? 'opacity-100 font-bold' : 'opacity-70'}
-                  `}
-                  style={{ color: textColor }}
-                >
-                  {playerScore}
-                </span>
-                
-                {/* Active Indicator */}
-                {isActive && (
+                  {/* Player Color Indicator */}
                   <div
-                    className="w-2 h-2 rounded-full mt-1"
-                    style={{ backgroundColor: textColor }}
+                    className={`
+                      w-6 h-6 rounded-full border-2 flex-shrink-0
+                      transition-[border-color] duration-150 ease-out motion-reduce:transition-none
+                      ${isActive 
+                        ? 'border-black/10 dark:border-white/20' 
+                        : 'border-white/30 dark:border-black/30'
+                      }
+                    `}
+                    style={{ backgroundColor: player.color }}
                   />
-                )}
-              </button>
-            );
-          })}
+                  
+                  {/* Player Info: Name and Score */}
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className={`
+                        font-sans text-ui font-bold uppercase tracking-wider truncate max-w-[80px]
+                      `}
+                      style={{ color: isActive ? undefined : textColor }}
+                    >
+                      {player.name || `P${index + 1}`}
+                    </span>
+                    
+                    <span
+                      className={`
+                        font-serif text-body font-bold tabular-nums
+                        transition-opacity duration-150 ease-out motion-reduce:transition-none
+                        ${isActive ? 'opacity-100' : 'opacity-80'}
+                      `}
+                      style={{ color: isActive ? undefined : textColor }}
+                    >
+                      {playerScore}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Scorecard */}
