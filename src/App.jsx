@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Agentation } from 'agentation';
 import { SettingsProvider } from './context/SettingsContext';
 import Home from './pages/Home';
 import SingleDeviceSetup from './pages/SingleDeviceSetup';
@@ -293,6 +294,7 @@ function App() {
           </>
         )}
       </div>
+      {import.meta.env.DEV && <Agentation />}
     </SettingsProvider>
   );
 }
