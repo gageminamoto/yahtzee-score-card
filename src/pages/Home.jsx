@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { Icon } from '@iconify/react';
-import { Button, DiceAnimation } from '../components';
+import { Button, DiceAnimation, FooterMenu } from '../components';
 import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
 
@@ -26,9 +26,33 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
   const [diceFromTop, setDiceFromTop] = useState(false);
   const [isExplosion, setIsExplosion] = useState(false);
   const [explosionCooldown, setExplosionCooldown] = useState(false);
+  const [logoFallen, setLogoFallen] = useState(false);
   const clickCountRef = useRef(0);
   const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
   const textColor = getTextColorForBackground(backgroundColor);
+  
+  // Check for reduced motion preference
+  const prefersReducedMotion = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    return false;
+  }, []);
+  
+  // Generate random animation values for each letter (7 letters: Y, A, H, T, Z, E, E)
+  // These values stay consistent once generated, so letters always fall the same way
+  const letterAnimations = useMemo(() => {
+    return Array.from({ length: 7 }, () => ({
+      // Random horizontal scatter: -200px to +200px
+      translateX: (Math.random() - 0.5) * 400,
+      // Fall down: viewport height + padding (we'll use 100vh + 200px)
+      translateY: typeof window !== 'undefined' ? window.innerHeight + 200 : 1000,
+      // Random rotation: -45deg to +45deg
+      rotate: (Math.random() - 0.5) * 90,
+      // Staggered delay: 0-300ms for cascading effect
+      delay: Math.random() * 300,
+    }));
+  }, []);
 
   // Drag state for letter images
   // Using refs for drag start positions to avoid stale closure issues
@@ -64,9 +88,22 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
   }, []);
 
   const handleTitleClick = () => {
-    // If on cooldown, ignore clicks for explosion tracking
+    // If on cooldown, ignore clicks (both for explosion tracking and reset)
     if (explosionCooldown) {
       // Still allow color change
+      if (onTitleClick) {
+        onTitleClick();
+      }
+      return;
+    }
+
+    // If logo has fallen, reset everything on next click (only if not on cooldown)
+    if (logoFallen) {
+      setLogoFallen(false);
+      setIsExplosion(false);
+      setDiceKey(0); // Hide 3D dice
+      clickCountRef.current = 0;
+      // Still allow background color change
       if (onTitleClick) {
         onTitleClick();
       }
@@ -80,11 +117,13 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
     const shouldExplode = clickCountRef.current >= 5;
     if (shouldExplode) {
       clickCountRef.current = 0;
-      // Start cooldown for 5 seconds
+      // Start cooldown for 3 seconds
       setExplosionCooldown(true);
       setTimeout(() => {
         setExplosionCooldown(false);
-      }, 5000);
+      }, 3000);
+      // Set logoFallen to true to trigger falling animation
+      setLogoFallen(true);
     }
 
     setIsExplosion(shouldExplode);
@@ -125,10 +164,10 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
       {diceKey > 0 && <DiceAnimation key={diceKey} fromTop={diceFromTop} count={isExplosion ? 30 : 5} exploreMode={isExplosion} />}
 
       {/* Main Title */}
-      <div className="text-center mb-16">
+      <div className="text-center mb-16 w-full">
         {settings.visual.headerStyle === 'images' ? (
           <div
-            className="flex items-center justify-center gap-[4px] mb-4 select-none"
+            className="flex items-center justify-center flex-nowrap gap-0.5 sm:gap-1 md:gap-[4px] mb-4 select-none"
             onClick={handleTitleClick}
             onMouseMove={handleDragMove}
             onMouseUp={handleDragEnd}
@@ -139,20 +178,38 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
             {[letterY, letterA, letterH, letterT, letterZ, letterE, letterE].map((letter, index) => {
               // Map index to letter name for accessibility
               const letterNames = ['Y', 'A', 'H', 'T', 'Z', 'E', 'E'];
+              const animation = letterAnimations[index];
+              
+              // Determine transform based on state
+              let transform = 'translate(0, 0)';
+              let transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+              
+              if (logoFallen && !prefersReducedMotion) {
+                // Falling animation: combine translateX, translateY, and rotate
+                transform = `translate(${animation.translateX}px, ${animation.translateY}px) rotate(${animation.rotate}deg)`;
+                // Smooth falling animation with gravity effect
+                transition = `transform 1.8s cubic-bezier(0.4, 0, 0.2, 1) ${animation.delay}ms`;
+              } else if (dragState.index === index) {
+                // User is dragging this letter
+                transform = `translate(${dragState.x}px, ${dragState.y}px)`;
+                transition = 'none';
+              } else if (!logoFallen) {
+                // Reset state: instantly snap back (no transition)
+                transition = 'none';
+              }
+              
               return (
                 <img
                   key={index}
                   src={letter}
                   alt={letterNames[index]}
-                  className="h-16 md:h-24 w-auto cursor-grab active:cursor-grabbing transition-transform hover:scale-105"
+                  className="h-12 sm:h-14 md:h-20 lg:h-24 xl:h-28 w-auto shrink-0 cursor-grab active:cursor-grabbing transition-transform hover:scale-105 max-w-none"
                   draggable={false}
                   onMouseDown={(e) => handleDragStart(e, index)}
                   onTouchStart={(e) => handleDragStart(e, index)}
                   style={{
-                    transform: dragState.index === index
-                      ? `translate(${dragState.x}px, ${dragState.y}px)`
-                      : 'translate(0, 0)',
-                    transition: dragState.index === index ? 'none' : 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transform,
+                    transition,
                   }}
                 />
               );
@@ -160,11 +217,40 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
           </div>
         ) : (
           <h1
-            className="font-serif text-headline md:text-display mb-4 cursor-pointer select-none active:scale-95 transition-transform text-balance tracking-wide"
+            className="font-serif text-headline md:text-display mb-4 cursor-pointer select-none active:scale-95 text-balance tracking-wide"
             style={{ color: textColor }}
             onClick={handleTitleClick}
           >
-            YAHTZEE
+            {'YAHTZEE'.split('').map((letter, index) => {
+              const animation = letterAnimations[index];
+              
+              // Determine transform based on state
+              let transform = 'translate(0, 0)';
+              let transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+              
+              if (logoFallen && !prefersReducedMotion) {
+                // Falling animation: combine translateX, translateY, and rotate
+                transform = `translate(${animation.translateX}px, ${animation.translateY}px) rotate(${animation.rotate}deg)`;
+                // Smooth falling animation with gravity effect
+                transition = `transform 1.8s cubic-bezier(0.4, 0, 0.2, 1) ${animation.delay}ms`;
+              } else if (!logoFallen) {
+                // Reset state: instantly snap back (no transition)
+                transition = 'none';
+              }
+              
+              return (
+                <span
+                  key={index}
+                  className="inline-block transition-transform"
+                  style={{
+                    transform,
+                    transition,
+                  }}
+                >
+                  {letter}
+                </span>
+              );
+            })}
           </h1>
         )}
         <p
@@ -190,12 +276,11 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
           variant="primary"
           size="large"
           fullWidth
-          onClick={() => {}}
-          className="opacity-60 cursor-not-allowed"
+          disabled
         >
           <span className="flex items-center justify-center gap-2">
             Multiplayer
-            <Icon icon="basil:lock-solid" className="w-5 h-5" />
+            <Icon icon="basil:lock-solid" className="w-5 h-5" aria-hidden="true" />
           </span>
         </Button>
 
@@ -215,23 +300,7 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
           className="font-sans text-ui opacity-70"
           style={{ color: textColor }}
         >
-          <a
-            href="https://github.com/gageminamoto/yahtzee-score-card"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:opacity-100 transition-opacity cursor-pointer"
-            style={{ color: textColor }}
-          >
-            Open Source
-          </a>
-          {' • '}Free Forever • No Ads{' • '}
-          <button
-            onClick={onOpenChangelog}
-            className="underline hover:opacity-100 transition-opacity cursor-pointer"
-            style={{ color: textColor }}
-          >
-            Changelog
-          </button>
+          Free Forever • No Ads • <FooterMenu textColor={textColor} onOpenChangelog={onOpenChangelog} />
         </p>
       </div>
     </div>
