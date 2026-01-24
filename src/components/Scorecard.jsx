@@ -24,7 +24,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
       {/* Upper Section */}
       <Card padding="small" className="flex flex-col h-full">
         <h3
-          className="font-serif text-body-lg mb-2 border-b-2 border-white/30 dark:border-black/30 pb-1 text-balance"
+          className="font-serif text-body-lg mb-1 border-b-2 border-white/30 dark:border-black/30 pb-1 text-center"
           style={{ color: textColor }}
         >
           UPPER SECTION
@@ -59,7 +59,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
       {/* Lower Section */}
       <Card padding="small" className="flex flex-col h-full">
         <h3
-          className="font-serif text-body-lg mb-2 border-b-2 border-white/30 dark:border-black/30 pb-1 text-balance"
+          className="font-serif text-body-lg mb-1 border-b-2 border-white/30 dark:border-black/30 pb-1 text-center"
           style={{ color: textColor }}
         >
           LOWER SECTION
@@ -139,18 +139,9 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
             </span>
           </>
         ) : (
-          <>
-            {isClickable && (
-              <Icon 
-                icon="basil:arrow-right-solid" 
-                className="w-5 h-5 opacity-50" 
-                style={{ color: textColor }}
-              />
-            )}
-            <span className="font-serif text-body opacity-30 min-w-[2.5rem] text-right" style={{ color: textColor }}>
-              —
-            </span>
-          </>
+          <span className="font-serif text-body opacity-30 min-w-[2.5rem] text-right" style={{ color: textColor }}>
+            —
+          </span>
         )}
       </div>
     </div>

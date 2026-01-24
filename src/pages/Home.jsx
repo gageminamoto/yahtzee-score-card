@@ -31,30 +31,36 @@ export default function Home({ onSelectMode, onOpenSettings, colorIndex, onTitle
   const textColor = getTextColorForBackground(backgroundColor);
 
   // Drag state for letter images
-  const [dragState, setDragState] = useState({ index: null, x: 0, y: 0, startX: 0, startY: 0 });
+  // Using refs for drag start positions to avoid stale closure issues
+  const [dragState, setDragState] = useState({ index: null, x: 0, y: 0 });
   const isDragging = useRef(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const dragStartIndex = useRef(null);
 
   const handleDragStart = useCallback((e, index) => {
     e.preventDefault();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     isDragging.current = true;
-    setDragState({ index, x: 0, y: 0, startX: clientX, startY: clientY });
+    dragStartPos.current = { x: clientX, y: clientY };
+    dragStartIndex.current = index;
+    setDragState({ index, x: 0, y: 0 });
   }, []);
 
   const handleDragMove = useCallback((e) => {
-    if (!isDragging.current || dragState.index === null) return;
+    if (!isDragging.current || dragStartIndex.current === null) return;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const x = clientX - dragState.startX;
-    const y = clientY - dragState.startY;
-    setDragState(prev => ({ ...prev, x, y }));
-  }, [dragState.index, dragState.startX, dragState.startY]);
+    const x = clientX - dragStartPos.current.x;
+    const y = clientY - dragStartPos.current.y;
+    setDragState({ index: dragStartIndex.current, x, y });
+  }, []);
 
   const handleDragEnd = useCallback(() => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    setDragState({ index: null, x: 0, y: 0, startX: 0, startY: 0 });
+    dragStartIndex.current = null;
+    setDragState({ index: null, x: 0, y: 0 });
   }, []);
 
   const handleTitleClick = () => {
@@ -130,23 +136,27 @@ export default function Home({ onSelectMode, onOpenSettings, colorIndex, onTitle
             onTouchMove={handleDragMove}
             onTouchEnd={handleDragEnd}
           >
-            {[letterY, letterA, letterH, letterT, letterZ, letterE, letterE].map((letter, index) => (
-              <img
-                key={index}
-                src={letter}
-                alt=""
-                className="h-16 md:h-24 w-auto cursor-grab active:cursor-grabbing"
-                draggable={false}
-                onMouseDown={(e) => handleDragStart(e, index)}
-                onTouchStart={(e) => handleDragStart(e, index)}
-                style={{
-                  transform: dragState.index === index
-                    ? `translate(${dragState.x}px, ${dragState.y}px)`
-                    : 'translate(0, 0)',
-                  transition: dragState.index === index ? 'none' : 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                }}
-              />
-            ))}
+            {[letterY, letterA, letterH, letterT, letterZ, letterE, letterE].map((letter, index) => {
+              // Map index to letter name for accessibility
+              const letterNames = ['Y', 'A', 'H', 'T', 'Z', 'E', 'E'];
+              return (
+                <img
+                  key={index}
+                  src={letter}
+                  alt={letterNames[index]}
+                  className="h-16 md:h-24 w-auto cursor-grab active:cursor-grabbing transition-transform hover:scale-105"
+                  draggable={false}
+                  onMouseDown={(e) => handleDragStart(e, index)}
+                  onTouchStart={(e) => handleDragStart(e, index)}
+                  style={{
+                    transform: dragState.index === index
+                      ? `translate(${dragState.x}px, ${dragState.y}px)`
+                      : 'translate(0, 0)',
+                    transition: dragState.index === index ? 'none' : 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  }}
+                />
+              );
+            })}
           </div>
         ) : (
           <h1
@@ -205,7 +215,16 @@ export default function Home({ onSelectMode, onOpenSettings, colorIndex, onTitle
           className="font-sans text-ui opacity-70"
           style={{ color: textColor }}
         >
-          Open Source • Free Forever • No Ads
+          <a
+            href="https://github.com/gageminamoto/yahtzee-score-card"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:opacity-100 transition-opacity cursor-pointer"
+            style={{ color: textColor }}
+          >
+            Open Source
+          </a>
+          {' • '}Free Forever • No Ads
         </p>
       </div>
     </div>

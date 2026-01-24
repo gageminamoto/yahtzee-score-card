@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SettingsProvider } from './context/SettingsContext';
+import { ConfirmDialog } from './components';
 import Home from './pages/Home';
 import SingleDeviceSetup from './pages/SingleDeviceSetup';
 import GameBoard from './pages/GameBoard';
@@ -26,6 +27,9 @@ function App() {
   const [previousScreen, setPreviousScreen] = useState(null);
   const [nextScreen, setNextScreen] = useState('home');
 
+  // Quit confirmation dialog state
+  const [showQuitDialog, setShowQuitDialog] = useState(false);
+
   /**
    * Helper function to transition between screens with slide animation
    * @param {string} newScreen - The screen to transition to
@@ -34,22 +38,23 @@ function App() {
   const transitionToScreen = (newScreen, callback) => {
     // If already transitioning, don't start a new transition
     if (isTransitioning) return;
-    
+
     // Store the current screen as previous
     setPreviousScreen(screen);
     // Set the next screen
     setNextScreen(newScreen);
     // Start transition
     setIsTransitioning(true);
-    
-    // Run callback if provided (for setting gameMode, players, etc.)
-    if (callback) callback();
-    
+
     // After animation completes (200ms), update the actual screen state
+    // and run the callback (which may clear state used by the previous screen)
     setTimeout(() => {
       setScreen(newScreen);
       setIsTransitioning(false);
       setPreviousScreen(null);
+      // Run callback after transition completes to avoid clearing state
+      // while previous screen is still being rendered
+      if (callback) callback();
     }, 200);
   };
 
@@ -88,9 +93,16 @@ function App() {
   };
 
   const handleQuit = () => {
-    if (window.confirm('Are you sure you want to quit? Your progress will be lost.')) {
-      handleGoHome();
-    }
+    setShowQuitDialog(true);
+  };
+
+  const handleConfirmQuit = () => {
+    setShowQuitDialog(false);
+    handleGoHome();
+  };
+
+  const handleCancelQuit = () => {
+    setShowQuitDialog(false);
   };
 
   const handleBackFromSetup = () => {
@@ -293,6 +305,17 @@ function App() {
           </>
         )}
       </div>
+
+      {/* Quit confirmation dialog */}
+      <ConfirmDialog
+        isOpen={showQuitDialog}
+        title="Quit Game?"
+        message="Are you sure you want to quit? Your progress will be lost."
+        confirmText="Quit"
+        cancelText="Cancel"
+        onConfirm={handleConfirmQuit}
+        onCancel={handleCancelQuit}
+      />
     </SettingsProvider>
   );
 }

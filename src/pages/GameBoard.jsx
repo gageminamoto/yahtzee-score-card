@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
+import { ConfirmDialog } from '../components';
 import {
   createEmptyScorecard,
   calculateTotalScore,
@@ -32,6 +33,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [completedTurns, setCompletedTurns] = useState(0);
+  const [showFinishDialog, setShowFinishDialog] = useState(false);
 
   // Guard: If players array is empty (e.g., during quit transition), return null
   // This prevents crashes when the parent clears players before unmounting
@@ -114,30 +116,36 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
     if (selectedCategory) {
       return;
     }
-
-    // Ask for confirmation before finishing early
-    const allComplete = players.every(p => isGameComplete(p.scorecard));
-    const confirmMessage = allComplete
-      ? 'Finish game and see results?'
-      : 'Finish game early? Current scores will be used to determine the winner.';
-    
-    if (window.confirm(confirmMessage)) {
-      // Calculate final scores for all players (even if not all categories are filled)
-      const finalPlayers = players.map(p => ({
-        ...p,
-        totalScore: calculateTotalScore(p.scorecard),
-      }));
-      // Navigate to winner screen
-      onGameComplete(finalPlayers);
-    }
+    setShowFinishDialog(true);
   };
+
+  const handleConfirmFinish = () => {
+    setShowFinishDialog(false);
+    // Calculate final scores for all players (even if not all categories are filled)
+    const finalPlayers = players.map(p => ({
+      ...p,
+      totalScore: calculateTotalScore(p.scorecard),
+    }));
+    // Navigate to winner screen
+    onGameComplete(finalPlayers);
+  };
+
+  const handleCancelFinish = () => {
+    setShowFinishDialog(false);
+  };
+
+  // Determine the finish dialog message based on game state
+  const allComplete = players.every(p => isGameComplete(p.scorecard));
+  const finishDialogMessage = allComplete
+    ? 'Finish game and see results?'
+    : 'Current scores will be used to determine the winner.';
 
   return (
     <div
-      className="min-h-dvh p-3 md:p-6 transition-colors duration-500"
+      className="min-h-dvh p-3 md:p-6 transition-colors duration-500 flex flex-col"
       style={{ backgroundColor }}
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto w-full flex flex-col flex-1">
         {/* Header with Quit, Finish Game, and Round */}
         <div className="flex justify-between items-center mb-2">
           <button
@@ -148,21 +156,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
             <Icon icon="basil:arrow-left-solid" className="w-5 h-5" />
             Quit
           </button>
-          <div className="flex items-center gap-4">
-            {/* Finish Game Button */}
-            <button
-              onClick={handleFinishGame}
-              disabled={!!selectedCategory}
-              className={`
-                font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2
-                ${selectedCategory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-              `}
-              style={{ color: textColor }}
-              aria-label="Finish game and see results"
-            >
-              <Icon icon="basil:check-solid" className="w-5 h-5" />
-              Finish Game
-            </button>
+          <div className="flex items-center gap-3">
             {/* Round Display */}
             <div
               className="font-sans text-ui opacity-90"
@@ -170,16 +164,38 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
             >
               R{currentRound}/{TOTAL_ROUNDS}
             </div>
+            {/* Finish Game Button */}
+            <button
+              onClick={handleFinishGame}
+              disabled={!!selectedCategory}
+              className={`
+                font-sans text-ui font-bold
+                px-6 py-2.5 rounded-full
+                bg-white/20 dark:bg-black/20
+                hover:bg-white/40 dark:hover:bg-black/40
+                active:scale-95
+                transition-all duration-150
+                inline-flex items-center justify-center
+                ${selectedCategory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+              `}
+              style={{ color: textColor }}
+              aria-label="Finish game and see results"
+              title="End the game and see who won"
+            >
+              Finish
+            </button>
           </div>
         </div>
 
-        {/* Player Switcher - Segmented control style */}
-        <div className="flex justify-center mb-6">
-          <div 
-            className="inline-flex items-center p-1.5 bg-black/10 dark:bg-white/10 rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full"
-            role="tablist"
-            aria-label="Player switcher"
-          >
+        {/* Content area - centered vertically in remaining space */}
+        <div className="flex-1 flex flex-col justify-center">
+          {/* Player Switcher - Segmented control style */}
+          <div className="flex justify-center mb-4">
+            <div
+              className="inline-flex items-center p-2 bg-black/20 dark:bg-white/20 rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full shadow-lg"
+              role="tablist"
+              aria-label="Player switcher"
+            >
             {players.map((player, index) => {
               const isActive = index === currentPlayerIndex;
               const playerScore = calculateTotalScore(player.scorecard);
@@ -197,12 +213,12 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   role="tab"
                   aria-selected={isActive}
                   className={`
-                    relative flex items-center gap-3 px-4 py-2.5 rounded-xl min-w-fit
-                    transition-[background-color,opacity,transform] duration-150 ease-out
+                    relative flex items-center gap-3 px-5 py-3 rounded-xl min-w-fit
+                    transition-all duration-150 ease-out
                     motion-reduce:transition-none
-                    ${isActive 
-                      ? `${activeBg} ${activeText}` 
-                      : `hover:bg-white/10 dark:hover:bg-black/10 opacity-70 hover:opacity-100`
+                    ${isActive
+                      ? `${activeBg} ${activeText} scale-105 shadow-md`
+                      : `hover:bg-white/20 dark:hover:bg-black/20 opacity-80 hover:opacity-100`
                     }
                     ${selectedCategory ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
                     focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-black focus:ring-offset-2
@@ -214,10 +230,10 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   {/* Player Color Indicator */}
                   <div
                     className={`
-                      w-6 h-6 rounded-full border-2 flex-shrink-0
+                      w-8 h-8 rounded-full border-2 flex-shrink-0
                       transition-[border-color] duration-150 ease-out motion-reduce:transition-none
-                      ${isActive 
-                        ? 'border-black/10 dark:border-white/20' 
+                      ${isActive
+                        ? 'border-black/20 dark:border-white/30'
                         : 'border-white/30 dark:border-black/30'
                       }
                     `}
@@ -225,19 +241,19 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   />
                   
                   {/* Player Info: Name and Score */}
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex items-baseline gap-3">
                     <span
                       className={`
-                        font-sans text-ui font-bold uppercase tracking-wider truncate max-w-[80px]
+                        font-sans text-body font-bold uppercase tracking-wider truncate max-w-[100px]
                       `}
                       style={{ color: isActive ? undefined : textColor }}
                     >
                       {player.name || `P${index + 1}`}
                     </span>
-                    
+
                     <span
                       className={`
-                        font-serif text-body font-bold tabular-nums
+                        font-serif text-body-lg font-bold tabular-nums
                         transition-opacity duration-150 ease-out motion-reduce:transition-none
                         ${isActive ? 'opacity-100' : 'opacity-80'}
                       `}
@@ -252,14 +268,14 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           </div>
         </div>
 
-        {/* Scorecard */}
-        <Scorecard
-          scorecard={currentPlayer.scorecard}
-          onCategoryClick={handleCategoryClick}
-          isCurrentPlayer={true}
-          textColor={textColor}
-        />
-
+          {/* Scorecard */}
+          <Scorecard
+            scorecard={currentPlayer.scorecard}
+            onCategoryClick={handleCategoryClick}
+            isCurrentPlayer={true}
+            textColor={textColor}
+          />
+        </div>
       </div>
 
       {/* Score Entry Modal */}
@@ -271,6 +287,17 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           initialScore={currentPlayer.scorecard[selectedCategory] ?? 0}
         />
       )}
+
+      {/* Finish Game Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showFinishDialog}
+        title={allComplete ? 'Finish Game?' : 'Finish Early?'}
+        message={finishDialogMessage}
+        confirmText="Finish"
+        cancelText="Cancel"
+        onConfirm={handleConfirmFinish}
+        onCancel={handleCancelFinish}
+      />
     </div>
   );
 }
