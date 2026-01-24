@@ -6,6 +6,7 @@ import SingleDeviceSetup from './pages/SingleDeviceSetup';
 import GameBoard from './pages/GameBoard';
 import Winner from './pages/Winner';
 import Settings from './pages/Settings';
+import Changelog from './pages/Changelog';
 
 /**
  * Main App component
@@ -119,6 +120,14 @@ function App() {
     transitionToScreen('home');
   };
 
+  const handleOpenChangelog = () => {
+    transitionToScreen('changelog');
+  };
+
+  const handleBackFromChangelog = () => {
+    transitionToScreen('home');
+  };
+
   /**
    * Handle title click on Home screen
    * Cycles through background colors by incrementing the color index
@@ -158,6 +167,7 @@ function App() {
               <Home
                 onSelectMode={handleSelectMode}
                 onOpenSettings={handleOpenSettings}
+                onOpenChangelog={handleOpenChangelog}
                 colorIndex={homeColorIndex}
                 onTitleClick={handleHomeTitleClick}
               />,
@@ -168,6 +178,15 @@ function App() {
               'settings',
               <Settings
                 onBack={handleBackFromSettings}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideOutToLeft'
+            )}
+            
+            {previousScreen === 'changelog' && renderScreen(
+              'changelog',
+              <Changelog
+                onBack={handleBackFromChangelog}
                 colorIndex={homeColorIndex}
               />,
               'animate-slideOutToLeft'
@@ -214,6 +233,7 @@ function App() {
               <Home
                 onSelectMode={handleSelectMode}
                 onOpenSettings={handleOpenSettings}
+                onOpenChangelog={handleOpenChangelog}
                 colorIndex={homeColorIndex}
                 onTitleClick={handleHomeTitleClick}
               />,
@@ -224,6 +244,15 @@ function App() {
               'settings',
               <Settings
                 onBack={handleBackFromSettings}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideInFromRight'
+            )}
+            
+            {nextScreen === 'changelog' && renderScreen(
+              'changelog',
+              <Changelog
+                onBack={handleBackFromChangelog}
                 colorIndex={homeColorIndex}
               />,
               'animate-slideInFromRight'
@@ -266,6 +295,7 @@ function App() {
               <Home
                 onSelectMode={handleSelectMode}
                 onOpenSettings={handleOpenSettings}
+                onOpenChangelog={handleOpenChangelog}
                 colorIndex={homeColorIndex}
                 onTitleClick={handleHomeTitleClick}
               />
@@ -274,6 +304,13 @@ function App() {
             {screen === 'settings' && (
               <Settings
                 onBack={handleBackFromSettings}
+                colorIndex={homeColorIndex}
+              />
+            )}
+
+            {screen === 'changelog' && (
+              <Changelog
+                onBack={handleBackFromChangelog}
                 colorIndex={homeColorIndex}
               />
             )}

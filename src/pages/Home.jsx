@@ -20,7 +20,7 @@ import letterE from '../assets/header/E.png';
  * - Two primary action buttons
  * - Settings button
  */
-export default function Home({ onSelectMode, onOpenSettings, colorIndex, onTitleClick }) {
+export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, colorIndex, onTitleClick }) {
   const { settings } = useSettings();
   const [diceKey, setDiceKey] = useState(0);
   const [diceFromTop, setDiceFromTop] = useState(false);
@@ -224,7 +224,14 @@ export default function Home({ onSelectMode, onOpenSettings, colorIndex, onTitle
           >
             Open Source
           </a>
-          {' • '}Free Forever • No Ads
+          {' • '}Free Forever • No Ads{' • '}
+          <button
+            onClick={onOpenChangelog}
+            className="underline hover:opacity-100 transition-opacity cursor-pointer"
+            style={{ color: textColor }}
+          >
+            Changelog
+          </button>
         </p>
       </div>
     </div>
