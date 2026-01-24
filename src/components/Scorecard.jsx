@@ -37,7 +37,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
               score={scorecard[category.id]}
               isScored={isCategoryScored(scorecard, category.id)}
               onClick={() => onCategoryClick(category.id)}
-              isClickable={isCurrentPlayer && !isCategoryScored(scorecard, category.id)}
+              isClickable={isCurrentPlayer}
               textColor={textColor}
             />
           ))}
@@ -72,7 +72,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
               score={scorecard[category.id]}
               isScored={isCategoryScored(scorecard, category.id)}
               onClick={() => onCategoryClick(category.id)}
-              isClickable={isCurrentPlayer && !isCategoryScored(scorecard, category.id)}
+              isClickable={isCurrentPlayer}
               textColor={textColor}
             />
           ))}
@@ -119,7 +119,7 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
       className={`${baseStyles} ${interactiveStyles} ${scoredStyles}`}
       onClick={isClickable ? onClick : undefined}
       onKeyDown={isClickable ? handleKeyDown : undefined}
-      aria-label={isClickable ? `Enter score for ${category.name.toLowerCase()}` : `${category.name.toLowerCase()} - already scored`}
+      aria-label={isClickable ? (isScored ? `Edit score for ${category.name.toLowerCase()}` : `Enter score for ${category.name.toLowerCase()}`) : `${category.name.toLowerCase()}`}
       aria-disabled={!isClickable}
     >
       <span className="font-sans text-body font-bold uppercase" style={{ color: textColor }}>
@@ -129,9 +129,9 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
       <div className="flex items-center gap-2">
         {isScored ? (
           <>
-            <Icon 
-              icon="basil:check-solid" 
-              className="w-5 h-5 opacity-50" 
+            <Icon
+              icon={isClickable ? "basil:edit-solid" : "basil:check-solid"}
+              className="w-5 h-5 opacity-50"
               style={{ color: textColor }}
             />
             <span className="font-serif text-body font-bold min-w-[2.5rem] text-right tabular-nums" style={{ color: textColor }}>

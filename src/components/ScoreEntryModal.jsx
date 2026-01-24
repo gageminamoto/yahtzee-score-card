@@ -14,10 +14,10 @@ import { getInputMode, setInputMode } from '../utils/storage';
  * 2. Quick Presets - category-aware preset buttons
  * 3. Adjust - increment/decrement buttons
  */
-export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
+export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initialScore = 0 }) {
   // Load saved input mode preference, default to 'dice'
   const [activeTab, setActiveTab] = useState(() => getInputMode());
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState(initialScore);
   const category = getCategoryById(categoryId);
   const modalRef = useRef(null);
   const firstTabRef = useRef(null);
@@ -29,8 +29,8 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel }) {
 
   // Reset score when category changes
   useEffect(() => {
-    setScore(0);
-  }, [categoryId]);
+    setScore(initialScore);
+  }, [categoryId, initialScore]);
 
   if (!category) return null;
 
@@ -239,4 +239,5 @@ ScoreEntryModal.propTypes = {
   categoryId: PropTypes.string.isRequired,
   onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
+  initialScore: PropTypes.number,
 };

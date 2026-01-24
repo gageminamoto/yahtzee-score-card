@@ -7,6 +7,7 @@ import {
   calculateTotalScore,
   updateScorecard,
   isGameComplete,
+  isCategoryScored,
 } from '../utils/scoring';
 import { TOTAL_ROUNDS } from '../utils/gameConstants';
 import { getTextColorForBackground } from '../utils/colors';
@@ -53,6 +54,9 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
   };
 
   const handleScoreSubmit = (score) => {
+    // Check if this is an edit (category was already scored)
+    const isEditing = isCategoryScored(currentPlayer.scorecard, selectedCategory);
+
     // Update the player's scorecard
     const updatedPlayers = [...players];
     updatedPlayers[currentPlayerIndex].scorecard = updateScorecard(
@@ -65,25 +69,29 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
     // This ensures the UI and finish game button always have current scores
     setPlayers(updatedPlayers);
     setSelectedCategory(null);
-    setCompletedTurns(completedTurns + 1);
 
-    // Check if game is complete
-    if (isGameComplete(updatedPlayers[currentPlayerIndex].scorecard)) {
-      // Check if all players are done
-      const allComplete = updatedPlayers.every(p => isGameComplete(p.scorecard));
-      if (allComplete) {
-        // Calculate final scores and go to winner screen
-        const finalPlayers = updatedPlayers.map(p => ({
-          ...p,
-          totalScore: calculateTotalScore(p.scorecard),
-        }));
-        onGameComplete(finalPlayers);
-        return;
+    // Only increment turns and advance player if this was a new score, not an edit
+    if (!isEditing) {
+      setCompletedTurns(completedTurns + 1);
+
+      // Check if game is complete
+      if (isGameComplete(updatedPlayers[currentPlayerIndex].scorecard)) {
+        // Check if all players are done
+        const allComplete = updatedPlayers.every(p => isGameComplete(p.scorecard));
+        if (allComplete) {
+          // Calculate final scores and go to winner screen
+          const finalPlayers = updatedPlayers.map(p => ({
+            ...p,
+            totalScore: calculateTotalScore(p.scorecard),
+          }));
+          onGameComplete(finalPlayers);
+          return;
+        }
       }
-    }
 
-    // Move to next player
-    setCurrentPlayerIndex((currentPlayerIndex + 1) % players.length);
+      // Move to next player
+      setCurrentPlayerIndex((currentPlayerIndex + 1) % players.length);
+    }
   };
 
   const handleScoreCancel = () => {
@@ -260,6 +268,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           categoryId={selectedCategory}
           onSubmit={handleScoreSubmit}
           onCancel={handleScoreCancel}
+          initialScore={currentPlayer.scorecard[selectedCategory] ?? 0}
         />
       )}
     </div>
