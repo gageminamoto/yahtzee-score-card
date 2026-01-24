@@ -8,6 +8,7 @@ export const DEFAULT_SETTINGS = {
     colorScheme: 'default', // 'default' | 'monochrome' | 'pastel' | 'high-contrast'
     enableDarkMode: false,
     fontSize: 'medium', // 'small' | 'medium' | 'large' | 'x-large'
+    headerStyle: 'images', // 'text' | 'images'
     enableAnimations: true,
     enableConfetti: true,
     reducedMotion: false,
@@ -57,4 +58,9 @@ export const FONT_SIZE_OPTIONS = {
   medium: 'Medium',
   large: 'Large',
   'x-large': 'Extra Large',
+};
+
+export const HEADER_STYLE_OPTIONS = {
+  images: 'Dice Letters',
+  text: 'Classic Text',
 };

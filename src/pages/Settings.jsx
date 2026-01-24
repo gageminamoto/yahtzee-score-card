@@ -12,7 +12,7 @@ import SettingNumberInput from '../components/SettingNumberInput';
 import ColorSchemeCard from '../components/ColorSchemeCard';
 import { useSettings } from '../context/SettingsContext';
 import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
-import { COLOR_SCHEMES, FONT_SIZE_OPTIONS } from '../utils/defaultSettings';
+import { COLOR_SCHEMES, FONT_SIZE_OPTIONS, HEADER_STYLE_OPTIONS } from '../utils/defaultSettings';
 import { clearAllData, exportAllData } from '../utils/storage';
 
 export default function Settings({ onBack, colorIndex }) {
@@ -126,6 +126,13 @@ export default function Settings({ onBack, colorIndex }) {
                 value={settings.visual.fontSize}
                 options={FONT_SIZE_OPTIONS}
                 onChange={(value) => updateSetting('visual', 'fontSize', value)}
+              />
+              <SettingButtonGroup
+                label="Header Style"
+                description="Choose the title style on the home screen"
+                value={settings.visual.headerStyle}
+                options={HEADER_STYLE_OPTIONS}
+                onChange={(value) => updateSetting('visual', 'headerStyle', value)}
               />
               <SettingToggle
                 label="Dark Mode"

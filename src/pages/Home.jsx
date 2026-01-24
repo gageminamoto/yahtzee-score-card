@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { Button, DiceAnimation } from '../components';
 import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
+
+// Import header letter images
+import letterY from '../assets/header/Y.png';
+import letterA from '../assets/header/A.png';
+import letterH from '../assets/header/H.png';
+import letterT from '../assets/header/T.png';
+import letterZ from '../assets/header/Z.png';
+import letterE from '../assets/header/E.png';
 
 /**
  * Home screen with bold mode selection
@@ -16,13 +24,67 @@ export default function Home({ onSelectMode, onOpenSettings, colorIndex, onTitle
   const { settings } = useSettings();
   const [diceKey, setDiceKey] = useState(0);
   const [diceFromTop, setDiceFromTop] = useState(false);
+  const [isExplosion, setIsExplosion] = useState(false);
+  const [explosionCooldown, setExplosionCooldown] = useState(false);
+  const clickCountRef = useRef(0);
   const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
   const textColor = getTextColorForBackground(backgroundColor);
 
+  // Drag state for letter images
+  const [dragState, setDragState] = useState({ index: null, x: 0, y: 0, startX: 0, startY: 0 });
+  const isDragging = useRef(false);
+
+  const handleDragStart = useCallback((e, index) => {
+    e.preventDefault();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    isDragging.current = true;
+    setDragState({ index, x: 0, y: 0, startX: clientX, startY: clientY });
+  }, []);
+
+  const handleDragMove = useCallback((e) => {
+    if (!isDragging.current || dragState.index === null) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const x = clientX - dragState.startX;
+    const y = clientY - dragState.startY;
+    setDragState(prev => ({ ...prev, x, y }));
+  }, [dragState.index, dragState.startX, dragState.startY]);
+
+  const handleDragEnd = useCallback(() => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setDragState({ index: null, x: 0, y: 0, startX: 0, startY: 0 });
+  }, []);
+
   const handleTitleClick = () => {
-    // Title click: dice come from their default position (not from top)
+    // If on cooldown, ignore clicks for explosion tracking
+    if (explosionCooldown) {
+      // Still allow color change
+      if (onTitleClick) {
+        onTitleClick();
+      }
+      return;
+    }
+
+    // Track clicks for easter egg
+    clickCountRef.current += 1;
+
+    // Check for 5 clicks - dice explosion!
+    const shouldExplode = clickCountRef.current >= 5;
+    if (shouldExplode) {
+      clickCountRef.current = 0;
+      // Start cooldown for 5 seconds
+      setExplosionCooldown(true);
+      setTimeout(() => {
+        setExplosionCooldown(false);
+      }, 5000);
+    }
+
+    setIsExplosion(shouldExplode);
     setDiceFromTop(false);
-    setDiceKey(prev => prev + 1);
+    setDiceKey(Date.now()); // Use timestamp for unique key
+
     // Also swap the background color when title is clicked
     if (onTitleClick) {
       onTitleClick();
@@ -53,17 +115,48 @@ export default function Home({ onSelectMode, onOpenSettings, colorIndex, onTitle
     >
       {/* Dice Animation Overlay */}
       {/* fromTop prop determines if dice start from top (button click) or default position (title click) */}
-      {diceKey > 0 && <DiceAnimation key={diceKey} fromTop={diceFromTop} />}
+      {/* exploreMode makes dice scatter across entire screen instead of just falling */}
+      {diceKey > 0 && <DiceAnimation key={diceKey} fromTop={diceFromTop} count={isExplosion ? 30 : 5} exploreMode={isExplosion} />}
 
-      {/* Main Title - Instrument Serif, massive scale */}
+      {/* Main Title */}
       <div className="text-center mb-16">
-        <h1
-          className="font-serif text-headline md:text-display mb-4 cursor-pointer select-none active:scale-95 transition-transform text-balance tracking-wide"
-          style={{ color: textColor }}
-          onClick={handleTitleClick}
-        >
-          YAHTZEE
-        </h1>
+        {settings.visual.headerStyle === 'images' ? (
+          <div
+            className="flex items-center justify-center gap-[4px] mb-4 select-none"
+            onClick={handleTitleClick}
+            onMouseMove={handleDragMove}
+            onMouseUp={handleDragEnd}
+            onMouseLeave={handleDragEnd}
+            onTouchMove={handleDragMove}
+            onTouchEnd={handleDragEnd}
+          >
+            {[letterY, letterA, letterH, letterT, letterZ, letterE, letterE].map((letter, index) => (
+              <img
+                key={index}
+                src={letter}
+                alt=""
+                className="h-16 md:h-24 w-auto cursor-grab active:cursor-grabbing"
+                draggable={false}
+                onMouseDown={(e) => handleDragStart(e, index)}
+                onTouchStart={(e) => handleDragStart(e, index)}
+                style={{
+                  transform: dragState.index === index
+                    ? `translate(${dragState.x}px, ${dragState.y}px)`
+                    : 'translate(0, 0)',
+                  transition: dragState.index === index ? 'none' : 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <h1
+            className="font-serif text-headline md:text-display mb-4 cursor-pointer select-none active:scale-95 transition-transform text-balance tracking-wide"
+            style={{ color: textColor }}
+            onClick={handleTitleClick}
+          >
+            YAHTZEE
+          </h1>
+        )}
         <p
           className="font-sans text-body-lg opacity-90 text-pretty"
           style={{ color: textColor }}
