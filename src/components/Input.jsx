@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -15,21 +16,34 @@ export default function Input({
   maxLength,
   className = '',
   autoFocus = false,
+  textColor = '#ffffff',
 }) {
-  // Theme-aware input with proper colors for both light and dark modes
-  const baseStyles = "w-full bg-transparent border-4 border-white dark:border-black text-white dark:text-black font-sans text-body-lg px-6 py-4 outline-none focus:ring-2 focus:ring-white dark:focus:ring-black focus:ring-offset-2 focus:ring-offset-transparent transition-[border-color,box-shadow] duration-100 ease-out placeholder-white dark:placeholder-black placeholder-opacity-50 disabled:opacity-40 disabled:cursor-not-allowed";
+  const baseStyles = "w-full bg-transparent border-4 font-sans text-body-lg px-6 py-4 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent transition-[border-color,box-shadow] duration-100 ease-out disabled:opacity-40 disabled:cursor-not-allowed";
+
+  // Use React's useId for stable unique ID
+  const reactId = useId();
+  const inputId = `input${reactId.replace(/:/g, '')}`;
 
   return (
-    <input
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      disabled={disabled}
-      maxLength={maxLength}
-      autoFocus={autoFocus}
-      className={`${baseStyles} ${className}`}
-    />
+    <>
+      <style>{`#${inputId}::placeholder { color: ${textColor}; opacity: 0.6; }`}</style>
+      <input
+        id={inputId}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        maxLength={maxLength}
+        autoFocus={autoFocus}
+        className={`${baseStyles} ${className}`}
+        style={{
+          borderColor: textColor,
+          color: textColor,
+          '--tw-ring-color': textColor,
+        }}
+      />
+    </>
   );
 }
 
@@ -42,4 +56,5 @@ Input.propTypes = {
   maxLength: PropTypes.number,
   className: PropTypes.string,
   autoFocus: PropTypes.bool,
+  textColor: PropTypes.string,
 };

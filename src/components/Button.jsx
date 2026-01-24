@@ -15,7 +15,8 @@ const Button = forwardRef(function Button({
   size = 'large',
   disabled = false,
   fullWidth = false,
-  className = ''
+  className = '',
+  textColor = null,
 }, ref) {
   const baseStyles = "font-sans font-bold uppercase cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,opacity] duration-150 ease-out active:scale-[0.97] hover:scale-[1.003]";
 
@@ -23,7 +24,7 @@ const Button = forwardRef(function Button({
   const variants = {
     primary: "bg-black/20 dark:bg-white/20 text-white dark:text-black hover:bg-black/100 dark:hover:bg-white/100 hover:text-white dark:hover:text-black",
     solid: "bg-black dark:bg-white text-white dark:text-black hover:bg-black/80 dark:hover:bg-white/80",
-    outline: "bg-transparent text-white dark:text-black border-white dark:border-black hover:bg-white dark:hover:bg-black hover:text-black dark:hover:text-white",
+    outline: "bg-transparent border-2",
   };
 
   const sizes = {
@@ -35,12 +36,19 @@ const Button = forwardRef(function Button({
 
   const widthClass = fullWidth ? "w-full" : "";
 
+  // For outline variant with custom textColor, use inline styles
+  const outlineStyle = variant === 'outline' && textColor ? {
+    color: textColor,
+    borderColor: textColor,
+  } : {};
+
   return (
     <button
       ref={ref}
       onClick={onClick}
       disabled={disabled}
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${className}`}
+      style={outlineStyle}
     >
       {children}
     </button>
@@ -51,10 +59,11 @@ Button.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func,
   variant: PropTypes.oneOf(['primary', 'solid', 'outline']),
-  size: PropTypes.oneOf(['small', 'medium', 'large']),
+  size: PropTypes.oneOf(['small', 'medium', 'large', 'xs']),
   disabled: PropTypes.bool,
   fullWidth: PropTypes.bool,
   className: PropTypes.string,
+  textColor: PropTypes.string,
 };
 
 // Export Button as the default export so it can be imported via index.js
