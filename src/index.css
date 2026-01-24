@@ -142,6 +142,28 @@ button {
   }
 }
 
+@keyframes playerRowEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes playerRowExit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
 @keyframes fall {
   to {
     transform: translateY(100vh) rotate(360deg);
@@ -177,6 +199,14 @@ button {
 
 .animate-slideUp {
   animation: slideUp var(--animation-duration) var(--ease-out-quart);
+}
+
+.animate-playerRowEnter {
+  animation: playerRowEnter 200ms var(--ease-out-quart);
+}
+
+.animate-playerRowExit {
+  animation: playerRowExit 200ms var(--ease-in-out-cubic) forwards;
 }
 
 .animate-fall {
