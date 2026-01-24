@@ -17,7 +17,7 @@ const Button = forwardRef(function Button({
   fullWidth = false,
   className = ''
 }, ref) {
-  const baseStyles = "font-sans font-bold uppercase cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,opacity] duration-150 ease-out active:scale-[0.97] hover:scale-[1.01]";
+  const baseStyles = "font-sans font-bold uppercase cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,opacity] duration-150 ease-out active:scale-[0.97] hover:scale-[1.003]";
 
   // Theme-aware button variants with proper contrast in both modes
   const variants = {
