@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 :root {
+  /* Page background - used by html/body for overscroll color */
+  --page-bg: #FFFFFF;
+
   /* CMYK Color Palette - work in both light and dark modes */
   --color-electric-blue: #0066FF;
   --color-hot-magenta: #FF0099;
@@ -76,9 +79,14 @@
   box-sizing: border-box;
 }
 
+html {
+  background-color: var(--page-bg);
+}
+
 body {
   margin: 0;
   padding: 0;
+  background-color: var(--page-bg);
   font-family: var(--font-sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;

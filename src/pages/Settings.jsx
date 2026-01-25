@@ -2,7 +2,7 @@
  * Settings page with comprehensive customization options
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
 import { Button, Card } from '../components';
@@ -20,6 +20,11 @@ export default function Settings({ onBack, colorIndex }) {
   const [activeTab, setActiveTab] = useState('visual');
   const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
   const textColor = getTextColorForBackground(backgroundColor);
+
+  // Sync background color to html/body for overscroll
+  useEffect(() => {
+    document.documentElement.style.setProperty('--page-bg', backgroundColor);
+  }, [backgroundColor]);
 
   const handleExportData = () => {
     const data = exportAllData();

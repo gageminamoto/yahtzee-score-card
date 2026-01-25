@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { Button, DiceAnimation, FooterMenu } from '../components';
 import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
@@ -30,6 +30,11 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
   const clickCountRef = useRef(0);
   const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
   const textColor = getTextColorForBackground(backgroundColor);
+
+  // Sync background color to html/body for overscroll
+  useEffect(() => {
+    document.documentElement.style.setProperty('--page-bg', backgroundColor);
+  }, [backgroundColor]);
   
   // Check for reduced motion preference
   const prefersReducedMotion = useMemo(() => {

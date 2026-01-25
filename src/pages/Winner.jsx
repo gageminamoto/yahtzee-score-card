@@ -13,6 +13,11 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
   const textColor = getTextColorForBackground(backgroundColor);
   const [showConfetti, setShowConfetti] = useState(true);
 
+  // Sync background color to html/body for overscroll
+  useEffect(() => {
+    document.documentElement.style.setProperty('--page-bg', backgroundColor);
+  }, [backgroundColor]);
+
   // Sort players by score
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
   const winner = sortedPlayers[0];

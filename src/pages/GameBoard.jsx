@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
@@ -50,6 +50,11 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
   const backgroundColor = currentPlayer.color;
   const textColor = getTextColorForBackground(backgroundColor);
   const currentRound = Math.floor(completedTurns / players.length) + 1;
+
+  // Sync background color to html/body for overscroll
+  useEffect(() => {
+    document.documentElement.style.setProperty('--page-bg', backgroundColor);
+  }, [backgroundColor]);
 
   const handleCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId);
