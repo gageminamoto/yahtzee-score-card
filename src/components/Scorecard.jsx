@@ -20,16 +20,16 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
   const upperBonus = calculateUpperBonus(scorecard);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-4">
       {/* Upper Section */}
-      <Card padding="small" className="flex flex-col h-full">
+      <Card padding="xs" className="flex flex-col h-full md:p-3">
         <h3
-          className="font-serif text-body-lg mb-1 border-b-2 border-white/30 dark:border-black/30 pb-1 text-center"
+          className="font-serif text-body-lg mb-0.5 md:mb-1 border-b-2 border-white/30 dark:border-black/30 pb-0.5 md:pb-1 text-center"
           style={{ color: textColor }}
         >
           UPPER SECTION
         </h3>
-        <div className="flex-grow space-y-0.5">
+        <div className="flex-grow space-y-0">
           {UPPER_SECTION_CATEGORIES.map(category => (
             <CategoryRow
               key={category.id}
@@ -44,8 +44,8 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
         </div>
 
         {/* Upper Section Bonus */}
-        <div className="border-t-2 border-white/30 dark:border-black/30 pt-2 mt-auto">
-          <div className="flex justify-between items-center py-1 px-2">
+        <div className="border-t-2 border-white/30 dark:border-black/30 pt-1 md:pt-2 mt-auto">
+          <div className="flex justify-between items-center py-0.5 md:py-1 px-2">
             <span className="font-sans text-ui" style={{ color: textColor }}>
               BONUS ({upperSum}/{UPPER_SECTION_BONUS_THRESHOLD})
             </span>
@@ -57,14 +57,14 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
       </Card>
 
       {/* Lower Section */}
-      <Card padding="small" className="flex flex-col h-full">
+      <Card padding="xs" className="flex flex-col h-full md:p-3">
         <h3
-          className="font-serif text-body-lg mb-1 border-b-2 border-white/30 dark:border-black/30 pb-1 text-center"
+          className="font-serif text-body-lg mb-0.5 md:mb-1 border-b-2 border-white/30 dark:border-black/30 pb-0.5 md:pb-1 text-center"
           style={{ color: textColor }}
         >
           LOWER SECTION
         </h3>
-        <div className="flex-grow space-y-0.5">
+        <div className="flex-grow space-y-0">
           {LOWER_SECTION_CATEGORIES.map(category => (
             <CategoryRow
               key={category.id}
@@ -94,7 +94,7 @@ Scorecard.propTypes = {
  * Made keyboard accessible with tabIndex, role, and keyboard event handlers
  */
 function CategoryRow({ category, score, isScored, onClick, isClickable, textColor = '#FFFFFF' }) {
-  const baseStyles = "flex justify-between items-center py-1.5 px-2 transition-[background-color] duration-100 ease-out";
+  const baseStyles = "flex justify-between items-center py-1 md:py-1.5 px-2 transition-[background-color] duration-100 ease-out";
 
   // Theme-aware interactive and scored styles
   const interactiveStyles = isClickable
@@ -126,20 +126,20 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
         {category.name}
       </span>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 md:gap-2">
         {isScored ? (
           <>
             <Icon
               icon={isClickable ? "basil:edit-solid" : "basil:check-solid"}
-              className="w-5 h-5 opacity-50"
+              className="w-4 h-4 md:w-5 md:h-5 opacity-50"
               style={{ color: textColor }}
             />
-            <span className="font-serif text-body font-bold min-w-[2.5rem] text-right tabular-nums" style={{ color: textColor }}>
+            <span className="font-serif text-body font-bold min-w-[2rem] md:min-w-[2.5rem] text-right tabular-nums" style={{ color: textColor }}>
               {score}
             </span>
           </>
         ) : (
-          <span className="font-serif text-body opacity-30 min-w-[2.5rem] text-right" style={{ color: textColor }}>
+          <span className="font-serif text-body opacity-30 min-w-[2rem] md:min-w-[2.5rem] text-right" style={{ color: textColor }}>
             —
           </span>
         )}

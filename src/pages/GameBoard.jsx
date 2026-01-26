@@ -147,12 +147,12 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
 
   return (
     <div
-      className="min-h-dvh p-3 md:p-6 transition-colors duration-500 flex flex-col"
+      className="min-h-dvh p-2 md:p-6 transition-colors duration-500 flex flex-col mobile-compact"
       style={{ backgroundColor }}
     >
       <div className="max-w-6xl mx-auto w-full flex flex-col flex-1">
         {/* Header with Quit, Finish Game, and Round */}
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex justify-between items-center mb-1 md:mb-2">
           <button
             onClick={onQuit}
             className="font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2"
@@ -195,21 +195,21 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
         {/* Content area - centered vertically in remaining space */}
         <div className="flex-1 flex flex-col justify-center">
           {/* Player Switcher - Segmented control style */}
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-2 md:mb-4">
             <div
-              className="inline-flex items-center p-2 bg-black/20 dark:bg-white/20 rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full shadow-lg"
+              className="inline-flex items-center p-1.5 md:p-2 bg-black/20 dark:bg-white/20 rounded-xl md:rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full shadow-lg"
               role="tablist"
               aria-label="Player switcher"
             >
             {players.map((player, index) => {
               const isActive = index === currentPlayerIndex;
               const playerScore = calculateTotalScore(player.scorecard);
-              
+
               // Determine tab colors based on active state and theme
               // When active, we want high contrast (white in light mode, black in dark mode)
               const activeBg = "bg-white dark:bg-black shadow-md";
               const activeText = "text-black dark:text-white";
-              
+
               return (
                 <button
                   key={player.id}
@@ -218,7 +218,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   role="tab"
                   aria-selected={isActive}
                   className={`
-                    relative flex items-center gap-3 px-5 py-3 rounded-xl min-w-fit
+                    relative flex items-center gap-2 md:gap-3 px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl min-w-fit
                     transition-all duration-150 ease-out
                     motion-reduce:transition-none
                     ${isActive
@@ -235,7 +235,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   {/* Player Color Indicator */}
                   <div
                     className={`
-                      w-8 h-8 rounded-full border-2 flex-shrink-0
+                      w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex-shrink-0
                       transition-[border-color] duration-150 ease-out motion-reduce:transition-none
                       ${isActive
                         ? 'border-black/20 dark:border-white/30'
@@ -244,12 +244,12 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                     `}
                     style={{ backgroundColor: player.color }}
                   />
-                  
+
                   {/* Player Info: Name and Score */}
-                  <div className="flex items-baseline gap-3">
+                  <div className="flex items-baseline gap-2 md:gap-3">
                     <span
                       className={`
-                        font-sans text-body font-bold uppercase tracking-wider truncate max-w-[100px]
+                        font-sans text-body font-bold uppercase tracking-wider truncate max-w-[60px] md:max-w-[100px]
                       `}
                       style={{ color: isActive ? undefined : textColor }}
                     >
