@@ -56,6 +56,14 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
     document.documentElement.style.setProperty('--page-bg', backgroundColor);
   }, [backgroundColor]);
 
+  // Lock body scroll to prevent double scrollbars
+  useEffect(() => {
+    document.body.classList.add('scroll-lock');
+    return () => {
+      document.body.classList.remove('scroll-lock');
+    };
+  }, []);
+
   const handleCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId);
   };

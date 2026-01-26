@@ -100,6 +100,18 @@ body {
   width: 100%;
 }
 
+/* Lock body scroll when in fixed-height views like GameBoard */
+body.scroll-lock {
+  overflow: hidden;
+  height: 100dvh;
+}
+
+body.scroll-lock #root {
+  height: 100dvh;
+  min-height: auto;
+  overflow: hidden;
+}
+
 /* Remove default button styles to allow custom styling */
 button {
   font-family: inherit;
