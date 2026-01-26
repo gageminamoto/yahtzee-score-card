@@ -100,6 +100,18 @@ body {
   width: 100%;
 }
 
+/* Lock body scroll when in fixed-height views like GameBoard */
+body.scroll-lock {
+  overflow: hidden;
+  height: 100dvh;
+}
+
+body.scroll-lock #root {
+  height: 100dvh;
+  min-height: auto;
+  overflow: hidden;
+}
+
 /* Remove default button styles to allow custom styling */
 button {
   font-family: inherit;
@@ -316,6 +328,21 @@ button {
 
   .md\:text-subtitle {
     font-size: calc(48px * var(--font-size-multiplier));
+  }
+}
+
+/* Mobile-optimized font sizes for compact layouts */
+@media (max-width: 767px) {
+  .mobile-compact .text-body-lg {
+    font-size: calc(22px * var(--font-size-multiplier));
+  }
+
+  .mobile-compact .text-body {
+    font-size: calc(17px * var(--font-size-multiplier));
+  }
+
+  .mobile-compact .text-ui {
+    font-size: calc(14px * var(--font-size-multiplier));
   }
 }
 
