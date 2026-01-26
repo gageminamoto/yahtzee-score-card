@@ -9,8 +9,8 @@ import { Icon } from '@iconify/react';
  */
 export default function TabSwitcher({ activeTab, onTabChange, firstTabRef }) {
   const tabs = [
-    { id: 'dice', label: 'Dice', name: 'Dice', icon: 'basil:dice-solid' },
     { id: 'quick', label: 'Quick', name: 'Quick', icon: 'basil:lightning-solid' },
+    { id: 'dice', label: 'Dice', name: 'Dice', icon: 'basil:dice-solid' },
   ];
 
   // Handle arrow key navigation between tabs

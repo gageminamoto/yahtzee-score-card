@@ -231,22 +231,22 @@ function generateGameId() {
 
 /**
  * Get the preferred input mode (dice or quick)
- * Defaults to 'dice' if not set
+ * Defaults to 'quick' if not set
  */
 export function getInputMode() {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.inputMode);
-    if (!stored) return 'dice';
+    if (!stored) return 'quick';
 
     const mode = stored;
     // Validate that it's one of the allowed modes
     if (['dice', 'quick'].includes(mode)) {
       return mode;
     }
-    return 'dice';
+    return 'quick';
   } catch (error) {
     console.error('Error loading input mode:', error);
-    return 'dice';
+    return 'quick';
   }
 }
 
