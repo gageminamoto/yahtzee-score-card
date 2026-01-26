@@ -18,6 +18,11 @@ export default function Changelog({ onBack, colorIndex }) {
   const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
   const textColor = getTextColorForBackground(backgroundColor);
 
+  // Sync background color to html/body for overscroll
+  useEffect(() => {
+    document.documentElement.style.setProperty('--page-bg', backgroundColor);
+  }, [backgroundColor]);
+
   // Fetch releases from GitHub API
   useEffect(() => {
     const fetchReleases = async () => {

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { Button, Input, Card, PlayerColorPicker } from '../components';
 import { getColorByScheme, getPlayerColorByScheme, getTextColorForBackground } from '../utils/colors';
@@ -15,6 +15,11 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
   const colorScheme = settings.visual.colorScheme;
   const backgroundColor = getColorByScheme(colorIndex, colorScheme);
   const textColor = getTextColorForBackground(backgroundColor);
+
+  // Sync background color to html/body for overscroll
+  useEffect(() => {
+    document.documentElement.style.setProperty('--page-bg', backgroundColor);
+  }, [backgroundColor]);
 
   const [players, setPlayers] = useState([
     { id: 1, name: '', color: getPlayerColorByScheme(0, colorScheme) },
