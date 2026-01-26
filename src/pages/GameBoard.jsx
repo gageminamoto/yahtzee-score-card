@@ -192,15 +192,13 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           </div>
         </div>
 
-        {/* Content area - scrollable on mobile */}
-        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-          {/* Player Switcher - Segmented control style */}
-          <div className="flex justify-center mb-2 md:mb-4 flex-shrink-0">
-            <div
-              className="inline-flex items-center p-1.5 md:p-2 bg-black/20 dark:bg-white/20 rounded-xl md:rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full shadow-lg"
-              role="tablist"
-              aria-label="Player switcher"
-            >
+        {/* Player Switcher - Segmented control style (sticky) */}
+        <div className="flex justify-center mb-2 md:mb-4 flex-shrink-0">
+          <div
+            className="inline-flex items-center p-1.5 md:p-2 bg-black/20 dark:bg-white/20 rounded-xl md:rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full shadow-lg"
+            role="tablist"
+            aria-label="Player switcher"
+          >
             {players.map((player, index) => {
               const isActive = index === currentPlayerIndex;
               const playerScore = calculateTotalScore(player.scorecard);
@@ -273,7 +271,8 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           </div>
         </div>
 
-          {/* Scorecard */}
+        {/* Scorecard - scrollable area */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <Scorecard
             scorecard={currentPlayer.scorecard}
             onCategoryClick={handleCategoryClick}
