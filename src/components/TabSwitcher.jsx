@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 
 /**
  * Tab switcher component for selecting input method
- * Shows three tabs: Dice, Quick, and Adjust
+ * Shows two tabs: Dice and Quick
  * Active tab is highlighted in electric blue
  * Supports keyboard navigation with arrow keys
  */
@@ -11,7 +11,6 @@ export default function TabSwitcher({ activeTab, onTabChange, firstTabRef }) {
   const tabs = [
     { id: 'dice', label: 'Dice', name: 'Dice', icon: 'basil:dice-solid' },
     { id: 'quick', label: 'Quick', name: 'Quick', icon: 'basil:lightning-solid' },
-    { id: 'adjust', label: '+/- Adjust', name: 'Adjust', icon: null },
   ];
 
   // Handle arrow key navigation between tabs
@@ -71,7 +70,7 @@ export default function TabSwitcher({ activeTab, onTabChange, firstTabRef }) {
 }
 
 TabSwitcher.propTypes = {
-  activeTab: PropTypes.oneOf(['dice', 'quick', 'adjust']).isRequired,
+  activeTab: PropTypes.oneOf(['dice', 'quick']).isRequired,
   onTabChange: PropTypes.func.isRequired,
   firstTabRef: PropTypes.oneOfType([
     PropTypes.func,

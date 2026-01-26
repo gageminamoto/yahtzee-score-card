@@ -7,7 +7,6 @@ export { default as ScoreEntryModal } from './ScoreEntryModal.jsx';
 export { default as TabSwitcher } from './TabSwitcher.jsx';
 export { default as DiceInput } from './DiceInput.jsx';
 export { default as QuickInput } from './QuickInput.jsx';
-export { default as AdjustInput } from './AdjustInput.jsx';
 export { default as DiceAnimation } from './DiceAnimation.jsx';
 export { default as PlayerColorPicker } from './PlayerColorPicker.jsx';
 export { default as FooterMenu } from './FooterMenu.jsx';
