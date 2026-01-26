@@ -230,23 +230,23 @@ function generateGameId() {
 }
 
 /**
- * Get the preferred input mode (dice, quick, or adjust)
- * Defaults to 'dice' if not set
+ * Get the preferred input mode (dice or quick)
+ * Defaults to 'quick' if not set
  */
 export function getInputMode() {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.inputMode);
-    if (!stored) return 'dice';
-    
+    if (!stored) return 'quick';
+
     const mode = stored;
     // Validate that it's one of the allowed modes
-    if (['dice', 'quick', 'adjust'].includes(mode)) {
+    if (['dice', 'quick'].includes(mode)) {
       return mode;
     }
-    return 'dice';
+    return 'quick';
   } catch (error) {
     console.error('Error loading input mode:', error);
-    return 'dice';
+    return 'quick';
   }
 }
 
@@ -256,7 +256,7 @@ export function getInputMode() {
 export function setInputMode(mode) {
   try {
     // Validate mode before saving
-    if (!['dice', 'quick', 'adjust'].includes(mode)) {
+    if (!['dice', 'quick'].includes(mode)) {
       console.warn('Invalid input mode:', mode);
       return false;
     }

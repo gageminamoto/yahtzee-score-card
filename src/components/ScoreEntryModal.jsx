@@ -4,15 +4,13 @@ import { Button } from './';
 import TabSwitcher from './TabSwitcher';
 import DiceInput from './DiceInput';
 import QuickInput from './QuickInput';
-import AdjustInput from './AdjustInput';
 import { getCategoryById, isValidScore } from '../utils/gameConstants';
 import { getInputMode, setInputMode } from '../utils/storage';
 
 /**
- * Modal for entering scores with three input methods:
+ * Modal for entering scores with two input methods:
  * 1. Dice Selector - tap dice icons to build roll
  * 2. Quick Presets - category-aware preset buttons
- * 3. Adjust - increment/decrement buttons
  */
 export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initialScore = 0 }) {
   // Load saved input mode preference, default to 'dice'
@@ -198,13 +196,6 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
               )}
               {activeTab === 'quick' && (
                 <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} />
-              )}
-              {activeTab === 'adjust' && (
-                <AdjustInput 
-                  categoryId={categoryId} 
-                  onScoreChange={handleScoreChange}
-                  initialValue={score}
-                />
               )}
             </div>
 
