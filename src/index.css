@@ -322,15 +322,15 @@ button {
 /* Mobile-optimized font sizes for compact layouts */
 @media (max-width: 767px) {
   .mobile-compact .text-body-lg {
-    font-size: calc(18px * var(--font-size-multiplier));
+    font-size: calc(20px * var(--font-size-multiplier));
   }
 
   .mobile-compact .text-body {
-    font-size: calc(14px * var(--font-size-multiplier));
+    font-size: calc(16px * var(--font-size-multiplier));
   }
 
   .mobile-compact .text-ui {
-    font-size: calc(12px * var(--font-size-multiplier));
+    font-size: calc(13px * var(--font-size-multiplier));
   }
 }
 

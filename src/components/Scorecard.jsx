@@ -94,7 +94,7 @@ Scorecard.propTypes = {
  * Made keyboard accessible with tabIndex, role, and keyboard event handlers
  */
 function CategoryRow({ category, score, isScored, onClick, isClickable, textColor = '#FFFFFF' }) {
-  const baseStyles = "flex justify-between items-center py-1 md:py-1.5 px-2 transition-[background-color] duration-100 ease-out";
+  const baseStyles = "flex justify-between items-center py-1.5 md:py-2 px-2 min-h-[36px] md:min-h-[44px] transition-[background-color] duration-100 ease-out";
 
   // Theme-aware interactive and scored styles
   const interactiveStyles = isClickable
@@ -126,20 +126,20 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
         {category.name}
       </span>
 
-      <div className="flex items-center gap-1.5 md:gap-2">
+      <div className="flex items-center gap-2">
         {isScored ? (
           <>
             <Icon
               icon={isClickable ? "basil:edit-solid" : "basil:check-solid"}
-              className="w-4 h-4 md:w-5 md:h-5 opacity-50"
+              className="w-5 h-5 opacity-50"
               style={{ color: textColor }}
             />
-            <span className="font-serif text-body font-bold min-w-[2rem] md:min-w-[2.5rem] text-right tabular-nums" style={{ color: textColor }}>
+            <span className="font-serif text-body font-bold min-w-[2.5rem] text-right tabular-nums" style={{ color: textColor }}>
               {score}
             </span>
           </>
         ) : (
-          <span className="font-serif text-body opacity-30 min-w-[2rem] md:min-w-[2.5rem] text-right" style={{ color: textColor }}>
+          <span className="font-serif text-body opacity-30 min-w-[2.5rem] text-right" style={{ color: textColor }}>
             —
           </span>
         )}

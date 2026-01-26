@@ -218,7 +218,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   role="tab"
                   aria-selected={isActive}
                   className={`
-                    relative flex items-center gap-2 md:gap-3 px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl min-w-fit
+                    relative flex items-center gap-2.5 md:gap-3 px-4 md:px-5 py-2.5 md:py-3 rounded-xl min-w-fit min-h-[44px]
                     transition-all duration-150 ease-out
                     motion-reduce:transition-none
                     ${isActive
@@ -235,7 +235,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   {/* Player Color Indicator */}
                   <div
                     className={`
-                      w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex-shrink-0
+                      w-7 h-7 md:w-8 md:h-8 rounded-full border-2 flex-shrink-0
                       transition-[border-color] duration-150 ease-out motion-reduce:transition-none
                       ${isActive
                         ? 'border-black/20 dark:border-white/30'
@@ -249,7 +249,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   <div className="flex items-baseline gap-2 md:gap-3">
                     <span
                       className={`
-                        font-sans text-body font-bold uppercase tracking-wider truncate max-w-[60px] md:max-w-[100px]
+                        font-sans text-body font-bold uppercase tracking-wider truncate max-w-[80px] md:max-w-[100px]
                       `}
                       style={{ color: isActive ? undefined : textColor }}
                     >
