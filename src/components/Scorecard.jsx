@@ -94,7 +94,7 @@ Scorecard.propTypes = {
  * Made keyboard accessible with tabIndex, role, and keyboard event handlers
  */
 function CategoryRow({ category, score, isScored, onClick, isClickable, textColor = '#FFFFFF' }) {
-  const baseStyles = "flex justify-between items-center py-1.5 md:py-2 px-2 min-h-[36px] md:min-h-[44px] transition-[background-color] duration-100 ease-out";
+  const baseStyles = "flex justify-between items-center py-2.5 md:py-3 px-3 min-h-[44px] md:min-h-[48px] transition-[background-color] duration-100 ease-out";
 
   // Theme-aware interactive and scored styles
   const interactiveStyles = isClickable

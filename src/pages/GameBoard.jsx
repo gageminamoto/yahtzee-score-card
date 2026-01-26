@@ -147,12 +147,12 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
 
   return (
     <div
-      className="min-h-dvh p-2 md:p-6 transition-colors duration-500 flex flex-col mobile-compact"
+      className="h-dvh p-2 md:p-6 transition-colors duration-500 flex flex-col mobile-compact overflow-hidden"
       style={{ backgroundColor }}
     >
-      <div className="max-w-6xl mx-auto w-full flex flex-col flex-1">
+      <div className="max-w-6xl mx-auto w-full flex flex-col flex-1 min-h-0">
         {/* Header with Quit, Finish Game, and Round */}
-        <div className="flex justify-between items-center mb-1 md:mb-2">
+        <div className="flex justify-between items-center mb-1 md:mb-2 flex-shrink-0">
           <button
             onClick={onQuit}
             className="font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2"
@@ -192,10 +192,10 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           </div>
         </div>
 
-        {/* Content area - centered vertically in remaining space */}
-        <div className="flex-1 flex flex-col justify-center">
+        {/* Content area - scrollable on mobile */}
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
           {/* Player Switcher - Segmented control style */}
-          <div className="flex justify-center mb-2 md:mb-4">
+          <div className="flex justify-center mb-2 md:mb-4 flex-shrink-0">
             <div
               className="inline-flex items-center p-1.5 md:p-2 bg-black/20 dark:bg-white/20 rounded-xl md:rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full shadow-lg"
               role="tablist"
