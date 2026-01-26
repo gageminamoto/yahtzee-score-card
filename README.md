@@ -8,6 +8,10 @@ A bold, design-forward web application for tracking Yahtzee scores. Built with R
 - **Bold Design**: High-contrast colors, oversized typography, and minimal UI
 - **Score Tracking**: Complete Yahtzee scorecard with automatic calculations
 - **Upper Section Bonus**: Automatic tracking of 35-point bonus (≥63 points)
+- **Game History**: View and browse past completed games
+- **PWA Support**: Install as an app, works offline
+- **Sound Effects**: Audio feedback for score entry and celebrations
+- **Dark Mode**: Toggle between light and dark themes
 - **Responsive**: Works on mobile, tablet, and desktop
 - **100% Free**: No ads, no tracking, no monetization
 
@@ -75,11 +79,18 @@ src/
 │   ├── Home.jsx
 │   ├── SingleDeviceSetup.jsx
 │   ├── GameBoard.jsx
-│   └── Winner.jsx
+│   ├── Winner.jsx
+│   ├── Settings.jsx
+│   ├── GameHistory.jsx
+│   └── Changelog.jsx
+├── context/            # React Context
+│   └── SettingsContext.jsx
 ├── utils/              # Helper functions
 │   ├── colors.js       # Color palette
 │   ├── gameConstants.js # Yahtzee rules
-│   └── scoring.js      # Score calculations
+│   ├── scoring.js      # Score calculations
+│   ├── storage.js      # localStorage utilities
+│   └── sounds.js       # Sound effects
 ├── App.jsx             # Main app component
 └── index.css           # Global styles
 ```
@@ -108,22 +119,27 @@ src/
 
 ## 🎯 Roadmap
 
-### MVP (Current)
+### Phase 1 - MVP
 - ✅ Single device mode
 - ✅ Score tracking and validation
 - ✅ Bold CMYK design system
 - ✅ Responsive layout
 - ✅ Winner screen
 
-### Phase 2 (Future)
+### Phase 2 - Enhancements
+- ✅ Dark mode toggle
+- ✅ Customizable settings
+- ✅ Animations and polish
+
+### Phase 3 - Current
+- ✅ Game history view
+- ✅ PWA support (offline mode, installable)
+- ✅ Sound effects
+
+### Future
 - [ ] Multi-device mode with session codes
-- [ ] Undo last entry
-- [ ] Game history
 - [ ] Illustrations for categories
-- [ ] PWA support (offline mode)
-- [ ] Dark mode toggle
 - [ ] QR code joining
-- [ ] Sound effects
 
 ## 🤝 Contributing
 

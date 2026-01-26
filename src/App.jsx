@@ -7,6 +7,7 @@ import GameBoard from './pages/GameBoard';
 import Winner from './pages/Winner';
 import Settings from './pages/Settings';
 import Changelog from './pages/Changelog';
+import GameHistory from './pages/GameHistory';
 
 /**
  * Main App component
@@ -128,6 +129,14 @@ function App() {
     transitionToScreen('home');
   };
 
+  const handleOpenHistory = () => {
+    transitionToScreen('history');
+  };
+
+  const handleBackFromHistory = () => {
+    transitionToScreen('home');
+  };
+
   /**
    * Handle title click on Home screen
    * Cycles through background colors by incrementing the color index
@@ -168,12 +177,22 @@ function App() {
                 onSelectMode={handleSelectMode}
                 onOpenSettings={handleOpenSettings}
                 onOpenChangelog={handleOpenChangelog}
+                onOpenHistory={handleOpenHistory}
                 colorIndex={homeColorIndex}
                 onTitleClick={handleHomeTitleClick}
               />,
               'animate-slideOutToLeft'
             )}
-            
+
+            {previousScreen === 'history' && renderScreen(
+              'history',
+              <GameHistory
+                onBack={handleBackFromHistory}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideOutToLeft'
+            )}
+
             {previousScreen === 'settings' && renderScreen(
               'settings',
               <Settings
@@ -234,12 +253,22 @@ function App() {
                 onSelectMode={handleSelectMode}
                 onOpenSettings={handleOpenSettings}
                 onOpenChangelog={handleOpenChangelog}
+                onOpenHistory={handleOpenHistory}
                 colorIndex={homeColorIndex}
                 onTitleClick={handleHomeTitleClick}
               />,
               'animate-slideInFromRight'
             )}
-            
+
+            {nextScreen === 'history' && renderScreen(
+              'history',
+              <GameHistory
+                onBack={handleBackFromHistory}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideInFromRight'
+            )}
+
             {nextScreen === 'settings' && renderScreen(
               'settings',
               <Settings
@@ -296,8 +325,16 @@ function App() {
                 onSelectMode={handleSelectMode}
                 onOpenSettings={handleOpenSettings}
                 onOpenChangelog={handleOpenChangelog}
+                onOpenHistory={handleOpenHistory}
                 colorIndex={homeColorIndex}
                 onTitleClick={handleHomeTitleClick}
+              />
+            )}
+
+            {screen === 'history' && (
+              <GameHistory
+                onBack={handleBackFromHistory}
+                colorIndex={homeColorIndex}
               />
             )}
 

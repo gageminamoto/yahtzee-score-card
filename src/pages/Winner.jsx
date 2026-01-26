@@ -1,22 +1,50 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button, Card } from '../components';
 import { getColorByIndex, getTextColorForBackground } from '../utils/colors';
+import { addGameToHistory } from '../utils/storage';
+import { useSettings } from '../context/SettingsContext';
+import { playWinner } from '../utils/sounds';
 
 /**
  * Winner announcement screen
  * - Shows winner with celebration
  * - Displays final scores
  * - Options to play again or go home
+ * - Saves game to history
  */
 export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
+  const { settings } = useSettings();
   const backgroundColor = getColorByIndex(colorIndex);
   const textColor = getTextColorForBackground(backgroundColor);
   const [showConfetti, setShowConfetti] = useState(true);
+  const savedToHistory = useRef(false);
 
   // Sync background color to html/body for overscroll
   useEffect(() => {
     document.documentElement.style.setProperty('--page-bg', backgroundColor);
   }, [backgroundColor]);
+
+  // Save game to history on mount (only once)
+  useEffect(() => {
+    if (savedToHistory.current) return;
+    if (!settings.data.saveGameHistory) return;
+    if (!players || players.length === 0) return;
+
+    savedToHistory.current = true;
+    addGameToHistory(
+      { players },
+      settings.data.maxHistorySize
+    );
+  }, [players, settings.data.saveGameHistory, settings.data.maxHistorySize]);
+
+  // Play winner sound on mount
+  useEffect(() => {
+    if (settings.accessibility.enableSoundEffects) {
+      // Small delay to sync with the animation
+      const timer = setTimeout(() => playWinner(), 300);
+      return () => clearTimeout(timer);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sort players by score
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);

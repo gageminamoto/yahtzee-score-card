@@ -12,6 +12,8 @@ import {
 } from '../utils/scoring';
 import { TOTAL_ROUNDS } from '../utils/gameConstants';
 import { getTextColorForBackground } from '../utils/colors';
+import { useSettings } from '../context/SettingsContext';
+import { playScoreEntered, playYahtzee, playTurnChange, initAudio } from '../utils/sounds';
 
 /**
  * Main game board for single device mode
@@ -21,6 +23,8 @@ import { getTextColorForBackground } from '../utils/colors';
  * - Navigates to winner screen when complete
  */
 export default function GameBoard({ players: initialPlayers, onGameComplete, onQuit }) {
+  const { settings } = useSettings();
+
   // Initialize players with empty scorecards
   // Using setPlayers to update state when scores change
   const [players, setPlayers] = useState(() =>
@@ -34,6 +38,11 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [completedTurns, setCompletedTurns] = useState(0);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+
+  // Initialize audio on mount (requires user interaction first)
+  useEffect(() => {
+    initAudio();
+  }, []);
 
   // Guard: If players array is empty (e.g., during quit transition), return null
   // This prevents crashes when the parent clears players before unmounting
@@ -72,6 +81,16 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
       score
     );
 
+    // Play sound effect if enabled
+    if (settings.accessibility.enableSoundEffects) {
+      // Play Yahtzee sound for a Yahtzee score (50 points in yahtzee category)
+      if (selectedCategory === 'yahtzee' && score === 50) {
+        playYahtzee();
+      } else {
+        playScoreEntered();
+      }
+    }
+
     // Update the players state with the new scorecard
     // This ensures the UI and finish game button always have current scores
     setPlayers(updatedPlayers);
@@ -94,6 +113,12 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           onGameComplete(finalPlayers);
           return;
         }
+      }
+
+      // Play turn change sound if enabled and there are multiple players
+      if (settings.accessibility.enableSoundEffects && players.length > 1) {
+        // Small delay so it doesn't overlap with score sound
+        setTimeout(() => playTurnChange(), 200);
       }
 
       // Move to next player

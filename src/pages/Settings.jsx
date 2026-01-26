@@ -246,7 +246,7 @@ export default function Settings({ onBack, colorIndex }) {
             />
             <SettingToggle
               label="Sound Effects"
-              description="Play audio on score entry and turn changes (coming soon)"
+              description="Play audio on score entry and turn changes"
               enabled={settings.accessibility.enableSoundEffects}
               onChange={(value) => updateSetting('accessibility', 'enableSoundEffects', value)}
             />

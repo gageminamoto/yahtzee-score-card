@@ -20,7 +20,7 @@ import letterE from '../assets/header/E.png';
  * - Two primary action buttons
  * - Settings button
  */
-export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, colorIndex, onTitleClick }) {
+export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, onOpenHistory, colorIndex, onTitleClick }) {
   const { settings } = useSettings();
   const [diceKey, setDiceKey] = useState(0);
   const [diceFromTop, setDiceFromTop] = useState(false);
@@ -296,6 +296,15 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
           onClick={onOpenSettings}
         >
           Settings
+        </Button>
+
+        <Button
+          variant="primary"
+          size="large"
+          fullWidth
+          onClick={onOpenHistory}
+        >
+          History
         </Button>
       </div>
 
