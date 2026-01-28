@@ -17,7 +17,7 @@ import { clearAllData, exportAllData } from '../utils/storage';
 
 export default function Settings({ onBack, colorIndex }) {
   const { settings, updateSetting, resetAllSettings } = useSettings();
-  const [activeTab, setActiveTab] = useState('visual');
+  const [activeTab, setActiveTab] = useState('appearance');
   const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
   const textColor = getTextColorForBackground(backgroundColor);
 
@@ -52,11 +52,9 @@ export default function Settings({ onBack, colorIndex }) {
   };
 
   const tabs = [
-    { id: 'visual', label: 'Visual' },
+    { id: 'appearance', label: 'Appearance' },
     { id: 'rules', label: 'Rules' },
-    { id: 'accessibility', label: 'Access' },
     { id: 'data', label: 'Data' },
-    { id: 'about', label: 'About' },
   ];
 
   return (
@@ -101,8 +99,8 @@ export default function Settings({ onBack, colorIndex }) {
           ))}
         </div>
 
-        {/* Visual Settings */}
-        {activeTab === 'visual' && (
+        {/* Appearance Settings */}
+        {activeTab === 'appearance' && (
           <div className="space-y-6">
             <Card padding="medium">
               <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
@@ -123,7 +121,7 @@ export default function Settings({ onBack, colorIndex }) {
 
             <Card padding="medium">
               <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
-                APPEARANCE
+                DISPLAY
               </h2>
               <SettingButtonGroup
                 label="Font Size"
@@ -146,6 +144,24 @@ export default function Settings({ onBack, colorIndex }) {
                 onChange={(value) => updateSetting('visual', 'enableDarkMode', value)}
               />
               <SettingToggle
+                label="High Contrast"
+                description="Stronger borders and no transparency for better visibility"
+                enabled={settings.accessibility.highContrast}
+                onChange={(value) => updateSetting('accessibility', 'highContrast', value)}
+              />
+              <SettingToggle
+                label="Large Touch Targets"
+                description="Increase button sizes for easier tapping"
+                enabled={settings.accessibility.largeButtons}
+                onChange={(value) => updateSetting('accessibility', 'largeButtons', value)}
+              />
+            </Card>
+
+            <Card padding="medium">
+              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+                EFFECTS
+              </h2>
+              <SettingToggle
                 label="Animations"
                 description="Enable smooth transitions and effects"
                 enabled={settings.visual.enableAnimations}
@@ -159,7 +175,7 @@ export default function Settings({ onBack, colorIndex }) {
               />
               <SettingToggle
                 label="Reduced Motion"
-                description="Minimize all animations (accessibility)"
+                description="Disables animations above for accessibility"
                 enabled={settings.visual.reducedMotion}
                 onChange={(value) => updateSetting('visual', 'reducedMotion', value)}
               />
@@ -172,10 +188,10 @@ export default function Settings({ onBack, colorIndex }) {
           <div className="space-y-6">
             <Card padding="medium">
               <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
-                UPPER SECTION BONUS
+                SCORING
               </h2>
               <SettingNumberInput
-                label="Threshold"
+                label="Upper Bonus Threshold"
                 description="Points needed in upper section to earn bonus"
                 value={settings.gameRules.upperBonusThreshold}
                 min={0}
@@ -183,19 +199,13 @@ export default function Settings({ onBack, colorIndex }) {
                 onChange={(value) => updateSetting('gameRules', 'upperBonusThreshold', value)}
               />
               <SettingNumberInput
-                label="Bonus Points"
+                label="Upper Bonus Points"
                 description="Points awarded when threshold is reached"
                 value={settings.gameRules.upperBonusPoints}
                 min={0}
                 max={100}
                 onChange={(value) => updateSetting('gameRules', 'upperBonusPoints', value)}
               />
-            </Card>
-
-            <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
-                YAHTZEE
-              </h2>
               <SettingNumberInput
                 label="Yahtzee Bonus"
                 description="Points for additional Yahtzees after the first"
@@ -223,40 +233,25 @@ export default function Settings({ onBack, colorIndex }) {
                 onChange={(value) => updateSetting('gameRules', 'enableForcedZeros', value)}
               />
             </Card>
-          </div>
-        )}
 
-        {/* Accessibility Settings */}
-        {activeTab === 'accessibility' && (
-          <Card padding="medium">
-            <h2 className="font-serif text-subtitle text-white dark:text-black mb-4">
-              ACCESSIBILITY
-            </h2>
-            <SettingToggle
-              label="High Contrast Mode"
-              description="Stronger borders and no transparency for better visibility"
-              enabled={settings.accessibility.highContrast}
-              onChange={(value) => updateSetting('accessibility', 'highContrast', value)}
-            />
-            <SettingToggle
-              label="Large Touch Targets"
-              description="Increase button sizes for easier tapping"
-              enabled={settings.accessibility.largeButtons}
-              onChange={(value) => updateSetting('accessibility', 'largeButtons', value)}
-            />
-            <SettingToggle
-              label="Sound Effects"
-              description="Play audio on score entry and turn changes (coming soon)"
-              enabled={settings.accessibility.enableSoundEffects}
-              onChange={(value) => updateSetting('accessibility', 'enableSoundEffects', value)}
-            />
-            <SettingToggle
-              label="Haptic Feedback"
-              description="Vibrate on interactions (mobile devices)"
-              enabled={settings.accessibility.enableHapticFeedback}
-              onChange={(value) => updateSetting('accessibility', 'enableHapticFeedback', value)}
-            />
-          </Card>
+            <Card padding="medium">
+              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+                FEEDBACK
+              </h2>
+              <SettingToggle
+                label="Haptic Feedback"
+                description="Vibrate on interactions (mobile devices)"
+                enabled={settings.accessibility.enableHapticFeedback}
+                onChange={(value) => updateSetting('accessibility', 'enableHapticFeedback', value)}
+              />
+              <SettingToggle
+                label="Sound Effects"
+                description="Play audio on score entry and turn changes (coming soon)"
+                enabled={settings.accessibility.enableSoundEffects}
+                onChange={(value) => updateSetting('accessibility', 'enableSoundEffects', value)}
+              />
+            </Card>
+          </div>
         )}
 
         {/* Data Settings */}
@@ -264,7 +259,7 @@ export default function Settings({ onBack, colorIndex }) {
           <div className="space-y-6">
             <Card padding="medium">
               <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
-                GAME DATA
+                SAVE & HISTORY
               </h2>
               <SettingToggle
                 label="Auto-Save"
@@ -319,12 +314,7 @@ export default function Settings({ onBack, colorIndex }) {
                 </Button>
               </div>
             </Card>
-          </div>
-        )}
 
-        {/* About */}
-        {activeTab === 'about' && (
-          <div className="space-y-6">
             <Card padding="medium">
               <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
                 ABOUT
