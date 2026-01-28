@@ -158,12 +158,12 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
 
   return (
     <div
-      className="h-dvh p-2 md:p-6 transition-colors duration-500 flex flex-col mobile-compact overflow-hidden"
+      className="h-dvh px-2 py-1.5 md:p-6 transition-colors duration-500 flex flex-col mobile-compact overflow-hidden"
       style={{ backgroundColor }}
     >
       <div className="max-w-6xl mx-auto w-full flex flex-col flex-1 min-h-0">
         {/* Header with Quit, Finish Game, and Round */}
-        <div className="flex justify-between items-center mb-1 md:mb-2 flex-shrink-0">
+        <div className="flex justify-between items-center mb-1.5 md:mb-2 flex-shrink-0">
           <button
             onClick={onQuit}
             className="font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2"
@@ -186,9 +186,9 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
               disabled={!!selectedCategory}
               className={`
                 font-sans text-ui font-bold
-                px-6 py-2.5 rounded-full
-                bg-white/20 dark:bg-black/20
-                hover:bg-white/40 dark:hover:bg-black/40
+                px-4 py-2 rounded-full
+                bg-white/15 dark:bg-black/15
+                hover:bg-white/25 dark:hover:bg-black/25
                 active:scale-95
                 transition-all duration-150
                 inline-flex items-center justify-center
@@ -203,21 +203,16 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           </div>
         </div>
 
-        {/* Player Switcher - Segmented control style (sticky) */}
+        {/* Player Switcher */}
         <div className="flex justify-center mb-2 md:mb-4 flex-shrink-0">
           <div
-            className="inline-flex items-center gap-2 p-2 md:p-2 bg-black/20 dark:bg-white/20 rounded-2xl md:rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full shadow-lg"
+            className="inline-flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full p-2"
             role="tablist"
             aria-label="Player switcher"
           >
             {players.map((player, index) => {
               const isActive = index === currentPlayerIndex;
               const playerScore = calculateTotalScore(player.scorecard);
-
-              // Determine tab colors based on active state and theme
-              // When active, we want high contrast (white in light mode, black in dark mode)
-              const activeBg = "bg-white dark:bg-black shadow-md";
-              const activeText = "text-black dark:text-white";
 
               return (
                 <button
@@ -227,15 +222,15 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   role="tab"
                   aria-selected={isActive}
                   className={`
-                    relative flex items-center gap-3 md:gap-3 px-5 md:px-5 py-3 md:py-3 rounded-xl min-w-fit min-h-[52px]
+                    relative flex items-center gap-3 px-5 py-3 rounded-full min-w-fit min-h-[52px]
                     transition-all duration-150 ease-out
                     motion-reduce:transition-none
                     ${isActive
-                      ? `${activeBg} ${activeText} scale-105 shadow-md`
-                      : `hover:bg-white/20 dark:hover:bg-black/20 opacity-80 hover:opacity-100`
+                      ? 'bg-white/25 dark:bg-black/25'
+                      : 'opacity-60 hover:opacity-100'
                     }
                     ${selectedCategory ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
-                    focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-black focus:ring-offset-2
+                    focus:outline-none focus:ring-2 focus:ring-white/50 dark:focus:ring-black/50
                     active:scale-[0.97] motion-reduce:active:scale-100
                   `}
                   aria-label={`Switch to ${player.name || `Player ${index + 1}`}`}
@@ -243,41 +238,26 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                 >
                   {/* Player Color Indicator */}
                   <div
-                    className={`
-                      w-9 h-9 md:w-10 md:h-10 rounded-full border-2 flex-shrink-0
-                      transition-[border-color] duration-150 ease-out motion-reduce:transition-none
-                      ${isActive
-                        ? 'border-black/20 dark:border-white/30'
-                        : 'border-white/30 dark:border-black/30'
-                      }
-                    `}
+                    className="w-9 h-9 md:w-10 md:h-10 rounded-full flex-shrink-0"
                     style={{ backgroundColor: player.color }}
                   />
 
                   {/* Player Info: Name and Score */}
-                  <div className="flex items-baseline gap-2 md:gap-3">
-                    <span
-                      className={`
-                        font-sans text-body font-bold uppercase tracking-wider truncate max-w-[80px] md:max-w-[100px]
-                      `}
-                      style={{ color: isActive ? undefined : textColor }}
-                    >
-                      {player.name || `P${index + 1}`}
-                    </span>
+                  <span
+                    className="font-sans text-body font-bold uppercase tracking-wide truncate max-w-[60px] md:max-w-[80px]"
+                    style={{ color: textColor }}
+                  >
+                    {player.name || `P${index + 1}`}
+                  </span>
 
-                    {settings.visual.showHeaderTotals && (
-                      <span
-                        className={`
-                          font-serif text-body-lg font-bold tabular-nums
-                          transition-opacity duration-150 ease-out motion-reduce:transition-none
-                          ${isActive ? 'opacity-100' : 'opacity-80'}
-                        `}
-                        style={{ color: isActive ? undefined : textColor }}
-                      >
-                        {playerScore}
-                      </span>
-                    )}
-                  </div>
+                  {settings.visual.showHeaderTotals && (
+                    <span
+                      className="font-serif text-body font-bold tabular-nums"
+                      style={{ color: textColor }}
+                    >
+                      {playerScore}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -302,6 +282,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
           onSubmit={handleScoreSubmit}
           onCancel={handleScoreCancel}
           initialScore={currentPlayer.scorecard[selectedCategory] ?? 0}
+          playerColor={backgroundColor}
         />
       )}
 

@@ -12,7 +12,7 @@ import { getInputMode, setInputMode } from '../utils/storage';
  * 1. Dice Selector - tap dice icons to build roll
  * 2. Quick Presets - category-aware preset buttons
  */
-export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initialScore = 0 }) {
+export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initialScore = 0, playerColor }) {
   // Load saved input mode preference, default to 'dice'
   const [activeTab, setActiveTab] = useState(() => getInputMode());
   const [score, setScore] = useState(initialScore);
@@ -125,7 +125,8 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="bg-electric-blue dark:bg-electric-blue max-w-md w-full p-6 md:p-8 animate-scaleIn focus:outline-none"
+        className="max-w-md w-full p-6 md:p-8 animate-scaleIn focus:outline-none"
+        style={{ backgroundColor: playerColor || '#3B82F6' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Category Info */}
@@ -231,4 +232,5 @@ ScoreEntryModal.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   initialScore: PropTypes.number,
+  playerColor: PropTypes.string,
 };
