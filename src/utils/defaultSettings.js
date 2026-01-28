@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS = {
     enableHapticFeedback: true,
     largeButtons: false,
     screenReaderMode: false,
+    keepScreenAwake: false,
   },
   data: {
     autoSaveEnabled: true,

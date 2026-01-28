@@ -256,6 +256,12 @@ export default function Settings({ onBack, colorIndex }) {
               enabled={settings.accessibility.enableHapticFeedback}
               onChange={(value) => updateSetting('accessibility', 'enableHapticFeedback', value)}
             />
+            <SettingToggle
+              label="Keep Screen Awake"
+              description="Prevent device from sleeping while using the app"
+              enabled={settings.accessibility.keepScreenAwake}
+              onChange={(value) => updateSetting('accessibility', 'keepScreenAwake', value)}
+            />
           </Card>
         )}
 
