@@ -90,14 +90,14 @@ export default function DiceInput({ categoryId, onScoreChange }) {
                 transition-all duration-150 ease-out
                 ${
                   hasDie
-                    ? 'bg-electric-blue text-white text-4xl cursor-pointer active:scale-95 hover:bg-electric-blue/80'
+                    ? 'bg-electric-blue text-white text-5xl cursor-pointer active:scale-95 hover:bg-electric-blue/80 leading-none'
                     : 'border-2 border-dashed border-white/30 dark:border-black/30 cursor-default'
                 }
               `}
             >
               {hasDie && (
                 <>
-                  {getSymbol(dieValue)}
+                  <span className="-translate-y-1 leading-none">{getSymbol(dieValue)}</span>
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-white/90 dark:bg-black/90 rounded-full text-electric-blue text-xs font-bold flex items-center justify-center">
                     ×
                   </span>
@@ -127,10 +127,10 @@ export default function DiceInput({ categoryId, onScoreChange }) {
               active:scale-95
               hover:bg-opacity-40 dark:hover:bg-opacity-40
               disabled:opacity-30 disabled:cursor-not-allowed
-              flex items-center justify-center
+              flex items-center justify-center leading-none
             "
           >
-            {die.symbol}
+            <span className="-translate-y-1">{die.symbol}</span>
           </button>
         ))}
       </div>
