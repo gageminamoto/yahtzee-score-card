@@ -146,6 +146,12 @@ export default function Settings({ onBack, colorIndex }) {
                 onChange={(value) => updateSetting('visual', 'enableDarkMode', value)}
               />
               <SettingToggle
+                label="Header Totals"
+                description="Show player total scores in the game header"
+                enabled={settings.visual.showHeaderTotals}
+                onChange={(value) => updateSetting('visual', 'showHeaderTotals', value)}
+              />
+              <SettingToggle
                 label="Animations"
                 description="Enable smooth transitions and effects"
                 enabled={settings.visual.enableAnimations}
