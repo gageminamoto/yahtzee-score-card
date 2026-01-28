@@ -7,19 +7,24 @@ import { getValidScoresForCategory } from '../utils/scoring';
  * Quick Input Component
  * Shows category-aware preset buttons for quick score selection
  * Upper section: multiples of die value (0 to 5×value)
- * Lower variable: common presets (0, 5, 10, 15, 20, 25, 30) + fine-tune
+ * Lower variable: common presets (0, 10, 15, 20, 25) + fine-tune
  */
 export default function QuickInput({ categoryId, onScoreChange }) {
   const [selectedScore, setSelectedScore] = useState(null);
   const category = getCategoryById(categoryId);
   
   // Get valid scores for this category
-  const validScores = getValidScoresForCategory(categoryId);
-  
+  const rawScores = getValidScoresForCategory(categoryId);
+
   // For lower variable categories, we'll show presets + fine-tune
-  const isLowerVariable = category?.section === 'lower' && 
-                          category?.maxScore !== undefined && 
+  const isLowerVariable = category?.section === 'lower' &&
+                          category?.maxScore !== undefined &&
                           !category?.fixedScore;
+
+  // Filter presets for lower variable categories: 0, 10, 15, 20, 25 (skip 5 and 30)
+  const validScores = isLowerVariable
+    ? rawScores.filter(score => [0, 10, 15, 20, 25].includes(score))
+    : rawScores;
 
   // Handle preset button click
   const handlePresetClick = (score) => {
@@ -50,7 +55,7 @@ export default function QuickInput({ categoryId, onScoreChange }) {
     <div className="space-y-4">
       {/* Preset Buttons Grid */}
       <div className={`grid gap-3 ${
-        validScores.length <= 6 ? 'grid-cols-6' : 'grid-cols-7'
+        validScores.length <= 5 ? 'grid-cols-5' : 'grid-cols-6'
       }`}>
         {validScores.map((score) => {
           const isSelected = selectedScore === score;
@@ -59,8 +64,8 @@ export default function QuickInput({ categoryId, onScoreChange }) {
               key={score}
               onClick={() => handlePresetClick(score)}
               className={`
-                py-4 px-2 bg-black/20 dark:bg-white/20 text-white dark:text-black 
-                font-serif text-subtitle rounded-md
+                py-4 px-4 bg-black/20 dark:bg-white/20 text-white dark:text-black
+                font-serif text-body-lg rounded-md
                 transition-all duration-150 ease-out
                 active:scale-[0.95]
                 ${
