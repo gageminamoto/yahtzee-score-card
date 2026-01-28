@@ -31,12 +31,12 @@ Paper Yahtzee scorecards are fine, but they're messy, easy to lose, and not part
 
 ## 1. Executive Summary
 
-An open source, web-based Yahtzee score tracking application that replaces traditional paper scoresheets with a bold, graphic digital experience. The app supports both single-device multiplayer and multi-device session-based gameplay, featuring a design aesthetic inspired by CMYK Games' Swiss-style approach with bold colors, oversized typography, and minimal UI elements.
+An open source, web-based Yahtzee score tracking application that replaces traditional paper scoresheets with a bold, graphic digital experience. The app supports both single-device multidevice and multi-device session-based gameplay, featuring a design aesthetic inspired by CMYK Games' Swiss-style approach with bold colors, oversized typography, and minimal UI elements.
 
 **Project Goals:**
 - Create a beautiful, functional tool that makes Yahtzee more enjoyable
 - Explore bold graphic design in a web application
-- Learn real-time multiplayer development techniques
+- Learn real-time multidevice development techniques
 - Build a portfolio piece that showcases design and development skills
 - Share freely with the board game community
 
