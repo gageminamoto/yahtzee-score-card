@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
  * FooterMenu Component
  *
  * A popover menu triggered by an "Info" button that displays:
- * - Open Source (link to GitHub)
+ * - GitHub (link to repo)
  * - Changelog (button)
  * - Roadmap (link to Notion)
  * - "Free Forever • No Ads" tagline
@@ -17,7 +17,7 @@ import PropTypes from 'prop-types';
  */
 export default function FooterMenu({ textColor, onOpenChangelog }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [popupPosition, setPopupPosition] = useState({ bottom: 0, left: 0 });
+  const [popupPosition, setPopupPosition] = useState({ bottom: 0, left: null, right: null });
 
   const containerRef = useRef(null);
   const popupRef = useRef(null);
@@ -28,14 +28,18 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
 
     if (buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
+      const padding = 12; // padding from viewport edges
 
-      // Position popover above the button, centered horizontally
+      // Position popover above the button
       const popoverBottom = window.innerHeight - buttonRect.top + 8;
-      const popoverLeft = buttonRect.left + buttonRect.width / 2;
+
+      // Position from right edge to ensure it stays in viewport
+      const rightDistance = window.innerWidth - buttonRect.right;
 
       setPopupPosition({
         bottom: popoverBottom,
-        left: popoverLeft,
+        left: null,
+        right: Math.max(padding, rightDistance - buttonRect.width / 2),
       });
     }
 
@@ -104,10 +108,10 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
           className="fixed z-[10000] bg-black/90 dark:bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-2xl"
           style={{
             minWidth: '180px',
+            maxWidth: 'calc(100vw - 24px)',
             bottom: `${popupPosition.bottom}px`,
-            left: `${popupPosition.left}px`,
-            transform: 'translateX(-50%)',
-            transformOrigin: 'bottom center',
+            right: `${popupPosition.right}px`,
+            transformOrigin: 'bottom right',
             animation: 'popoverScaleIn 200ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards',
           }}
         >
@@ -119,7 +123,7 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
               rel="noopener noreferrer"
               className="font-sans text-body text-white dark:text-black hover:opacity-70 transition-opacity"
             >
-              Open Source
+              GitHub
             </a>
             <button
               onClick={handleChangelogClick}

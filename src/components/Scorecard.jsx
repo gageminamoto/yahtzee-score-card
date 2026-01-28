@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
-import { Card } from './';
 import {
   UPPER_SECTION_CATEGORIES,
   LOWER_SECTION_CATEGORIES,
@@ -20,16 +19,16 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
   const upperBonus = calculateUpperBonus(scorecard);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-4">
       {/* Upper Section */}
-      <Card padding="xs" className="flex flex-col h-full md:p-3">
+      <div className="flex flex-col">
         <h3
-          className="font-serif text-body-lg mb-0.5 md:mb-1 border-b-2 border-white/30 dark:border-black/30 pb-0.5 md:pb-1 text-center"
+          className="font-serif text-body-lg uppercase tracking-wider opacity-60 mb-1 px-3"
           style={{ color: textColor }}
         >
-          UPPER SECTION
+          Upper
         </h3>
-        <div className="flex-grow space-y-0">
+        <div className="space-y-0">
           {UPPER_SECTION_CATEGORIES.map(category => (
             <CategoryRow
               key={category.id}
@@ -44,27 +43,25 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
         </div>
 
         {/* Upper Section Bonus */}
-        <div className="border-t-2 border-white/30 dark:border-black/30 pt-1 md:pt-2 mt-auto">
-          <div className="flex justify-between items-center py-0.5 md:py-1 px-2">
-            <span className="font-sans text-ui" style={{ color: textColor }}>
-              BONUS ({upperSum}/{UPPER_SECTION_BONUS_THRESHOLD})
-            </span>
-            <span className="font-serif text-body font-bold tabular-nums" style={{ color: textColor }}>
-              {upperBonus > 0 ? `+${upperBonus}` : '—'}
-            </span>
-          </div>
+        <div className="flex justify-between items-center py-2 px-3 mt-1 bg-white/10 dark:bg-black/10">
+          <span className="font-sans text-ui opacity-80" style={{ color: textColor }}>
+            Bonus ({upperSum}/{UPPER_SECTION_BONUS_THRESHOLD})
+          </span>
+          <span className="font-serif text-body font-bold tabular-nums" style={{ color: textColor }}>
+            {upperBonus > 0 ? `+${upperBonus}` : '—'}
+          </span>
         </div>
-      </Card>
+      </div>
 
       {/* Lower Section */}
-      <Card padding="xs" className="flex flex-col h-full md:p-3">
+      <div className="flex flex-col mt-2 lg:mt-0">
         <h3
-          className="font-serif text-body-lg mb-0.5 md:mb-1 border-b-2 border-white/30 dark:border-black/30 pb-0.5 md:pb-1 text-center"
+          className="font-serif text-body-lg uppercase tracking-wider opacity-60 mb-1 px-3"
           style={{ color: textColor }}
         >
-          LOWER SECTION
+          Lower
         </h3>
-        <div className="flex-grow space-y-0">
+        <div className="space-y-0">
           {LOWER_SECTION_CATEGORIES.map(category => (
             <CategoryRow
               key={category.id}
@@ -77,7 +74,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
             />
           ))}
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
@@ -94,14 +91,14 @@ Scorecard.propTypes = {
  * Made keyboard accessible with tabIndex, role, and keyboard event handlers
  */
 function CategoryRow({ category, score, isScored, onClick, isClickable, textColor = '#FFFFFF' }) {
-  const baseStyles = "flex justify-between items-center py-2.5 md:py-3 px-3 min-h-[44px] md:min-h-[48px] transition-[background-color] duration-100 ease-out";
+  const baseStyles = "flex justify-between items-center py-2 md:py-2.5 px-3 min-h-[44px] transition-[background-color] duration-100 ease-out";
 
   // Theme-aware interactive and scored styles
   const interactiveStyles = isClickable
-    ? "cursor-pointer hover:bg-white/10 dark:hover:bg-black/10 active:bg-white/20 dark:active:bg-black/20 focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-black focus:ring-offset-2"
+    ? "cursor-pointer hover:bg-white/10 dark:hover:bg-black/10 active:bg-white/15 dark:active:bg-black/15 focus:outline-none focus:ring-2 focus:ring-white/50 dark:focus:ring-black/50"
     : "";
 
-  const scoredStyles = isScored ? "bg-black/20 dark:bg-white/20" : "";
+  const scoredStyles = isScored ? "bg-white/10 dark:bg-black/10" : "";
 
   // Handle keyboard events for accessibility
   // Enter or Space key will trigger the click action

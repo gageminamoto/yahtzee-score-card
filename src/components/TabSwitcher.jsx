@@ -10,7 +10,7 @@ import { Icon } from '@iconify/react';
 export default function TabSwitcher({ activeTab, onTabChange, firstTabRef }) {
   const tabs = [
     { id: 'quick', label: 'Quick', name: 'Quick', icon: 'basil:lightning-solid' },
-    { id: 'dice', label: 'Dice', name: 'Dice', icon: 'basil:dice-solid' },
+    { id: 'dice', label: 'Dice', name: 'Dice', icon: 'mdi:dice-5' },
   ];
 
   // Handle arrow key navigation between tabs
@@ -50,7 +50,7 @@ export default function TabSwitcher({ activeTab, onTabChange, firstTabRef }) {
               focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-black focus:ring-offset-2
               ${
                 isActive
-                  ? 'bg-electric-blue text-white dark:text-white shadow-lg'
+                  ? 'bg-white/30 text-white dark:text-white shadow-lg'
                   : 'text-white dark:text-black opacity-60 dark:opacity-60 hover:opacity-80 dark:hover:opacity-80 hover:bg-black/20 dark:hover:bg-white/20'
               }
             `}
