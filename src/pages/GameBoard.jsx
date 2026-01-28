@@ -206,7 +206,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
         {/* Player Switcher - Segmented control style (sticky) */}
         <div className="flex justify-center mb-2 md:mb-4 flex-shrink-0">
           <div
-            className="inline-flex items-center p-1.5 md:p-2 bg-black/20 dark:bg-white/20 rounded-xl md:rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full shadow-lg"
+            className="inline-flex items-center gap-2 p-2 md:p-2 bg-black/20 dark:bg-white/20 rounded-2xl md:rounded-2xl backdrop-blur-sm overflow-x-auto no-scrollbar max-w-full shadow-lg"
             role="tablist"
             aria-label="Player switcher"
           >
@@ -227,7 +227,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   role="tab"
                   aria-selected={isActive}
                   className={`
-                    relative flex items-center gap-2.5 md:gap-3 px-4 md:px-5 py-2.5 md:py-3 rounded-xl min-w-fit min-h-[44px]
+                    relative flex items-center gap-3 md:gap-3 px-5 md:px-5 py-3 md:py-3 rounded-xl min-w-fit min-h-[52px]
                     transition-all duration-150 ease-out
                     motion-reduce:transition-none
                     ${isActive
@@ -244,7 +244,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   {/* Player Color Indicator */}
                   <div
                     className={`
-                      w-7 h-7 md:w-8 md:h-8 rounded-full border-2 flex-shrink-0
+                      w-9 h-9 md:w-10 md:h-10 rounded-full border-2 flex-shrink-0
                       transition-[border-color] duration-150 ease-out motion-reduce:transition-none
                       ${isActive
                         ? 'border-black/20 dark:border-white/30'
