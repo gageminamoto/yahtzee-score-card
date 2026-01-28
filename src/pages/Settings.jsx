@@ -144,6 +144,12 @@ export default function Settings({ onBack, colorIndex }) {
                 onChange={(value) => updateSetting('visual', 'enableDarkMode', value)}
               />
               <SettingToggle
+                label="Header Totals"
+                description="Show player total scores in the game header"
+                enabled={settings.visual.showHeaderTotals}
+                onChange={(value) => updateSetting('visual', 'showHeaderTotals', value)}
+              />
+              <SettingToggle
                 label="High Contrast"
                 description="Stronger borders and no transparency for better visibility"
                 enabled={settings.accessibility.highContrast}
@@ -249,6 +255,12 @@ export default function Settings({ onBack, colorIndex }) {
                 description="Play audio on score entry and turn changes (coming soon)"
                 enabled={settings.accessibility.enableSoundEffects}
                 onChange={(value) => updateSetting('accessibility', 'enableSoundEffects', value)}
+              />
+              <SettingToggle
+                label="Keep Screen Awake"
+                description="Prevent device from sleeping while using the app"
+                enabled={settings.accessibility.keepScreenAwake}
+                onChange={(value) => updateSetting('accessibility', 'keepScreenAwake', value)}
               />
             </Card>
           </div>

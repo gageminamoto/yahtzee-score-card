@@ -284,7 +284,7 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, co
           disabled
         >
           <span className="flex items-center justify-center gap-2">
-            Multiplayer
+            Multidevice
             <Icon icon="basil:lock-solid" className="w-5 h-5" aria-hidden="true" />
           </span>
         </Button>

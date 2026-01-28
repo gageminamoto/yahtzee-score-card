@@ -12,6 +12,7 @@ import {
 } from '../utils/scoring';
 import { TOTAL_ROUNDS } from '../utils/gameConstants';
 import { getTextColorForBackground } from '../utils/colors';
+import { useSettings } from '../context/SettingsContext';
 
 /**
  * Main game board for single device mode
@@ -21,6 +22,8 @@ import { getTextColorForBackground } from '../utils/colors';
  * - Navigates to winner screen when complete
  */
 export default function GameBoard({ players: initialPlayers, onGameComplete, onQuit }) {
+  const { settings } = useSettings();
+
   // Initialize players with empty scorecards
   // Using setPlayers to update state when scores change
   const [players, setPlayers] = useState(() =>
@@ -262,16 +265,18 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                       {player.name || `P${index + 1}`}
                     </span>
 
-                    <span
-                      className={`
-                        font-serif text-body-lg font-bold tabular-nums
-                        transition-opacity duration-150 ease-out motion-reduce:transition-none
-                        ${isActive ? 'opacity-100' : 'opacity-80'}
-                      `}
-                      style={{ color: isActive ? undefined : textColor }}
-                    >
-                      {playerScore}
-                    </span>
+                    {settings.visual.showHeaderTotals && (
+                      <span
+                        className={`
+                          font-serif text-body-lg font-bold tabular-nums
+                          transition-opacity duration-150 ease-out motion-reduce:transition-none
+                          ${isActive ? 'opacity-100' : 'opacity-80'}
+                        `}
+                        style={{ color: isActive ? undefined : textColor }}
+                      >
+                        {playerScore}
+                      </span>
+                    )}
                   </div>
                 </button>
               );

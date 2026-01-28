@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS = {
     enableDarkMode: false,
     fontSize: 'medium', // 'small' | 'medium' | 'large' | 'x-large'
     headerStyle: 'images', // 'text' | 'images'
+    showHeaderTotals: true, // Show player total scores in game header
     enableAnimations: true,
     enableConfetti: true,
     reducedMotion: false,
@@ -26,6 +27,7 @@ export const DEFAULT_SETTINGS = {
     enableHapticFeedback: true,
     largeButtons: false,
     screenReaderMode: false,
+    keepScreenAwake: false,
   },
   data: {
     autoSaveEnabled: true,
