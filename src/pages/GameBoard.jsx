@@ -206,7 +206,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
         {/* Player Switcher */}
         <div className="flex justify-center mb-2 md:mb-4 flex-shrink-0">
           <div
-            className="inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full p-1"
+            className="inline-flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full p-2"
             role="tablist"
             aria-label="Player switcher"
           >
@@ -222,7 +222,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                   role="tab"
                   aria-selected={isActive}
                   className={`
-                    relative flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-full min-w-fit min-h-[40px]
+                    relative flex items-center gap-3 px-5 py-3 rounded-full min-w-fit min-h-[52px]
                     transition-all duration-150 ease-out
                     motion-reduce:transition-none
                     ${isActive
@@ -238,7 +238,7 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
                 >
                   {/* Player Color Indicator */}
                   <div
-                    className="w-6 h-6 md:w-7 md:h-7 rounded-full flex-shrink-0"
+                    className="w-9 h-9 md:w-10 md:h-10 rounded-full flex-shrink-0"
                     style={{ backgroundColor: player.color }}
                   />
 
