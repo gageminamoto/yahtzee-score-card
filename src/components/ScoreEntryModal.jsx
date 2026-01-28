@@ -125,10 +125,23 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="max-w-md w-full p-6 md:p-8 animate-scaleIn focus:outline-none"
+        className="relative max-w-md w-full p-6 md:p-8 animate-scaleIn focus:outline-none"
         style={{ backgroundColor: playerColor || '#3B82F6' }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Close Button */}
+        <button
+          type="button"
+          onClick={onCancel}
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition-colors"
+          aria-label="Close"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
         {/* Category Info */}
         <div className="mb-4 md:mb-6">
           <h2 id="modal-title" className="font-serif text-subtitle md:text-title text-white mb-2">
@@ -157,14 +170,6 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
               onClick={() => handleFixedScoreClick(0)}
             >
               Zero Out (0 Points)
-            </Button>
-            <Button
-              variant="outline"
-              size="small"
-              fullWidth
-              onClick={onCancel}
-            >
-              Cancel
             </Button>
           </div>
         ) : (
@@ -200,26 +205,16 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <Button
-                variant="solid"
-                size="medium"
-                fullWidth
-                onClick={handleSubmit}
-                disabled={!isValid}
-              >
-                Confirm
-              </Button>
-              <Button
-                variant="outline"
-                size="small"
-                fullWidth
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-            </div>
+            {/* Action Button */}
+            <Button
+              variant="solid"
+              size="medium"
+              fullWidth
+              onClick={handleSubmit}
+              disabled={!isValid}
+            >
+              Confirm
+            </Button>
           </>
         )}
       </div>
