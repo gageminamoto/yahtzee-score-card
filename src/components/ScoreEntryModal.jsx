@@ -6,6 +6,7 @@ import DiceInput from './DiceInput';
 import QuickInput from './QuickInput';
 import { getCategoryById, isValidScore } from '../utils/gameConstants';
 import { getInputMode, setInputMode } from '../utils/storage';
+import { playerColors } from '../utils/colors';
 
 /**
  * Modal for entering scores with two input methods:
@@ -126,7 +127,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
         ref={modalRef}
         tabIndex={-1}
         className="relative max-w-md w-full p-6 md:p-8 animate-scaleIn focus:outline-none"
-        style={{ backgroundColor: playerColor || '#3B82F6' }}
+        style={{ backgroundColor: playerColor || playerColors[0] }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -198,10 +199,10 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
             {/* Input Area - Show different input based on active tab */}
             <div className="mb-4 md:mb-6">
               {activeTab === 'dice' && (
-                <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} />
+                <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={playerColor || playerColors[0]} />
               )}
               {activeTab === 'quick' && (
-                <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} />
+                <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={playerColor || playerColors[0]} />
               )}
             </div>
 
