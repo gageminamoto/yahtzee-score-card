@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { Icon } from '@iconify/react';
+import { cn } from '../utils/cn';
 
 /**
  * FooterMenu Component
@@ -8,7 +10,6 @@ import PropTypes from 'prop-types';
  * - GitHub (link to repo)
  * - Changelog (button)
  * - Roadmap (link to Notion)
- * - "Free Forever • No Ads" tagline
  *
  * Features:
  * - Click outside to close
@@ -17,60 +18,36 @@ import PropTypes from 'prop-types';
  */
 export default function FooterMenu({ textColor, onOpenChangelog }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [popupPosition, setPopupPosition] = useState({ bottom: 0, left: null, right: null });
 
   const containerRef = useRef(null);
-  const popupRef = useRef(null);
   const buttonRef = useRef(null);
 
   const handleButtonClick = (e) => {
     e.stopPropagation();
-
-    if (buttonRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const padding = 12; // padding from viewport edges
-
-      // Position popover above the button
-      const popoverBottom = window.innerHeight - buttonRect.top + 8;
-
-      // Position from right edge to ensure it stays in viewport
-      const rightDistance = window.innerWidth - buttonRect.right;
-
-      setPopupPosition({
-        bottom: popoverBottom,
-        left: null,
-        right: Math.max(padding, rightDistance - buttonRect.width / 2),
-      });
-    }
-
     setIsOpen(!isOpen);
   };
 
-  const handleChangelogClick = () => {
+  const handleClose = () => {
     setIsOpen(false);
+  };
+
+  const handleChangelogClick = () => {
+    handleClose();
     onOpenChangelog();
   };
 
   // Close popup when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        isOpen &&
-        containerRef.current &&
-        popupRef.current &&
-        !containerRef.current.contains(event.target) &&
-        !popupRef.current.contains(event.target)
-      ) {
-        setIsOpen(false);
+      if (isOpen && containerRef.current && !containerRef.current.contains(event.target)) {
+        handleClose();
       }
     };
 
     const handleEscape = (event) => {
       if (isOpen && event.key === 'Escape') {
-        setIsOpen(false);
-        if (buttonRef.current) {
-          buttonRef.current.focus();
-        }
+        handleClose();
+        buttonRef.current?.focus();
       }
     };
 
@@ -86,6 +63,24 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
       document.removeEventListener('keydown', handleEscape);
     };
   }, [isOpen]);
+
+  const menuItems = [
+    {
+      label: 'GitHub',
+      icon: 'mdi:github',
+      href: 'https://github.com/gageminamoto/yahtzee-score-card',
+    },
+    {
+      label: 'Changelog',
+      icon: 'mdi:text-box-outline',
+      onClick: handleChangelogClick,
+    },
+    {
+      label: 'Roadmap',
+      icon: 'mdi:map-outline',
+      href: 'https://gageminamoto.notion.site/ba3aa99c094c4e2eaec51c80ce6ba251?v=8e0862ea3dcc4a028acfacc9125b35d4&source=copy_link',
+    },
+  ];
 
   return (
     <span className="relative inline-block" ref={containerRef}>
@@ -104,42 +99,74 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
       {/* Popover Menu */}
       {isOpen && (
         <div
-          ref={popupRef}
-          className="fixed z-[10000] bg-black/90 dark:bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-2xl"
-          style={{
-            minWidth: '180px',
-            maxWidth: 'calc(100vw - 24px)',
-            bottom: `${popupPosition.bottom}px`,
-            right: `${popupPosition.right}px`,
-            transformOrigin: 'bottom right',
-            animation: 'popoverScaleIn 200ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards',
-          }}
+          className={cn(
+            "absolute bottom-full right-0 mb-3 z-popover",
+            "bg-white dark:bg-neutral-900",
+            "shadow-2xl min-w-[240px]",
+            "animate-scaleIn rounded-lg overflow-hidden"
+          )}
+          style={{ transformOrigin: 'bottom right' }}
+          role="menu"
+          aria-label="Info menu"
         >
-          {/* Menu Items */}
-          <div className="flex flex-col gap-3 text-center">
-            <a
-              href="https://github.com/gageminamoto/yahtzee-score-card"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-sans text-body text-white dark:text-black hover:opacity-70 transition-opacity"
-            >
-              GitHub
-            </a>
-            <button
-              onClick={handleChangelogClick}
-              className="font-sans text-body text-white dark:text-black hover:opacity-70 transition-opacity"
-              type="button"
-            >
-              Changelog
-            </button>
-            <a
-              href="https://gageminamoto.notion.site/ba3aa99c094c4e2eaec51c80ce6ba251?v=8e0862ea3dcc4a028acfacc9125b35d4&source=copy_link"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-sans text-body text-white dark:text-black hover:opacity-70 transition-opacity"
-            >
-              Roadmap
-            </a>
+          <div className="p-2">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-black/10 dark:border-white/10">
+              <h3 className="font-sans text-body font-bold text-black dark:text-white">
+                Info
+              </h3>
+              <button
+                onClick={handleClose}
+                className="w-8 h-8 flex items-center justify-center text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-colors"
+                aria-label="Close"
+                type="button"
+              >
+                <Icon icon="mdi:close" width={20} />
+              </button>
+            </div>
+
+            {/* Menu Items */}
+            <nav className="py-2">
+              {menuItems.map((item) => {
+                const content = (
+                  <>
+                    <div className="w-10 h-10 rounded-full bg-electric-blue/10 dark:bg-electric-blue/20 flex items-center justify-center flex-shrink-0">
+                      <Icon icon={item.icon} width={20} className="text-electric-blue" />
+                    </div>
+                    <span className="font-sans text-body font-bold text-black dark:text-white">
+                      {item.label}
+                    </span>
+                  </>
+                );
+
+                if (item.href) {
+                  return (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full px-4 py-3 flex items-center gap-4 text-left hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                      role="menuitem"
+                    >
+                      {content}
+                    </a>
+                  );
+                }
+
+                return (
+                  <button
+                    key={item.label}
+                    onClick={item.onClick}
+                    className="w-full px-4 py-3 flex items-center gap-4 text-left hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                    role="menuitem"
+                    type="button"
+                  >
+                    {content}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
         </div>
       )}
