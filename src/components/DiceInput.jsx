@@ -122,15 +122,16 @@ export default function DiceInput({ categoryId, onScoreChange }) {
             disabled={selectedDice.length >= 5}
             className="
               aspect-square bg-black/20 dark:bg-white/20 text-white dark:text-black
-              text-5xl rounded-md
+              rounded-md p-1
               transition-all duration-150 ease-out
               active:scale-95
               hover:bg-opacity-40 dark:hover:bg-opacity-40
               disabled:opacity-30 disabled:cursor-not-allowed
-              flex items-center justify-center leading-none
+              flex flex-col items-center justify-center leading-none
             "
           >
-            <span className="-translate-y-1">{die.symbol}</span>
+            <span className="text-4xl -translate-y-0.5">{die.symbol}</span>
+            <span className="text-xs font-medium opacity-70">{die.value}</span>
           </button>
         ))}
       </div>
