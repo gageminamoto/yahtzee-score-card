@@ -7,7 +7,7 @@ import { getCategoryById } from '../utils/gameConstants';
  * Allows users to tap dice icons to build their roll
  * Auto-calculates score based on selected category
  */
-export default function DiceInput({ categoryId, onScoreChange }) {
+export default function DiceInput({ categoryId, onScoreChange, playerColor }) {
   const [selectedDice, setSelectedDice] = useState([]);
   const category = getCategoryById(categoryId);
 
@@ -90,15 +90,19 @@ export default function DiceInput({ categoryId, onScoreChange }) {
                 transition-all duration-150 ease-out
                 ${
                   hasDie
-                    ? 'bg-electric-blue text-white text-5xl cursor-pointer active:scale-95 hover:bg-electric-blue/80 leading-none'
+                    ? 'text-white text-5xl cursor-pointer active:scale-95 hover:opacity-80 leading-none'
                     : 'border-2 border-dashed border-white/30 dark:border-black/30 cursor-default'
                 }
               `}
+              style={hasDie ? { backgroundColor: playerColor } : undefined}
             >
               {hasDie && (
                 <>
                   <span className="-translate-y-1 leading-none">{getSymbol(dieValue)}</span>
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-white/90 dark:bg-black/90 rounded-full text-electric-blue text-xs font-bold flex items-center justify-center">
+                  <span
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-white/90 dark:bg-black/90 rounded-full text-xs font-bold flex items-center justify-center"
+                    style={{ color: playerColor }}
+                  >
                     ×
                   </span>
                 </>
@@ -151,4 +155,5 @@ export default function DiceInput({ categoryId, onScoreChange }) {
 DiceInput.propTypes = {
   categoryId: PropTypes.string.isRequired,
   onScoreChange: PropTypes.func.isRequired,
+  playerColor: PropTypes.string,
 };

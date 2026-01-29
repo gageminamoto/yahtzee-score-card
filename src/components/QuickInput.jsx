@@ -9,7 +9,7 @@ import { getValidScoresForCategory } from '../utils/scoring';
  * Upper section: multiples of die value (0 to 5×value)
  * Lower variable: common presets (0, 10, 15, 20, 25) + fine-tune
  */
-export default function QuickInput({ categoryId, onScoreChange }) {
+export default function QuickInput({ categoryId, onScoreChange, playerColor }) {
   const [selectedScore, setSelectedScore] = useState(null);
   const category = getCategoryById(categoryId);
   
@@ -64,16 +64,17 @@ export default function QuickInput({ categoryId, onScoreChange }) {
               key={score}
               onClick={() => handlePresetClick(score)}
               className={`
-                py-4 px-4 bg-black/20 dark:bg-white/20 text-white dark:text-black
+                py-4 px-4 text-white dark:text-black
                 font-serif text-body-lg rounded-md
                 transition-all duration-150 ease-out
                 active:scale-[0.95]
                 ${
                   isSelected
-                    ? 'bg-electric-blue bg-opacity-80 dark:bg-opacity-80 ring-2 ring-white dark:ring-black'
-                    : 'hover:bg-opacity-40 dark:hover:bg-opacity-40'
+                    ? 'ring-2 ring-white dark:ring-black'
+                    : 'bg-black/20 dark:bg-white/20 hover:bg-opacity-40 dark:hover:bg-opacity-40'
                 }
               `}
+              style={isSelected ? { backgroundColor: playerColor } : undefined}
             >
               {score}
             </button>
@@ -126,4 +127,5 @@ export default function QuickInput({ categoryId, onScoreChange }) {
 QuickInput.propTypes = {
   categoryId: PropTypes.string.isRequired,
   onScoreChange: PropTypes.func.isRequired,
+  playerColor: PropTypes.string,
 };
