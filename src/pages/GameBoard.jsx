@@ -21,19 +21,19 @@ import { useSettings } from '../context/SettingsContext';
  * - Tracks turns and rounds
  * - Navigates to winner screen when complete
  */
-export default function GameBoard({ players: initialPlayers, onGameComplete, onQuit }) {
+export default function GameBoard({ players: initialPlayers, initialPlayerIndex = 0, onGameComplete, onQuit, onStateChange }) {
   const { settings } = useSettings();
 
-  // Initialize players with empty scorecards
+  // Initialize players with scorecards (may already have scorecards from restored state)
   // Using setPlayers to update state when scores change
   const [players, setPlayers] = useState(() =>
     initialPlayers.map(p => ({
       ...p,
-      scorecard: createEmptyScorecard(),
+      scorecard: p.scorecard || createEmptyScorecard(),
     }))
   );
 
-  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(initialPlayerIndex);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [completedTurns, setCompletedTurns] = useState(0);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
@@ -108,7 +108,18 @@ export default function GameBoard({ players: initialPlayers, onGameComplete, onQ
       }
 
       // Move to next player
-      setCurrentPlayerIndex((currentPlayerIndex + 1) % players.length);
+      const nextPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      setCurrentPlayerIndex(nextPlayerIndex);
+
+      // Notify parent to persist state with new player index
+      if (onStateChange) {
+        onStateChange(updatedPlayers, nextPlayerIndex);
+      }
+    } else {
+      // Notify parent to persist state with current player index (edit only)
+      if (onStateChange) {
+        onStateChange(updatedPlayers, currentPlayerIndex);
+      }
     }
   };
 

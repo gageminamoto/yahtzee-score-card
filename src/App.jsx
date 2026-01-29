@@ -7,17 +7,32 @@ import GameBoard from './pages/GameBoard';
 import Winner from './pages/Winner';
 import Settings from './pages/Settings';
 import Changelog from './pages/Changelog';
+import { loadGameState, saveGameState, clearGameState } from './utils/storage';
 
 /**
  * Main App component
  * Handles routing between screens using state
  * Includes slide animation transitions between screens
  */
+// Load saved state once at module level for initialization
+const initialSavedState = loadGameState();
+
 function App() {
-  const [screen, setScreen] = useState('home');
-  const [gameMode, setGameMode] = useState(null);
-  const [players, setPlayers] = useState([]);
-  const [finalPlayers, setFinalPlayers] = useState([]);
+  // Initialize state from localStorage if available
+  const [screen, setScreen] = useState(() => {
+    const savedScreen = initialSavedState?.screen;
+    // Restore game, winner, settings, changelog, and setup screens
+    if (savedScreen === 'game' || savedScreen === 'winner' ||
+        savedScreen === 'settings' || savedScreen === 'changelog' ||
+        (savedScreen === 'setup' && initialSavedState?.gameMode)) {
+      return savedScreen;
+    }
+    return 'home';
+  });
+  const [gameMode, setGameMode] = useState(() => initialSavedState?.gameMode || null);
+  const [players, setPlayers] = useState(() => initialSavedState?.players || []);
+  const [finalPlayers, setFinalPlayers] = useState(() => initialSavedState?.finalPlayers || []);
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(() => initialSavedState?.currentPlayerIndex || 0);
   const [homeColorIndex, setHomeColorIndex] = useState(() => Math.floor(Math.random() * 5));
   // Use homeColorIndex for setup page so color changes from Home page reflect there too
   const setupColorIndex = homeColorIndex;
@@ -63,6 +78,7 @@ function App() {
   const handleSelectMode = (mode) => {
     setGameMode(mode);
     if (mode === 'single') {
+      saveGameState({ screen: 'setup', gameMode: mode });
       transitionToScreen('setup');
     } else {
       // Multi-device mode (future implementation)
@@ -72,11 +88,21 @@ function App() {
 
   const handleStartGame = (gamePlayers) => {
     setPlayers(gamePlayers);
+    setCurrentPlayerIndex(0);
+    saveGameState({ screen: 'game', gameMode, players: gamePlayers, finalPlayers: [], currentPlayerIndex: 0 });
     transitionToScreen('game');
+  };
+
+  // Called by GameBoard when scores change to persist state
+  const handleGameStateChange = (updatedPlayers, playerIndex) => {
+    setPlayers(updatedPlayers);
+    setCurrentPlayerIndex(playerIndex);
+    saveGameState({ screen: 'game', gameMode, players: updatedPlayers, finalPlayers: [], currentPlayerIndex: playerIndex });
   };
 
   const handleGameComplete = (completedPlayers) => {
     setFinalPlayers(completedPlayers);
+    saveGameState({ screen: 'winner', gameMode, players, finalPlayers: completedPlayers });
     transitionToScreen('winner');
   };
 
@@ -86,6 +112,7 @@ function App() {
   };
 
   const handleGoHome = () => {
+    clearGameState();
     transitionToScreen('home', () => {
       setGameMode(null);
       setPlayers([]);
@@ -107,24 +134,29 @@ function App() {
   };
 
   const handleBackFromSetup = () => {
+    saveGameState({ screen: 'home' });
     transitionToScreen('home', () => {
       setGameMode(null);
     });
   };
 
   const handleOpenSettings = () => {
+    saveGameState({ screen: 'settings' });
     transitionToScreen('settings');
   };
 
   const handleBackFromSettings = () => {
+    saveGameState({ screen: 'home' });
     transitionToScreen('home');
   };
 
   const handleOpenChangelog = () => {
+    saveGameState({ screen: 'changelog' });
     transitionToScreen('changelog');
   };
 
   const handleBackFromChangelog = () => {
+    saveGameState({ screen: 'home' });
     transitionToScreen('home');
   };
 
@@ -206,8 +238,10 @@ function App() {
               'game',
               <GameBoard
                 players={players}
+                initialPlayerIndex={currentPlayerIndex}
                 onGameComplete={handleGameComplete}
                 onQuit={handleQuit}
+                onStateChange={handleGameStateChange}
               />,
               'animate-slideOutToLeft'
             )}
@@ -272,8 +306,10 @@ function App() {
               'game',
               <GameBoard
                 players={players}
+                initialPlayerIndex={currentPlayerIndex}
                 onGameComplete={handleGameComplete}
                 onQuit={handleQuit}
+                onStateChange={handleGameStateChange}
               />,
               'animate-slideInFromRight'
             )}
@@ -326,8 +362,10 @@ function App() {
             {screen === 'game' && (
               <GameBoard
                 players={players}
+                initialPlayerIndex={currentPlayerIndex}
                 onGameComplete={handleGameComplete}
                 onQuit={handleQuit}
+                onStateChange={handleGameStateChange}
               />
             )}
 
