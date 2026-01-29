@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SettingsProvider } from './context/SettingsContext';
 import { ConfirmDialog } from './components';
+import { FeedbackButton } from './components/feedback';
 import Home from './pages/Home';
 import SingleDeviceSetup from './pages/SingleDeviceSetup';
 import GameBoard from './pages/GameBoard';
@@ -353,6 +354,9 @@ function App() {
         onConfirm={handleConfirmQuit}
         onCancel={handleCancelQuit}
       />
+
+      {/* Feedback button - always visible */}
+      <FeedbackButton />
     </SettingsProvider>
   );
 }
