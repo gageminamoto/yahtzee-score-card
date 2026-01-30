@@ -98,7 +98,7 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
     ? "cursor-pointer hover:bg-white/10 dark:hover:bg-black/10 active:bg-white/15 dark:active:bg-black/15 focus:outline-none focus:ring-2 focus:ring-white/50 dark:focus:ring-black/50"
     : "";
 
-  const scoredStyles = isScored ? "bg-white/10 dark:bg-black/10" : "";
+  const scoredStyles = isScored ? "bg-white/15 dark:bg-black/15" : "opacity-50";
 
   // Handle keyboard events for accessibility
   // Enter or Space key will trigger the click action
