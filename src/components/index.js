@@ -10,3 +10,4 @@ export { default as QuickInput } from './QuickInput.jsx';
 export { default as DiceAnimation } from './DiceAnimation.jsx';
 export { default as PlayerColorPicker } from './PlayerColorPicker.jsx';
 export { default as FooterMenu } from './FooterMenu.jsx';
+export { default as UpperBonusModal } from './UpperBonusModal.jsx';

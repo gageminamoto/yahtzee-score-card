@@ -2,15 +2,16 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
-import { ConfirmDialog } from '../components';
+import { ConfirmDialog, UpperBonusModal } from '../components';
 import {
   createEmptyScorecard,
   calculateTotalScore,
+  calculateUpperBonus,
   updateScorecard,
   isGameComplete,
   isCategoryScored,
 } from '../utils/scoring';
-import { TOTAL_ROUNDS } from '../utils/gameConstants';
+import { TOTAL_ROUNDS, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
 import { getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
 
@@ -37,6 +38,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [completedTurns, setCompletedTurns] = useState(0);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [bonusModalPlayer, setBonusModalPlayer] = useState(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const scrollContainerRef = useRef(null);
   const scrollThrottleRef = useRef(null);
@@ -141,6 +143,9 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
     // Check if this is an edit (category was already scored)
     const isEditing = isCategoryScored(currentPlayer.scorecard, selectedCategory);
 
+    // Snapshot upper bonus before the update
+    const hadBonus = calculateUpperBonus(currentPlayer.scorecard, settings) > 0;
+
     // Update the player's scorecard
     const updatedPlayers = [...players];
     updatedPlayers[currentPlayerIndex].scorecard = updateScorecard(
@@ -148,6 +153,15 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
       selectedCategory,
       score
     );
+
+    // Check if the player just earned the upper bonus
+    const hasBonus = calculateUpperBonus(updatedPlayers[currentPlayerIndex].scorecard, settings) > 0;
+    if (!hadBonus && hasBonus) {
+      setBonusModalPlayer({
+        name: currentPlayer.name || `Player ${currentPlayerIndex + 1}`,
+        color: currentPlayer.color,
+      });
+    }
 
     // Update the players state with the new scorecard
     // This ensures the UI and finish game button always have current scores
@@ -407,6 +421,17 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
         onConfirm={handleConfirmFinish}
         onCancel={handleCancelFinish}
       />
+
+      {/* Upper Bonus Modal */}
+      {bonusModalPlayer && (
+        <UpperBonusModal
+          playerName={bonusModalPlayer.name}
+          bonusPoints={getUpperBonusPoints(settings)}
+          threshold={getUpperBonusThreshold(settings)}
+          playerColor={bonusModalPlayer.color}
+          onDismiss={() => setBonusModalPlayer(null)}
+        />
+      )}
     </div>
   );
 }
