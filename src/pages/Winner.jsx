@@ -80,7 +80,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
               {winner.name.toUpperCase()}
             </h2>
           </div>
-          <p className="font-serif text-subtitle text-pretty tabular-nums" style={{ color: textColor }}>
+          <p className="font-sans text-subtitle text-pretty tabular-nums" style={{ color: textColor }}>
             {winner.totalScore} points
           </p>
         </div>
@@ -88,7 +88,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
         {/* Final Scores */}
         <Card padding="large" className="mb-8">
           <h3
-            className="font-serif text-subtitle mb-6 text-center text-balance"
+            className="font-sans text-subtitle mb-6 text-center text-balance"
             style={{ color: textColor }}
           >
             FINAL SCORES
@@ -103,7 +103,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
               >
                 <div className="flex items-center gap-4">
                   <span
-                    className="font-serif text-body-lg opacity-70 min-w-[3rem]"
+                    className="font-sans text-body-lg opacity-70 min-w-[3rem]"
                     style={{ color: textColor }}
                   >
                     #{index + 1}
@@ -120,7 +120,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
                   </span>
                 </div>
                 <span
-                  className="font-serif text-body-lg font-bold tabular-nums"
+                  className="font-sans text-body-lg font-bold tabular-nums"
                   style={{ color: textColor }}
                 >
                   {player.totalScore}

@@ -280,7 +280,7 @@ export default function Settings({ onBack, colorIndex }) {
                 onChange={(value) => updateSetting('data', 'autoSaveEnabled', value)}
               />
               <SettingToggle
-                label="Game History"
+                label="History"
                 description="Save completed games to view later"
                 enabled={settings.data.saveGameHistory}
                 onChange={(value) => updateSetting('data', 'saveGameHistory', value)}

@@ -185,7 +185,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
             {/* Score Display */}
             <div className="mb-4 md:mb-6">
               <div className="bg-black/20 dark:bg-white/20 p-4 md:p-6 text-center">
-                <div className="font-serif text-subtitle md:text-headline text-white dark:text-black min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums">
+                <div className="font-sans text-subtitle md:text-headline text-white dark:text-black min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums">
                   {score}
                 </div>
               </div>

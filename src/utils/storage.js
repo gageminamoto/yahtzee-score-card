@@ -176,6 +176,21 @@ export function addGameToHistory(game, maxHistorySize = 50) {
 }
 
 /**
+ * Delete a single game from history by gameId
+ */
+export function deleteGameFromHistory(gameId) {
+  try {
+    const history = loadGameHistory();
+    const updatedHistory = history.filter(game => game.gameId !== gameId);
+    localStorage.setItem(STORAGE_KEYS.gameHistory, JSON.stringify(updatedHistory));
+    return true;
+  } catch (error) {
+    console.error('Error deleting game from history:', error);
+    return false;
+  }
+}
+
+/**
  * Clear all game history
  */
 export function clearGameHistory() {
