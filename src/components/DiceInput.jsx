@@ -112,10 +112,19 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor }) {
         })}
       </div>
 
-      {/* Instructions */}
-      <p className="font-sans text-body text-white/70 dark:text-black/70 text-center">
-        Tap dice below to add to your roll
-      </p>
+      {/* Instructions / Clear All */}
+      {selectedDice.length > 0 ? (
+        <button
+          onClick={handleClear}
+          className="w-full font-sans text-body text-white/70 dark:text-black/70 underline hover:text-white dark:hover:text-black transition-colors text-center"
+        >
+          Clear All
+        </button>
+      ) : (
+        <p className="font-sans text-body text-white/70 dark:text-black/70 text-center">
+          Tap dice below to add to your roll
+        </p>
+      )}
 
       {/* Dice Selection Grid */}
       <div className="grid grid-cols-6 gap-2">
@@ -140,15 +149,6 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor }) {
         ))}
       </div>
 
-      {/* Clear All link */}
-      {selectedDice.length > 0 && (
-        <button
-          onClick={handleClear}
-          className="w-full text-center font-sans text-body text-white/70 dark:text-black/70 underline hover:text-white dark:hover:text-black transition-colors"
-        >
-          Clear All
-        </button>
-      )}
     </div>
   );
 }
