@@ -23,13 +23,13 @@ export default function Dice3D({ position, rotation, value = 6 }) {
   // 6: Rows of 3
   
   const pipSize = 0.1;
-  const pipOffset = 0.51; // Just slightly outside the box
+  const pipOffset = 0.505; // Flush with the box surface
   const boxSize = 1;
-  
-  // Helper to render a pip
+
+  // Helper to render a pip (flat circle flush with face)
   const Pip = ({ pos }) => (
     <mesh position={pos}>
-      <sphereGeometry args={[pipSize, 16, 16]} />
+      <circleGeometry args={[pipSize, 32]} />
       <meshStandardMaterial color="black" />
     </mesh>
   );
