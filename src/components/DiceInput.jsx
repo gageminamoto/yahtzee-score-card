@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { getCategoryById } from '../utils/gameConstants';
+import { playDiceAdd, isSoundEnabled } from '../utils/sounds';
 
 /**
  * Dice Input Component
@@ -54,7 +55,11 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor, text
   // Handle die selection - always adds a die when clicking the button
   const handleDieClick = (dieValue) => {
     if (selectedDice.length < 5) {
+      const newCount = selectedDice.length + 1;
       setSelectedDice([...selectedDice, dieValue]);
+      if (isSoundEnabled()) {
+        playDiceAdd(newCount);
+      }
     }
   };
 
@@ -113,10 +118,20 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor, text
         })}
       </div>
 
-      {/* Instructions */}
-      <p className="font-sans text-body text-center opacity-70" style={{ color: textColor }}>
-        Tap dice below to add to your roll
-      </p>
+      {/* Instructions / Clear All */}
+      {selectedDice.length > 0 ? (
+        <button
+          onClick={handleClear}
+          className="w-full font-sans text-body underline opacity-70 hover:opacity-100 transition-all text-center"
+          style={{ color: textColor }}
+        >
+          Clear All
+        </button>
+      ) : (
+        <p className="font-sans text-body text-center opacity-70" style={{ color: textColor }}>
+          Tap dice below to add to your roll
+        </p>
+      )}
 
       {/* Dice Selection Grid */}
       <div className="grid grid-cols-6 gap-2">
@@ -142,16 +157,6 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor, text
         ))}
       </div>
 
-      {/* Clear All link */}
-      {selectedDice.length > 0 && (
-        <button
-          onClick={handleClear}
-          className="w-full text-center font-sans text-body underline opacity-70 hover:opacity-100 transition-all"
-          style={{ color: textColor }}
-        >
-          Clear All
-        </button>
-      )}
     </div>
   );
 }

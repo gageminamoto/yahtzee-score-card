@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react';
 import { Card, ConfirmDialog } from '../components';
 import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
-import { loadGameHistory, deleteGameFromHistory } from '../utils/storage';
+import { loadGameHistory, deleteGameFromHistory, clearGameHistory } from '../utils/storage';
 
 export default function GameHistory({ onBack, colorIndex }) {
   const { settings } = useSettings();
@@ -13,6 +13,7 @@ export default function GameHistory({ onBack, colorIndex }) {
 
   const [games, setGames] = useState(() => loadGameHistory());
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showClearAll, setShowClearAll] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
 
@@ -48,6 +49,12 @@ export default function GameHistory({ onBack, colorIndex }) {
 
   const handleCancelDelete = () => {
     setDeleteTarget(null);
+  };
+
+  const handleConfirmClearAll = () => {
+    clearGameHistory();
+    setGames([]);
+    setShowClearAll(false);
   };
 
   const formatDate = (timestamp) => {
@@ -108,6 +115,16 @@ export default function GameHistory({ onBack, colorIndex }) {
           </Card>
         ) : (
           <div className="space-y-4">
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowClearAll(true)}
+                className="font-sans text-ui opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5"
+                style={{ color: textColor }}
+              >
+                <Icon icon="basil:trash-solid" className="w-4 h-4" />
+                Clear All
+              </button>
+            </div>
             {games.map((game) => {
               const sorted = [...game.players].sort(
                 (a, b) => b.totalScore - a.totalScore
@@ -208,6 +225,17 @@ export default function GameHistory({ onBack, colorIndex }) {
         cancelText="Cancel"
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
+      />
+
+      {/* Clear all confirmation */}
+      <ConfirmDialog
+        isOpen={showClearAll}
+        title="Clear History?"
+        message="All games will be permanently removed from your history."
+        confirmText="Clear All"
+        cancelText="Cancel"
+        onConfirm={handleConfirmClearAll}
+        onCancel={() => setShowClearAll(false)}
       />
     </div>
   );

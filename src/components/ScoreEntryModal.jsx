@@ -7,6 +7,7 @@ import QuickInput from './QuickInput';
 import { getCategoryById, isValidScore } from '../utils/gameConstants';
 import { getInputMode, setInputMode } from '../utils/storage';
 import { playerColors, getTextColorForBackground } from '../utils/colors';
+import { playYahtzeeSound, isSoundEnabled } from '../utils/sounds';
 
 /**
  * Modal for entering scores with two input methods:
@@ -107,6 +108,9 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
   // Handle fixed score click (for fixed-score categories)
   const handleFixedScoreClick = (scoreValue) => {
     if (isValidScore(categoryId, scoreValue)) {
+      if (categoryId === 'yahtzee' && scoreValue === 50 && isSoundEnabled()) {
+        playYahtzeeSound();
+      }
       onSubmit(scoreValue);
     }
   };
