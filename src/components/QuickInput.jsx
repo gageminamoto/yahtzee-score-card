@@ -65,7 +65,7 @@ export default function QuickInput({ categoryId, onScoreChange, playerColor }) {
               onClick={() => handlePresetClick(score)}
               className={`
                 py-4 px-4 text-white dark:text-black
-                font-serif text-body-lg rounded-md
+                font-sans text-body-lg rounded-md
                 transition-all duration-150 ease-out
                 active:scale-[0.95]
                 ${

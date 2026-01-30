@@ -8,7 +8,8 @@ import Winner from './pages/Winner';
 import Settings from './pages/Settings';
 import Changelog from './pages/Changelog';
 import Onboarding from './pages/Onboarding';
-import { loadGameState, saveGameState, clearGameState } from './utils/storage';
+import GameHistory from './pages/GameHistory';
+import { loadGameState, saveGameState, clearGameState, addGameToHistory, loadSettings } from './utils/storage';
 
 /**
  * Main App component
@@ -22,9 +23,10 @@ function App() {
   // Initialize state from localStorage if available
   const [screen, setScreen] = useState(() => {
     const savedScreen = initialSavedState?.screen;
-    // Restore game, winner, settings, changelog, and setup screens
+    // Restore game, winner, settings, changelog, history, and setup screens
     if (savedScreen === 'game' || savedScreen === 'winner' ||
         savedScreen === 'settings' || savedScreen === 'changelog' ||
+        savedScreen === 'history' ||
         (savedScreen === 'setup' && initialSavedState?.gameMode)) {
       return savedScreen;
     }
@@ -108,6 +110,21 @@ function App() {
   const handleGameComplete = (completedPlayers) => {
     setFinalPlayers(completedPlayers);
     saveGameState({ screen: 'winner', gameMode, players, finalPlayers: completedPlayers });
+
+    // Auto-save to game history if enabled
+    const currentSettings = loadSettings();
+    if (currentSettings.data.saveGameHistory) {
+      addGameToHistory({
+        players: completedPlayers.map(p => ({
+          id: p.id,
+          name: p.name,
+          color: p.color,
+          totalScore: p.totalScore,
+        })),
+        schemaVersion: 1,
+      }, currentSettings.data.maxHistorySize);
+    }
+
     transitionToScreen('winner');
   };
 
@@ -165,6 +182,16 @@ function App() {
     transitionToScreen('home');
   };
 
+  const handleOpenHistory = () => {
+    saveGameState({ screen: 'history' });
+    transitionToScreen('history');
+  };
+
+  const handleBackFromHistory = () => {
+    saveGameState({ screen: 'home' });
+    transitionToScreen('home');
+  };
+
   const handleOnboardingComplete = () => {
     transitionToScreen('home');
   };
@@ -209,6 +236,7 @@ function App() {
                 onSelectMode={handleSelectMode}
                 onOpenSettings={handleOpenSettings}
                 onOpenChangelog={handleOpenChangelog}
+                onOpenHistory={handleOpenHistory}
                 colorIndex={homeColorIndex}
                 onTitleClick={handleHomeTitleClick}
               />,
@@ -232,7 +260,16 @@ function App() {
               />,
               'animate-slideOutToLeft'
             )}
-            
+
+            {previousScreen === 'history' && renderScreen(
+              'history',
+              <GameHistory
+                onBack={handleBackFromHistory}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideOutToLeft'
+            )}
+
             {previousScreen === 'setup' && gameMode === 'single' && renderScreen(
               'setup',
               <SingleDeviceSetup
@@ -286,6 +323,7 @@ function App() {
                 onSelectMode={handleSelectMode}
                 onOpenSettings={handleOpenSettings}
                 onOpenChangelog={handleOpenChangelog}
+                onOpenHistory={handleOpenHistory}
                 colorIndex={homeColorIndex}
                 onTitleClick={handleHomeTitleClick}
               />,
@@ -309,7 +347,16 @@ function App() {
               />,
               'animate-slideInFromRight'
             )}
-            
+
+            {nextScreen === 'history' && renderScreen(
+              'history',
+              <GameHistory
+                onBack={handleBackFromHistory}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideInFromRight'
+            )}
+
             {nextScreen === 'setup' && gameMode === 'single' && renderScreen(
               'setup',
               <SingleDeviceSetup
@@ -359,6 +406,7 @@ function App() {
                 onSelectMode={handleSelectMode}
                 onOpenSettings={handleOpenSettings}
                 onOpenChangelog={handleOpenChangelog}
+                onOpenHistory={handleOpenHistory}
                 colorIndex={homeColorIndex}
                 onTitleClick={handleHomeTitleClick}
               />
@@ -374,6 +422,13 @@ function App() {
             {screen === 'changelog' && (
               <Changelog
                 onBack={handleBackFromChangelog}
+                colorIndex={homeColorIndex}
+              />
+            )}
+
+            {screen === 'history' && (
+              <GameHistory
+                onBack={handleBackFromHistory}
                 colorIndex={homeColorIndex}
               />
             )}

@@ -23,7 +23,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
       {/* Upper Section */}
       <div className="flex flex-col">
         <h3
-          className="font-serif text-body-lg uppercase tracking-wider opacity-60 mb-1 px-3"
+          className="font-sans text-body-lg uppercase tracking-wider opacity-60 mb-1 px-3"
           style={{ color: textColor }}
         >
           Upper
@@ -47,7 +47,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
           <span className="font-sans text-ui opacity-80" style={{ color: textColor }}>
             Bonus ({upperSum}/{UPPER_SECTION_BONUS_THRESHOLD})
           </span>
-          <span className="font-serif text-body font-bold tabular-nums" style={{ color: textColor }}>
+          <span className="font-sans text-body font-bold tabular-nums" style={{ color: textColor }}>
             {upperBonus > 0 ? `+${upperBonus}` : '—'}
           </span>
         </div>
@@ -56,7 +56,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
       {/* Lower Section */}
       <div className="flex flex-col mt-2 lg:mt-0">
         <h3
-          className="font-serif text-body-lg uppercase tracking-wider opacity-60 mb-1 px-3"
+          className="font-sans text-body-lg uppercase tracking-wider opacity-60 mb-1 px-3"
           style={{ color: textColor }}
         >
           Lower
@@ -131,12 +131,12 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
               className="w-5 h-5 opacity-50"
               style={{ color: textColor }}
             />
-            <span className="font-serif text-body font-bold min-w-[2.5rem] text-right tabular-nums" style={{ color: textColor }}>
+            <span className="font-sans text-body font-bold min-w-[2.5rem] text-right tabular-nums" style={{ color: textColor }}>
               {score}
             </span>
           </>
         ) : (
-          <span className="font-serif text-body opacity-30 min-w-[2.5rem] text-right" style={{ color: textColor }}>
+          <span className="font-sans text-body opacity-30 min-w-[2.5rem] text-right" style={{ color: textColor }}>
             —
           </span>
         )}

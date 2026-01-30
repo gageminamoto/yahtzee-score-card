@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
@@ -37,6 +37,9 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [completedTurns, setCompletedTurns] = useState(0);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const scrollContainerRef = useRef(null);
+  const scrollThrottleRef = useRef(null);
 
   // Guard: If players array is empty (e.g., during quit transition), return null
   // This prevents crashes when the parent clears players before unmounting
@@ -66,6 +69,69 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
       document.body.classList.remove('scroll-lock');
     };
   }, []);
+
+  // Check if there's more content to scroll (throttled to prevent jitter)
+  const checkScrollPosition = useCallback((immediate = false) => {
+    const doCheck = () => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        const threshold = 20; // pixels from bottom to consider "at bottom"
+        const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+        const hasScrollableContent = container.scrollHeight > container.clientHeight;
+
+        setShowScrollIndicator(hasScrollableContent && !isAtBottom);
+      }
+    };
+
+    // Immediate check skips throttling (used for initial render)
+    if (immediate) {
+      doCheck();
+      return;
+    }
+
+    if (scrollThrottleRef.current) return;
+    scrollThrottleRef.current = requestAnimationFrame(() => {
+      doCheck();
+      scrollThrottleRef.current = null;
+    });
+  }, []);
+
+  // Set up scroll listener and initial check
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Initial check after DOM settles
+    const initialTimeout = setTimeout(() => checkScrollPosition(true), 50);
+
+    // Check on scroll (throttled)
+    const handleScroll = () => checkScrollPosition(false);
+    container.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Check on resize
+    const handleResize = () => checkScrollPosition(false);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      container.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+      if (scrollThrottleRef.current) {
+        cancelAnimationFrame(scrollThrottleRef.current);
+      }
+    };
+  }, [checkScrollPosition, currentPlayerIndex]);
+
+  // Scroll to bottom handler
+  const scrollToBottom = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth'
+    });
+  };
 
   const handleCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId);
@@ -263,7 +329,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
 
                   {settings.visual.showHeaderTotals && (
                     <span
-                      className="font-serif text-body font-bold tabular-nums"
+                      className="font-sans text-body font-bold tabular-nums"
                       style={{ color: textColor }}
                     >
                       {playerScore}
@@ -276,13 +342,45 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
         </div>
 
         {/* Scorecard - scrollable area */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          <Scorecard
-            scorecard={currentPlayer.scorecard}
-            onCategoryClick={handleCategoryClick}
-            isCurrentPlayer={true}
-            textColor={textColor}
+        <div className="relative flex-1 min-h-0">
+          <div
+            ref={scrollContainerRef}
+            className="h-full overflow-y-auto"
+          >
+            <Scorecard
+              scorecard={currentPlayer.scorecard}
+              onCategoryClick={handleCategoryClick}
+              isCurrentPlayer={true}
+              textColor={textColor}
+            />
+          </div>
+
+          {/* Bottom fade gradient - indicates more content below */}
+          <div
+            className={`scroll-fade-gradient ${showScrollIndicator ? 'scroll-fade-visible' : 'scroll-fade-hidden'}`}
+            style={{
+              background: `linear-gradient(to bottom, transparent, ${backgroundColor})`,
+            }}
+            aria-hidden="true"
           />
+
+          {/* Scroll to bottom indicator */}
+          <button
+            onClick={scrollToBottom}
+            className={`
+              scroll-indicator absolute bottom-3
+              flex items-center justify-center w-10 h-10 rounded-full
+              bg-white/25 dark:bg-black/25 backdrop-blur-sm
+              shadow-lg
+              ${showScrollIndicator ? 'scroll-indicator-visible' : 'scroll-indicator-hidden'}
+            `}
+            style={{ color: textColor }}
+            aria-label="Scroll to see more categories"
+            aria-hidden={!showScrollIndicator}
+            tabIndex={showScrollIndicator ? 0 : -1}
+          >
+            <Icon icon="basil:arrow-down-solid" className="w-6 h-6" />
+          </button>
         </div>
       </div>
 

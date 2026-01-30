@@ -103,7 +103,7 @@ export default function Changelog({ onBack, colorIndex }) {
         // Process non-list lines
         // Headers (## or ###)
         if (trimmed.startsWith('### ')) {
-          processed.push(`<h3 class="font-serif text-subtitle text-white dark:text-black mb-2 mt-4">${trimmed.replace('### ', '')}</h3>`);
+          processed.push(`<h3 class="font-sans text-subtitle text-white dark:text-black mb-2 mt-4">${trimmed.replace('### ', '')}</h3>`);
         } else if (trimmed.startsWith('## ')) {
           processed.push(`<h2 class="font-serif text-title text-white dark:text-black mb-3 mt-6">${trimmed.replace('## ', '')}</h2>`);
         } else if (trimmed === '') {
