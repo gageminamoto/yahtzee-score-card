@@ -7,6 +7,7 @@ import GameBoard from './pages/GameBoard';
 import Winner from './pages/Winner';
 import Settings from './pages/Settings';
 import Changelog from './pages/Changelog';
+import Onboarding from './pages/Onboarding';
 import { loadGameState, saveGameState, clearGameState } from './utils/storage';
 
 /**
@@ -26,6 +27,10 @@ function App() {
         savedScreen === 'settings' || savedScreen === 'changelog' ||
         (savedScreen === 'setup' && initialSavedState?.gameMode)) {
       return savedScreen;
+    }
+    // Show onboarding for first-time users (no settings saved yet)
+    if (localStorage.getItem('yahtzee_settings_v1') === null) {
+      return 'onboarding';
     }
     return 'home';
   });
@@ -160,6 +165,10 @@ function App() {
     transitionToScreen('home');
   };
 
+  const handleOnboardingComplete = () => {
+    transitionToScreen('home');
+  };
+
   /**
    * Handle title click on Home screen
    * Cycles through background colors by incrementing the color index
@@ -256,6 +265,15 @@ function App() {
               />,
               'animate-slideOutToLeft'
             )}
+
+            {previousScreen === 'onboarding' && renderScreen(
+              'onboarding',
+              <Onboarding
+                onComplete={handleOnboardingComplete}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideOutToLeft'
+            )}
           </>
         )}
 
@@ -324,6 +342,15 @@ function App() {
               />,
               'animate-slideInFromRight'
             )}
+
+            {nextScreen === 'onboarding' && renderScreen(
+              'onboarding',
+              <Onboarding
+                onComplete={handleOnboardingComplete}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideInFromRight'
+            )}
           </>
         ) : (
           <>
@@ -375,6 +402,13 @@ function App() {
                 onPlayAgain={handlePlayAgain}
                 onGoHome={handleGoHome}
                 colorIndex={winnerColorIndex}
+              />
+            )}
+
+            {screen === 'onboarding' && (
+              <Onboarding
+                onComplete={handleOnboardingComplete}
+                colorIndex={homeColorIndex}
               />
             )}
           </>
