@@ -7,7 +7,8 @@ import { getCategoryById } from '../utils/gameConstants';
  * Allows users to tap dice icons to build their roll
  * Auto-calculates score based on selected category
  */
-export default function DiceInput({ categoryId, onScoreChange, playerColor }) {
+export default function DiceInput({ categoryId, onScoreChange, playerColor, textColor }) {
+  const isDarkText = textColor === '#000000';
   const [selectedDice, setSelectedDice] = useState([]);
   const category = getCategoryById(categoryId);
 
@@ -90,17 +91,17 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor }) {
                 transition-all duration-150 ease-out
                 ${
                   hasDie
-                    ? 'text-white text-5xl cursor-pointer active:scale-95 hover:opacity-80 leading-none'
-                    : 'border-2 border-dashed border-white/30 dark:border-black/30 cursor-default'
+                    ? 'text-5xl cursor-pointer active:scale-95 hover:opacity-80 leading-none'
+                    : `border-2 border-dashed ${isDarkText ? 'border-black/30' : 'border-white/30'} cursor-default`
                 }
               `}
-              style={hasDie ? { backgroundColor: playerColor } : undefined}
+              style={hasDie ? { backgroundColor: playerColor, color: textColor } : undefined}
             >
               {hasDie && (
                 <>
                   <span className="-translate-y-1 leading-none">{getSymbol(dieValue)}</span>
                   <span
-                    className="absolute -top-1 -right-1 w-5 h-5 bg-white/90 dark:bg-black/90 rounded-full text-xs font-bold flex items-center justify-center"
+                    className={`absolute -top-1 -right-1 w-5 h-5 ${isDarkText ? 'bg-black/90' : 'bg-white/90'} rounded-full text-xs font-bold flex items-center justify-center`}
                     style={{ color: playerColor }}
                   >
                     ×
@@ -113,7 +114,7 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor }) {
       </div>
 
       {/* Instructions */}
-      <p className="font-sans text-body text-white/70 dark:text-black/70 text-center">
+      <p className="font-sans text-body text-center opacity-70" style={{ color: textColor }}>
         Tap dice below to add to your roll
       </p>
 
@@ -125,14 +126,15 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor }) {
             onClick={() => handleDieClick(die.value)}
             disabled={selectedDice.length >= 5}
             className="
-              aspect-square bg-black/20 dark:bg-white/20 text-white dark:text-black
+              aspect-square bg-black/20
               rounded-md p-1
               transition-all duration-150 ease-out
               active:scale-95
-              hover:bg-opacity-40 dark:hover:bg-opacity-40
+              hover:bg-opacity-40
               disabled:opacity-30 disabled:cursor-not-allowed
               flex flex-col items-center justify-center leading-none
             "
+            style={{ color: textColor }}
           >
             <span className="text-4xl -translate-y-0.5">{die.symbol}</span>
             <span className="text-xs font-medium opacity-70">{die.value}</span>
@@ -144,7 +146,8 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor }) {
       {selectedDice.length > 0 && (
         <button
           onClick={handleClear}
-          className="w-full text-center font-sans text-body text-white/70 dark:text-black/70 underline hover:text-white dark:hover:text-black transition-colors"
+          className="w-full text-center font-sans text-body underline opacity-70 hover:opacity-100 transition-all"
+          style={{ color: textColor }}
         >
           Clear All
         </button>
@@ -157,4 +160,5 @@ DiceInput.propTypes = {
   categoryId: PropTypes.string.isRequired,
   onScoreChange: PropTypes.func.isRequired,
   playerColor: PropTypes.string,
+  textColor: PropTypes.string,
 };

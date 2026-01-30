@@ -7,7 +7,8 @@ import { Icon } from '@iconify/react';
  * Active tab is highlighted in electric blue
  * Supports keyboard navigation with arrow keys
  */
-export default function TabSwitcher({ activeTab, onTabChange, firstTabRef }) {
+export default function TabSwitcher({ activeTab, onTabChange, firstTabRef, textColor }) {
+  const isDarkText = textColor === '#000000';
   const tabs = [
     { id: 'quick', label: 'Quick', name: 'Quick', icon: 'basil:lightning-solid' },
     { id: 'dice', label: 'Dice', name: 'Dice', icon: 'mdi:dice-5' },
@@ -27,7 +28,7 @@ export default function TabSwitcher({ activeTab, onTabChange, firstTabRef }) {
 
   return (
     <div 
-      className="flex gap-2 mb-6 bg-black/20 dark:bg-white/20 p-1 rounded-lg"
+      className="flex gap-2 mb-6 bg-black/20 p-1 rounded-lg"
       role="tablist"
       aria-label="Input method selection"
     >
@@ -47,13 +48,15 @@ export default function TabSwitcher({ activeTab, onTabChange, firstTabRef }) {
               transition-all duration-150 ease-out
               active:scale-[0.97]
               flex items-center justify-center gap-2
-              focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-black focus:ring-offset-2
+              focus:outline-none focus:ring-2 focus:ring-offset-2
+              ${isDarkText ? 'focus:ring-black' : 'focus:ring-white'}
               ${
                 isActive
-                  ? 'bg-white/30 text-white dark:text-white shadow-lg'
-                  : 'text-white dark:text-black opacity-60 dark:opacity-60 hover:opacity-80 dark:hover:opacity-80 hover:bg-black/20 dark:hover:bg-white/20'
+                  ? `${isDarkText ? 'bg-black/10' : 'bg-white/30'} shadow-lg`
+                  : 'opacity-60 hover:opacity-80 hover:bg-black/20'
               }
             `}
+            style={{ color: textColor }}
           >
             {tab.icon && (
               <Icon
@@ -76,4 +79,5 @@ TabSwitcher.propTypes = {
     PropTypes.func,
     PropTypes.shape({ current: PropTypes.instanceOf(Element) })
   ]),
+  textColor: PropTypes.string,
 };

@@ -49,13 +49,18 @@ const Button = forwardRef(function Button({
     };
   })() : {};
 
+  // For solid variant with explicit textColor, override via inline style
+  const solidStyle = variant === 'solid' && textColor ? { color: textColor } : {};
+
+  const inlineStyle = { ...outlineStyle, ...solidStyle };
+
   return (
     <button
       ref={ref}
       onClick={onClick}
       disabled={disabled}
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${className}`}
-      style={outlineStyle}
+      style={inlineStyle}
     >
       {children}
     </button>

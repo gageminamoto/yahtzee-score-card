@@ -6,7 +6,7 @@ import DiceInput from './DiceInput';
 import QuickInput from './QuickInput';
 import { getCategoryById, isValidScore } from '../utils/gameConstants';
 import { getInputMode, setInputMode } from '../utils/storage';
-import { playerColors } from '../utils/colors';
+import { playerColors, getTextColorForBackground } from '../utils/colors';
 
 /**
  * Modal for entering scores with two input methods:
@@ -18,6 +18,8 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
   const [activeTab, setActiveTab] = useState(() => getInputMode());
   const [score, setScore] = useState(initialScore);
   const category = getCategoryById(categoryId);
+  const effectiveColor = playerColor || playerColors[0];
+  const textColor = getTextColorForBackground(effectiveColor);
   const modalRef = useRef(null);
   const firstTabRef = useRef(null);
 
@@ -134,7 +136,8 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
         <button
           type="button"
           onClick={onCancel}
-          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white bg-black/20 hover:bg-black/30 rounded-full transition-colors"
+          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/30 rounded-full transition-colors"
+          style={{ color: textColor }}
           aria-label="Close"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -145,10 +148,10 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
 
         {/* Category Info */}
         <div className="mb-4 md:mb-6">
-          <h2 id="modal-title" className="font-serif text-subtitle md:text-title text-white mb-2">
+          <h2 id="modal-title" className="font-serif text-subtitle md:text-title mb-2" style={{ color: textColor }}>
             {category.name.toUpperCase()}
           </h2>
-          <p className="font-sans text-ui md:text-body text-white opacity-90">
+          <p className="font-sans text-ui md:text-body opacity-90" style={{ color: textColor }}>
             {category.description}
           </p>
         </div>
@@ -160,6 +163,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
               variant="solid"
               size="medium"
               fullWidth
+              textColor={textColor}
               onClick={() => handleFixedScoreClick(category.fixedScore)}
             >
               Add {category.fixedScore} Points
@@ -168,6 +172,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
               variant="outline"
               size="medium"
               fullWidth
+              textColor={textColor}
               onClick={() => handleFixedScoreClick(0)}
             >
               Zero Out (0 Points)
@@ -176,16 +181,17 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
         ) : (
           <>
             {/* Tab Switcher */}
-            <TabSwitcher 
-              activeTab={activeTab} 
+            <TabSwitcher
+              activeTab={activeTab}
               onTabChange={handleTabChange}
               firstTabRef={firstTabRef}
+              textColor={textColor}
             />
 
             {/* Score Display */}
             <div className="mb-4 md:mb-6">
-              <div className="bg-black/20 dark:bg-white/20 p-4 md:p-6 text-center">
-                <div className="font-sans text-subtitle md:text-headline text-white dark:text-black min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums">
+              <div className="bg-black/20 p-4 md:p-6 text-center">
+                <div className="font-sans text-subtitle md:text-headline min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums" style={{ color: textColor }}>
                   {score}
                 </div>
               </div>
@@ -199,10 +205,10 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
             {/* Input Area - Show different input based on active tab */}
             <div className="mb-4 md:mb-6">
               {activeTab === 'dice' && (
-                <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={playerColor || playerColors[0]} />
+                <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={effectiveColor} textColor={textColor} />
               )}
               {activeTab === 'quick' && (
-                <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={playerColor || playerColors[0]} />
+                <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={effectiveColor} textColor={textColor} />
               )}
             </div>
 
@@ -211,6 +217,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
               variant="solid"
               size="medium"
               fullWidth
+              textColor={textColor}
               onClick={handleSubmit}
               disabled={!isValid}
             >
