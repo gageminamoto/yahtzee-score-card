@@ -47,7 +47,7 @@ function playBrassNote(ctx, destination, frequency, startTime, duration, volume 
 /**
  * Play a trumpet fanfare when the winner is announced
  */
-export function playTrumpetFanfare() {
+export async function playTrumpetFanfare() {
   try {
     // Prevent duplicate plays from transition re-mounts
     const now = Date.now();
@@ -58,7 +58,7 @@ export function playTrumpetFanfare() {
 
     // Resume context if suspended (browser autoplay policy)
     if (ctx.state === 'suspended') {
-      ctx.resume();
+      await ctx.resume();
     }
 
     const masterGain = ctx.createGain();

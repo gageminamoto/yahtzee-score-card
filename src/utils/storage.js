@@ -238,6 +238,13 @@ export function clearAllData() {
 }
 
 /**
+ * Check if this is a first-time user (no settings saved yet)
+ */
+export function isFirstTimeUser() {
+  return localStorage.getItem(STORAGE_KEYS.settings) === null;
+}
+
+/**
  * Generate a unique game ID
  */
 function generateGameId() {

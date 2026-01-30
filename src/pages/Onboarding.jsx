@@ -22,12 +22,7 @@ export default function Onboarding({ onComplete, colorIndex }) {
     updateSetting('visual', 'colorScheme', scheme);
   };
 
-  const handleComplete = () => {
-    updateSetting('preferences', 'showTutorial', false);
-    onComplete();
-  };
-
-  const handleSkip = () => {
+  const handleFinish = () => {
     updateSetting('preferences', 'showTutorial', false);
     onComplete();
   };
@@ -41,7 +36,7 @@ export default function Onboarding({ onComplete, colorIndex }) {
         {/* Header with Skip */}
         <div className="flex justify-end mb-6">
           <button
-            onClick={handleSkip}
+            onClick={handleFinish}
             className="font-sans text-body hover:opacity-70 transition-opacity"
             style={{ color: textColor }}
           >
@@ -114,7 +109,7 @@ export default function Onboarding({ onComplete, colorIndex }) {
           variant="solid"
           size="large"
           fullWidth
-          onClick={handleComplete}
+          onClick={handleFinish}
         >
           Get Started
         </Button>

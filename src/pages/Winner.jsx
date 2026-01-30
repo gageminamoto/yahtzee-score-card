@@ -31,7 +31,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
     if (settings.accessibility.enableSoundEffects) {
       playTrumpetFanfare();
     }
-  }, []);
+  }, [settings.accessibility.enableSoundEffects]);
 
   useEffect(() => {
     // Hide confetti after animation

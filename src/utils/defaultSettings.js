@@ -23,7 +23,7 @@ export const DEFAULT_SETTINGS = {
   },
   accessibility: {
     highContrast: false,
-    enableSoundEffects: true,
+    enableSoundEffects: false,
     enableHapticFeedback: true,
     largeButtons: false,
     screenReaderMode: false,

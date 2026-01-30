@@ -9,7 +9,7 @@ import Settings from './pages/Settings';
 import Changelog from './pages/Changelog';
 import Onboarding from './pages/Onboarding';
 import GameHistory from './pages/GameHistory';
-import { loadGameState, saveGameState, clearGameState, addGameToHistory, loadSettings } from './utils/storage';
+import { loadGameState, saveGameState, clearGameState, addGameToHistory, loadSettings, isFirstTimeUser } from './utils/storage';
 
 /**
  * Main App component
@@ -31,7 +31,7 @@ function App() {
       return savedScreen;
     }
     // Show onboarding for first-time users (no settings saved yet)
-    if (localStorage.getItem('yahtzee_settings_v1') === null) {
+    if (isFirstTimeUser()) {
       return 'onboarding';
     }
     return 'home';
