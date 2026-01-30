@@ -6,14 +6,15 @@ import { ConfirmDialog, UpperBonusModal } from '../components';
 import {
   createEmptyScorecard,
   calculateTotalScore,
-  calculateUpperBonus,
+  calculateUpperSectionSum,
   updateScorecard,
   isGameComplete,
   isCategoryScored,
 } from '../utils/scoring';
-import { TOTAL_ROUNDS, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
+import { TOTAL_ROUNDS, UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
 import { getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
+import { isSoundEnabled, playScoreConfirm, playUpperBonus, playTurnChange } from '../utils/sounds';
 
 /**
  * Main game board for single device mode
@@ -139,12 +140,14 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
     setSelectedCategory(categoryId);
   };
 
+  const upperCategoryIds = UPPER_SECTION_CATEGORIES.map(c => c.id);
+
   const handleScoreSubmit = (score) => {
     // Check if this is an edit (category was already scored)
     const isEditing = isCategoryScored(currentPlayer.scorecard, selectedCategory);
 
-    // Snapshot upper bonus before the update
-    const hadBonus = calculateUpperBonus(currentPlayer.scorecard, settings) > 0;
+    // Capture upper section sum before scoring for bonus detection
+    const oldUpperSum = calculateUpperSectionSum(currentPlayer.scorecard);
 
     // Update the player's scorecard
     const updatedPlayers = [...players];
@@ -154,13 +157,27 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
       score
     );
 
-    // Check if the player just earned the upper bonus
-    const hasBonus = calculateUpperBonus(updatedPlayers[currentPlayerIndex].scorecard, settings) > 0;
-    if (!hadBonus && hasBonus) {
+    // Check if upper bonus was just unlocked
+    const bonusJustEarned = upperCategoryIds.includes(selectedCategory) && (() => {
+      const newUpperSum = calculateUpperSectionSum(updatedPlayers[currentPlayerIndex].scorecard);
+      const threshold = getUpperBonusThreshold(settings);
+      return oldUpperSum < threshold && newUpperSum >= threshold;
+    })();
+
+    if (bonusJustEarned) {
       setBonusModalPlayer({
         name: currentPlayer.name || `Player ${currentPlayerIndex + 1}`,
         color: currentPlayer.color,
       });
+    }
+
+    // Sound effects on score confirm
+    if (isSoundEnabled()) {
+      playScoreConfirm();
+
+      if (bonusJustEarned) {
+        setTimeout(() => playUpperBonus(), 300);
+      }
     }
 
     // Update the players state with the new scorecard
@@ -190,6 +207,11 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
       // Move to next player
       const nextPlayerIndex = (currentPlayerIndex + 1) % players.length;
       setCurrentPlayerIndex(nextPlayerIndex);
+
+      // Play turn change sound for multiplayer games
+      if (isSoundEnabled() && players.length > 1) {
+        setTimeout(() => playTurnChange(), 200);
+      }
 
       // Notify parent to persist state with new player index
       if (onStateChange) {
