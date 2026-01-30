@@ -7,8 +7,9 @@ import GameBoard from './pages/GameBoard';
 import Winner from './pages/Winner';
 import Settings from './pages/Settings';
 import Changelog from './pages/Changelog';
+import Onboarding from './pages/Onboarding';
 import GameHistory from './pages/GameHistory';
-import { loadGameState, saveGameState, clearGameState, addGameToHistory, loadSettings } from './utils/storage';
+import { loadGameState, saveGameState, clearGameState, addGameToHistory, loadSettings, isFirstTimeUser } from './utils/storage';
 
 /**
  * Main App component
@@ -28,6 +29,10 @@ function App() {
         savedScreen === 'history' ||
         (savedScreen === 'setup' && initialSavedState?.gameMode)) {
       return savedScreen;
+    }
+    // Show onboarding for first-time users (no settings saved yet)
+    if (isFirstTimeUser()) {
+      return 'onboarding';
     }
     return 'home';
   });
@@ -187,6 +192,10 @@ function App() {
     transitionToScreen('home');
   };
 
+  const handleOnboardingComplete = () => {
+    transitionToScreen('home');
+  };
+
   /**
    * Handle title click on Home screen
    * Cycles through background colors by incrementing the color index
@@ -293,6 +302,15 @@ function App() {
               />,
               'animate-slideOutToLeft'
             )}
+
+            {previousScreen === 'onboarding' && renderScreen(
+              'onboarding',
+              <Onboarding
+                onComplete={handleOnboardingComplete}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideOutToLeft'
+            )}
           </>
         )}
 
@@ -371,6 +389,15 @@ function App() {
               />,
               'animate-slideInFromRight'
             )}
+
+            {nextScreen === 'onboarding' && renderScreen(
+              'onboarding',
+              <Onboarding
+                onComplete={handleOnboardingComplete}
+                colorIndex={homeColorIndex}
+              />,
+              'animate-slideInFromRight'
+            )}
           </>
         ) : (
           <>
@@ -430,6 +457,13 @@ function App() {
                 onPlayAgain={handlePlayAgain}
                 onGoHome={handleGoHome}
                 colorIndex={winnerColorIndex}
+              />
+            )}
+
+            {screen === 'onboarding' && (
+              <Onboarding
+                onComplete={handleOnboardingComplete}
+                colorIndex={homeColorIndex}
               />
             )}
           </>

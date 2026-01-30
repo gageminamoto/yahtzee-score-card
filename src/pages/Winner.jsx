@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Icon } from '@iconify/react';
 import { Button, Card } from '../components';
 import { getColorByIndex, getTextColorForBackground } from '../utils/colors';
+import { useSettings } from '../context/SettingsContext';
+import { playTrumpetFanfare } from '../utils/sounds';
 
 /**
  * Winner announcement screen
@@ -12,6 +15,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
   const backgroundColor = getColorByIndex(colorIndex);
   const textColor = getTextColorForBackground(backgroundColor);
   const [showConfetti, setShowConfetti] = useState(true);
+  const { settings } = useSettings();
 
   // Sync background color to html/body for overscroll
   useEffect(() => {
@@ -21,6 +25,13 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
   // Sort players by score
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
   const winner = sortedPlayers[0];
+
+  // Play trumpet fanfare on mount
+  useEffect(() => {
+    if (settings.accessibility.enableSoundEffects) {
+      playTrumpetFanfare();
+    }
+  }, [settings.accessibility.enableSoundEffects]);
 
   useEffect(() => {
     // Hide confetti after animation
@@ -62,6 +73,11 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
       <div className="max-w-2xl w-full z-dropdown">
         {/* Winner Announcement */}
         <div className="text-center mb-12 animate-scaleIn">
+          <Icon
+            icon="mdi:trophy"
+            className="text-[4rem] md:text-[5rem] mx-auto mb-4"
+            style={{ color: textColor }}
+          />
           <h1
             className="font-serif text-headline md:text-display mb-6 text-balance"
             style={{ color: textColor }}
