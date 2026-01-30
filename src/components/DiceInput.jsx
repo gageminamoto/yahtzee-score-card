@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { getCategoryById } from '../utils/gameConstants';
+import { playDiceAdd, isSoundEnabled } from '../utils/sounds';
 
 /**
  * Dice Input Component
@@ -53,7 +54,11 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor }) {
   // Handle die selection - always adds a die when clicking the button
   const handleDieClick = (dieValue) => {
     if (selectedDice.length < 5) {
+      const newCount = selectedDice.length + 1;
       setSelectedDice([...selectedDice, dieValue]);
+      if (isSoundEnabled()) {
+        playDiceAdd(newCount);
+      }
     }
   };
 
