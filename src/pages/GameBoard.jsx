@@ -240,23 +240,25 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
     >
       <div className="max-w-6xl mx-auto w-full flex flex-col flex-1 min-h-0">
         {/* Header with Quit, Finish Game, and Round */}
-        <div className="flex justify-between items-center mb-1.5 md:mb-2 flex-shrink-0">
-          <button
-            onClick={onQuit}
-            className="font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2"
-            style={{ color: textColor }}
-          >
-            <Icon icon="basil:arrow-left-solid" className="w-5 h-5" />
-            Quit
-          </button>
-          <div className="flex items-center gap-3">
-            {/* Round Display */}
-            <div
-              className="font-sans text-ui opacity-90"
+        <div className="flex items-center mb-1.5 md:mb-2 flex-shrink-0">
+          <div className="flex-1 flex justify-start">
+            <button
+              onClick={onQuit}
+              className="font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2"
               style={{ color: textColor }}
             >
-              R{currentRound}/{TOTAL_ROUNDS}
-            </div>
+              <Icon icon="basil:arrow-left-solid" className="w-5 h-5" />
+              Quit
+            </button>
+          </div>
+          {/* Round Display */}
+          <div
+            className="font-sans text-ui opacity-90"
+            style={{ color: textColor }}
+          >
+            R{currentRound}/{TOTAL_ROUNDS}
+          </div>
+          <div className="flex-1 flex justify-end">
             {/* Finish Game Button */}
             <button
               onClick={handleFinishGame}
