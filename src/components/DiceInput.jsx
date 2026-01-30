@@ -118,14 +118,14 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor, text
         })}
       </div>
 
-      {/* Instructions / Clear All */}
+      {/* Instructions / Reset Dice */}
       {selectedDice.length > 0 ? (
         <button
           onClick={handleClear}
           className="w-full font-sans text-body underline opacity-70 hover:opacity-100 transition-all text-center"
           style={{ color: textColor }}
         >
-          Clear All
+          Reset Dice
         </button>
       ) : (
         <p className="font-sans text-body text-center opacity-70" style={{ color: textColor }}>
