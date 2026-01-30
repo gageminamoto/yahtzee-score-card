@@ -168,12 +168,12 @@ export const getTextColorForBackground = (backgroundColor) => {
   const luminance = getRelativeLuminance(backgroundColor);
   // Use black text for light backgrounds, white for dark
   // Threshold of 0.179 is commonly used (corresponds to ~4.5:1 contrast)
-  return luminance > 0.179 ? colors.black : colors.white;
+  return luminance > 0.25 ? colors.black : colors.white;
 };
 
 /**
  * Check if a color needs black text (is a light color)
  */
 export const needsBlackText = (backgroundColor) => {
-  return getRelativeLuminance(backgroundColor) > 0.179;
+  return getRelativeLuminance(backgroundColor) > 0.25;
 };
