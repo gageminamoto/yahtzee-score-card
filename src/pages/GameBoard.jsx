@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
-import { ConfirmDialog } from '../components';
+import { ConfirmDialog, UpperBonusModal } from '../components';
 import {
   createEmptyScorecard,
   calculateTotalScore,
@@ -11,7 +11,7 @@ import {
   isGameComplete,
   isCategoryScored,
 } from '../utils/scoring';
-import { TOTAL_ROUNDS, UPPER_SECTION_CATEGORIES, getUpperBonusThreshold } from '../utils/gameConstants';
+import { TOTAL_ROUNDS, UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
 import { getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
 import { isSoundEnabled, playScoreConfirm, playUpperBonus, playTurnChange } from '../utils/sounds';
@@ -39,6 +39,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [completedTurns, setCompletedTurns] = useState(0);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [bonusModalPlayer, setBonusModalPlayer] = useState(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const scrollContainerRef = useRef(null);
   const scrollThrottleRef = useRef(null);
@@ -156,17 +157,26 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
       score
     );
 
+    // Check if upper bonus was just unlocked
+    const bonusJustEarned = upperCategoryIds.includes(selectedCategory) && (() => {
+      const newUpperSum = calculateUpperSectionSum(updatedPlayers[currentPlayerIndex].scorecard);
+      const threshold = getUpperBonusThreshold(settings);
+      return oldUpperSum < threshold && newUpperSum >= threshold;
+    })();
+
+    if (bonusJustEarned) {
+      setBonusModalPlayer({
+        name: currentPlayer.name || `Player ${currentPlayerIndex + 1}`,
+        color: currentPlayer.color,
+      });
+    }
+
     // Sound effects on score confirm
     if (isSoundEnabled()) {
       playScoreConfirm();
 
-      // Check if upper bonus was just unlocked
-      if (upperCategoryIds.includes(selectedCategory)) {
-        const newUpperSum = calculateUpperSectionSum(updatedPlayers[currentPlayerIndex].scorecard);
-        const threshold = getUpperBonusThreshold(settings);
-        if (oldUpperSum < threshold && newUpperSum >= threshold) {
-          setTimeout(() => playUpperBonus(), 300);
-        }
+      if (bonusJustEarned) {
+        setTimeout(() => playUpperBonus(), 300);
       }
     }
 
@@ -433,6 +443,17 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
         onConfirm={handleConfirmFinish}
         onCancel={handleCancelFinish}
       />
+
+      {/* Upper Bonus Modal */}
+      {bonusModalPlayer && (
+        <UpperBonusModal
+          playerName={bonusModalPlayer.name}
+          bonusPoints={getUpperBonusPoints(settings)}
+          threshold={getUpperBonusThreshold(settings)}
+          playerColor={bonusModalPlayer.color}
+          onDismiss={() => setBonusModalPlayer(null)}
+        />
+      )}
     </div>
   );
 }
