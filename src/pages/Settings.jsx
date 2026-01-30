@@ -54,6 +54,7 @@ export default function Settings({ onBack, colorIndex }) {
   const tabs = [
     { id: 'appearance', label: 'Appearance' },
     { id: 'rules', label: 'Rules' },
+    { id: 'feedback', label: 'Feedback' },
     { id: 'data', label: 'Data' },
   ];
 
@@ -239,7 +240,12 @@ export default function Settings({ onBack, colorIndex }) {
                 onChange={(value) => updateSetting('gameRules', 'enableForcedZeros', value)}
               />
             </Card>
+          </div>
+        )}
 
+        {/* Feedback Settings */}
+        {activeTab === 'feedback' && (
+          <div className="space-y-6">
             <Card padding="medium">
               <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
                 FEEDBACK
@@ -252,7 +258,7 @@ export default function Settings({ onBack, colorIndex }) {
               />
               <SettingToggle
                 label="Sound Effects"
-                description="Play audio on score entry and turn changes (coming soon)"
+                description="Play audio feedback such as the winner fanfare"
                 enabled={settings.accessibility.enableSoundEffects}
                 onChange={(value) => updateSetting('accessibility', 'enableSoundEffects', value)}
               />
