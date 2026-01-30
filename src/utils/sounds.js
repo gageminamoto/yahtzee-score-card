@@ -6,6 +6,7 @@
 let audioContext = null;
 let lastFanfareTime = 0;
 let lastYahtzeeTime = 0;
+let lastUpperBonusTime = 0;
 
 function getAudioContext() {
   if (!audioContext) {
@@ -178,6 +179,131 @@ export async function playYahtzeeSound() {
     shimmer1.stop(t + 0.3);
     shimmer2.start(t + 0.08);
     shimmer2.stop(t + 0.3);
+  } catch {
+    // Silently fail
+  }
+}
+
+/**
+ * Play a short percussive "stamp" when a score is confirmed (~100ms)
+ * Low-frequency thud with fast attack and rapid decay
+ */
+export async function playScoreConfirm() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.15;
+    masterGain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(180, t);
+    osc.frequency.exponentialRampToValueAtTime(80, t + 0.08);
+
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(1, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.1);
+  } catch {
+    // Silently fail
+  }
+}
+
+/**
+ * Play a bright ascending chime when the upper bonus is achieved (~400ms)
+ * C5 → E5 → G5 major triad using triangle waves for a bell-like quality
+ */
+export async function playUpperBonus() {
+  try {
+    const now = Date.now();
+    if (now - lastUpperBonusTime < 2000) return;
+    lastUpperBonusTime = now;
+
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.35;
+    masterGain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+
+    const notes = [
+      { freq: 523.25, start: 0, dur: 0.25 },     // C5
+      { freq: 659.25, start: 0.1, dur: 0.25 },    // E5
+      { freq: 783.99, start: 0.2, dur: 0.3 },     // G5 (held slightly longer)
+    ];
+
+    notes.forEach(({ freq, start, dur }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+
+      gain.gain.setValueAtTime(0, t + start);
+      gain.gain.linearRampToValueAtTime(0.3, t + start + 0.02);
+      gain.gain.setValueAtTime(0.3, t + start + dur - 0.1);
+      gain.gain.linearRampToValueAtTime(0, t + start + dur);
+
+      osc.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(t + start);
+      osc.stop(t + start + dur);
+    });
+  } catch {
+    // Silently fail
+  }
+}
+
+/**
+ * Play a subtle "pip" when the turn changes to the next player (~60ms)
+ * Single high-frequency triangle wave at very low volume
+ */
+export async function playTurnChange() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.08;
+    masterGain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.value = 880; // A5
+
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.4, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.06);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.06);
   } catch {
     // Silently fail
   }

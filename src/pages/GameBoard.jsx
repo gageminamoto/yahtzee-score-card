@@ -6,13 +6,15 @@ import { ConfirmDialog } from '../components';
 import {
   createEmptyScorecard,
   calculateTotalScore,
+  calculateUpperSectionSum,
   updateScorecard,
   isGameComplete,
   isCategoryScored,
 } from '../utils/scoring';
-import { TOTAL_ROUNDS } from '../utils/gameConstants';
+import { TOTAL_ROUNDS, UPPER_SECTION_CATEGORIES, getUpperBonusThreshold } from '../utils/gameConstants';
 import { getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
+import { isSoundEnabled, playScoreConfirm, playUpperBonus, playTurnChange } from '../utils/sounds';
 
 /**
  * Main game board for single device mode
@@ -137,9 +139,14 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
     setSelectedCategory(categoryId);
   };
 
+  const upperCategoryIds = UPPER_SECTION_CATEGORIES.map(c => c.id);
+
   const handleScoreSubmit = (score) => {
     // Check if this is an edit (category was already scored)
     const isEditing = isCategoryScored(currentPlayer.scorecard, selectedCategory);
+
+    // Capture upper section sum before scoring for bonus detection
+    const oldUpperSum = calculateUpperSectionSum(currentPlayer.scorecard);
 
     // Update the player's scorecard
     const updatedPlayers = [...players];
@@ -148,6 +155,20 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
       selectedCategory,
       score
     );
+
+    // Sound effects on score confirm
+    if (isSoundEnabled()) {
+      playScoreConfirm();
+
+      // Check if upper bonus was just unlocked
+      if (upperCategoryIds.includes(selectedCategory)) {
+        const newUpperSum = calculateUpperSectionSum(updatedPlayers[currentPlayerIndex].scorecard);
+        const threshold = getUpperBonusThreshold(settings);
+        if (oldUpperSum < threshold && newUpperSum >= threshold) {
+          setTimeout(() => playUpperBonus(), 300);
+        }
+      }
+    }
 
     // Update the players state with the new scorecard
     // This ensures the UI and finish game button always have current scores
@@ -176,6 +197,11 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
       // Move to next player
       const nextPlayerIndex = (currentPlayerIndex + 1) % players.length;
       setCurrentPlayerIndex(nextPlayerIndex);
+
+      // Play turn change sound for multiplayer games
+      if (isSoundEnabled() && players.length > 1) {
+        setTimeout(() => playTurnChange(), 200);
+      }
 
       // Notify parent to persist state with new player index
       if (onStateChange) {
