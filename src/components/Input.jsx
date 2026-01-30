@@ -18,7 +18,8 @@ export default function Input({
   autoFocus = false,
   textColor = '#ffffff',
 }) {
-  const baseStyles = "w-full bg-transparent border-4 font-sans text-body-lg px-6 py-4 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent transition-[border-color,box-shadow] duration-100 ease-out disabled:opacity-40 disabled:cursor-not-allowed";
+  const isBlack = textColor === '#000000';
+  const baseStyles = "w-full border-2 font-sans text-body-lg px-6 py-4 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent transition-[border-color,background-color,box-shadow] duration-100 ease-out disabled:opacity-40 disabled:cursor-not-allowed";
 
   // Use React's useId for stable unique ID
   const reactId = useId();
@@ -38,7 +39,8 @@ export default function Input({
         autoFocus={autoFocus}
         className={`${baseStyles} ${className}`}
         style={{
-          borderColor: textColor,
+          borderColor: isBlack ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)',
+          backgroundColor: isBlack ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.12)',
           color: textColor,
           '--tw-ring-color': textColor,
         }}

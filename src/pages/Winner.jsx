@@ -145,6 +145,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
             size="medium"
             fullWidth
             onClick={onGoHome}
+            textColor={textColor}
           >
             Home
           </Button>

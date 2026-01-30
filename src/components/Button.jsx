@@ -18,13 +18,13 @@ const Button = forwardRef(function Button({
   className = '',
   textColor = null,
 }, ref) {
-  const baseStyles = "font-sans font-bold uppercase cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,opacity] duration-150 ease-out active:scale-[0.97] hover:scale-[1.003]";
+  const baseStyles = "font-sans font-bold uppercase cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,border-color,opacity] duration-150 ease-out active:scale-[0.97] hover:scale-[1.003]";
 
   // Theme-aware button variants with proper contrast in both modes
   const variants = {
     primary: "bg-black/20 dark:bg-white/20 text-white dark:text-black hover:bg-black/100 dark:hover:bg-white/100 hover:text-white dark:hover:text-black",
     solid: "bg-black dark:bg-white text-white dark:text-black hover:bg-black/80 dark:hover:bg-white/80",
-    outline: "bg-transparent border-2",
+    outline: "border-2 hover:bg-[var(--btn-hover-bg)] hover:border-[var(--btn-hover-border)]",
   };
 
   const sizes = {
@@ -36,11 +36,18 @@ const Button = forwardRef(function Button({
 
   const widthClass = fullWidth ? "w-full" : "";
 
-  // For outline variant with custom textColor, use inline styles
-  const outlineStyle = variant === 'outline' && textColor ? {
-    color: textColor,
-    borderColor: textColor,
-  } : {};
+  // For outline variant, use semi-transparent borders and fills
+  const outlineStyle = variant === 'outline' ? (() => {
+    const resolvedColor = textColor || '#ffffff';
+    const isBlack = resolvedColor === '#000000';
+    return {
+      color: resolvedColor,
+      borderColor: isBlack ? 'rgba(0, 0, 0, 0.35)' : 'rgba(255, 255, 255, 0.45)',
+      backgroundColor: isBlack ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)',
+      '--btn-hover-bg': isBlack ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.2)',
+      '--btn-hover-border': isBlack ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.6)',
+    };
+  })() : {};
 
   return (
     <button
