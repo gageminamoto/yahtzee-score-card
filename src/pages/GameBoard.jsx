@@ -263,7 +263,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
 
                   {settings.visual.showHeaderTotals && (
                     <span
-                      className="font-serif text-body font-bold tabular-nums"
+                      className="font-sans text-body font-bold tabular-nums"
                       style={{ color: textColor }}
                     >
                       {playerScore}
