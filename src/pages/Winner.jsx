@@ -72,21 +72,21 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
 
       <div className="max-w-2xl w-full z-dropdown">
         {/* Winner Announcement */}
-        <div className="text-center mb-12 animate-scaleIn">
+        <div className="text-center mb-8 animate-scaleIn">
           <Icon
             icon="mdi:trophy"
-            className="text-[4rem] md:text-[5rem] mx-auto mb-4"
+            className="text-[3rem] md:text-[4rem] mx-auto mb-2"
             style={{ color: textColor }}
           />
           <h1
-            className="font-serif text-headline md:text-display mb-6 text-balance"
+            className="font-serif text-headline md:text-display mb-2 text-balance"
             style={{ color: textColor }}
           >
             WINNER
           </h1>
-          <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="flex items-center justify-center gap-3 mb-2">
             <div
-              className="w-20 h-20 rounded-full"
+              className="w-10 h-10 rounded-full shrink-0"
               style={{ backgroundColor: winner.color }}
             />
             <h2
@@ -96,40 +96,40 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
               {winner.name.toUpperCase()}
             </h2>
           </div>
-          <p className="font-sans text-subtitle text-pretty tabular-nums" style={{ color: textColor }}>
+          <p className="font-sans text-title md:text-headline text-pretty tabular-nums" style={{ color: textColor }}>
             {winner.totalScore} points
           </p>
         </div>
 
         {/* Final Scores */}
-        <Card padding="large" className="mb-8">
+        <Card padding="medium" className="mb-6">
           <h3
-            className="font-sans text-subtitle mb-6 text-center text-balance"
+            className="font-sans text-body-lg font-bold uppercase tracking-wider mb-4 text-center text-balance opacity-70"
             style={{ color: textColor }}
           >
-            FINAL SCORES
+            Final Scores
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-1">
             {sortedPlayers.map((player, index) => (
               <div
                 key={player.id}
-                className={`flex items-center justify-between py-4 px-4 ${
+                className={`flex items-center justify-between py-3 px-3 ${
                   index === 0 ? 'bg-bright-green/20 dark:bg-bright-green/20' : ''
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <span
-                    className="font-sans text-body-lg opacity-70 min-w-[3rem]"
+                    className="font-sans text-body opacity-50 min-w-[2rem]"
                     style={{ color: textColor }}
                   >
                     #{index + 1}
                   </span>
                   <div
-                    className="w-10 h-10 rounded-full"
+                    className="w-8 h-8 rounded-full shrink-0"
                     style={{ backgroundColor: player.color }}
                   />
                   <span
-                    className="font-sans text-body-lg font-bold"
+                    className="font-sans text-body font-bold"
                     style={{ color: textColor }}
                   >
                     {player.name}
@@ -147,7 +147,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
         </Card>
 
         {/* Actions */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <Button
             variant="solid"
             size="large"
