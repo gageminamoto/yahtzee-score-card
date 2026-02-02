@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
+import QuickSettingsPopover from '../components/QuickSettingsPopover';
 import { ConfirmDialog, UpperBonusModal } from '../components';
 import {
   createEmptyScorecard,
@@ -294,7 +295,8 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
           >
             R{currentRound}/{TOTAL_ROUNDS}
           </div>
-          <div className="flex-1 flex justify-end">
+          <div className="flex-1 flex items-center gap-2 justify-end">
+            <QuickSettingsPopover textColor={textColor} playerColor={backgroundColor} />
             {/* Finish Game Button */}
             <button
               onClick={handleFinishGame}
