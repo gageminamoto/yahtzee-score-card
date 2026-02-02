@@ -26,4 +26,5 @@ RELEASE_GUIDE.md
 *.sln
 *.sw?
 .vercel
+.env
 .env*.local

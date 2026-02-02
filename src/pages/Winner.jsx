@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { Button, Card } from '../components';
 import { getColorByIndex, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
+import { useSession } from '../context/SessionContext';
 import { playTrumpetFanfare } from '../utils/sounds';
 
 /**
@@ -11,11 +12,24 @@ import { playTrumpetFanfare } from '../utils/sounds';
  * - Displays final scores
  * - Options to play again or go home
  */
-export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
+export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gameMode }) {
   const backgroundColor = getColorByIndex(colorIndex);
   const textColor = getTextColorForBackground(backgroundColor);
   const [showConfetti, setShowConfetti] = useState(true);
   const { settings } = useSettings();
+  const { isHost, sessionCode, leaveGame } = useSession();
+
+  const isMulti = gameMode === 'multi';
+
+  const handlePlayAgain = async () => {
+    if (isMulti && sessionCode) await leaveGame();
+    onPlayAgain();
+  };
+
+  const handleGoHome = async () => {
+    if (isMulti && sessionCode) await leaveGame();
+    onGoHome();
+  };
 
   // Sync background color to html/body for overscroll
   useEffect(() => {
@@ -148,19 +162,21 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
 
         {/* Actions */}
         <div className="space-y-3">
-          <Button
-            variant="solid"
-            size="large"
-            fullWidth
-            onClick={onPlayAgain}
-          >
-            Play Again
-          </Button>
+          {(!isMulti || isHost) && (
+            <Button
+              variant="solid"
+              size="large"
+              fullWidth
+              onClick={handlePlayAgain}
+            >
+              Play Again
+            </Button>
+          )}
           <Button
             variant="outline"
             size="medium"
             fullWidth
-            onClick={onGoHome}
+            onClick={handleGoHome}
             textColor={textColor}
           >
             Home
