@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { Drawer } from 'vaul';
 import { Button } from './';
 import TabSwitcher from './TabSwitcher';
 import DiceInput from './DiceInput';
@@ -8,14 +9,14 @@ import { getCategoryById, isValidScore } from '../utils/gameConstants';
 import { getInputMode, setInputMode } from '../utils/storage';
 import { playerColors, getTextColorForBackground } from '../utils/colors';
 import { playYahtzeeSound, isSoundEnabled } from '../utils/sounds';
+import useIsMobile from '../hooks/useIsMobile';
 
 /**
- * Modal for entering scores with two input methods:
- * 1. Dice Selector - tap dice icons to build roll
- * 2. Quick Presets - category-aware preset buttons
+ * Score entry UI — renders as a Vaul bottom drawer on mobile,
+ * and the original centered modal on desktop (md+).
  */
 export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initialScore = 0, playerColor }) {
-  // Load saved input mode preference, default to 'dice'
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState(() => getInputMode());
   const [score, setScore] = useState(initialScore);
   const category = getCategoryById(categoryId);
@@ -36,76 +37,49 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
 
   if (!category) return null;
 
-  // Handle score changes from input components
-  const handleScoreChange = (newScore) => {
-    setScore(newScore);
-  };
+  const handleScoreChange = (newScore) => setScore(newScore);
+  const handleTabChange = (tabId) => setActiveTab(tabId);
 
-  // Handle tab change
-  const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-  };
-
-  // Handle submit - memoized to avoid recreating on every render
   const handleSubmit = useCallback(() => {
     if (isValidScore(categoryId, score)) {
       onSubmit(score);
     }
   }, [categoryId, score, onSubmit]);
 
-  // Handle keyboard shortcuts
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Escape key closes the modal
-      if (e.key === 'Escape') {
+      // Escape — only needed for the desktop modal; Vaul handles its own
+      if (!isMobile && e.key === 'Escape') {
         onCancel();
         return;
       }
 
-      // Enter key confirms the score (if valid)
       if (e.key === 'Enter' && isValidScore(categoryId, score)) {
-        // Don't trigger if user is typing in an input field
         if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
           e.preventDefault();
           handleSubmit();
         }
-        return;
-      }
-
-      // Number keys (0-9) can be used for quick score entry
-      // Only if we're not in an input field
-      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-        const num = parseInt(e.key);
-        if (!isNaN(num) && num >= 0 && num <= 9) {
-          // For single digits, append to score
-          // For multi-digit, we'd need more complex logic, so we'll keep it simple
-          // Users can use the number pad or adjust input for larger numbers
-        }
       }
     };
 
-    // Add event listener when modal is open
     window.addEventListener('keydown', handleKeyDown);
 
-    // Focus the first tab button for keyboard navigation
-    // Small delay to ensure modal is rendered
-    const focusTimer = setTimeout(() => {
-      // Try to focus the first tab button, otherwise focus the modal container
-      if (firstTabRef.current) {
-        firstTabRef.current.focus();
-      } else if (modalRef.current) {
-        modalRef.current.focus();
-      }
-    }, 100);
+    // Focus management for desktop modal
+    if (!isMobile) {
+      const focusTimer = setTimeout(() => {
+        if (firstTabRef.current) firstTabRef.current.focus();
+        else if (modalRef.current) modalRef.current.focus();
+      }, 100);
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        clearTimeout(focusTimer);
+      };
+    }
 
-    // Cleanup
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      clearTimeout(focusTimer);
-    };
-  }, [categoryId, score, onCancel, handleSubmit]);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobile, categoryId, score, onCancel, handleSubmit]);
 
-  // Handle fixed score click (for fixed-score categories)
   const handleFixedScoreClick = (scoreValue) => {
     if (isValidScore(categoryId, scoreValue)) {
       if (categoryId === 'yahtzee' && scoreValue === 50 && isSoundEnabled()) {
@@ -115,14 +89,108 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
     }
   };
 
-  // Validate current score
   const isValid = isValidScore(categoryId, score);
-
-  // Check if this is a fixed-score category
   const isFixedScoreCategory = category.fixedScore !== undefined;
 
+  /* ---- shared inner content ---- */
+  const content = (
+    <>
+      {/* Category Info */}
+      <div className="mb-4 md:mb-6">
+        {isMobile ? (
+          <Drawer.Title className="font-serif text-subtitle md:text-title mb-2" style={{ color: textColor }}>
+            {category.name.toUpperCase()}
+          </Drawer.Title>
+        ) : (
+          <h2 id="modal-title" className="font-serif text-subtitle md:text-title mb-2" style={{ color: textColor }}>
+            {category.name.toUpperCase()}
+          </h2>
+        )}
+        <p className="font-sans text-ui md:text-body opacity-90" style={{ color: textColor }}>
+          {category.description}
+        </p>
+      </div>
+
+      {isFixedScoreCategory ? (
+        <div className="space-y-3">
+          <Button variant="solid" size="medium" fullWidth onClick={() => handleFixedScoreClick(category.fixedScore)}>
+            Add {category.fixedScore} Points
+          </Button>
+          <Button variant="outline" size="medium" fullWidth textColor={textColor} onClick={() => handleFixedScoreClick(0)}>
+            Zero Out (0 Points)
+          </Button>
+        </div>
+      ) : (
+        <>
+          <TabSwitcher
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            firstTabRef={isMobile ? undefined : firstTabRef}
+            textColor={textColor}
+          />
+
+          <div className="mb-4 md:mb-6">
+            <div className="bg-black/20 p-4 md:p-6 text-center rounded-lg">
+              <div className="font-sans text-subtitle md:text-headline min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums" style={{ color: textColor }}>
+                {score}
+              </div>
+            </div>
+            {!isValid && score !== 0 && (
+              <p className="font-sans text-ui text-bright-red mt-2 text-center">
+                Invalid score for this category
+              </p>
+            )}
+          </div>
+
+          <div className="mb-4 md:mb-6">
+            {activeTab === 'dice' && (
+              <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={effectiveColor} textColor={textColor} />
+            )}
+            {activeTab === 'quick' && (
+              <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={effectiveColor} textColor={textColor} />
+            )}
+          </div>
+
+          <Button variant="solid" size="medium" fullWidth onClick={handleSubmit} disabled={!isValid}>
+            Confirm
+          </Button>
+        </>
+      )}
+    </>
+  );
+
+  /* ---- mobile: Vaul drawer ---- */
+  if (isMobile) {
+    return (
+      <Drawer.Root open={true} onOpenChange={(open) => { if (!open) onCancel(); }}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/80 dark:bg-black/90 z-popover" />
+          <Drawer.Content
+            className="fixed bottom-0 left-0 right-0 z-popover outline-none"
+            aria-describedby={undefined}
+          >
+            <div
+              className="mx-auto max-w-md w-full p-6 rounded-t-2xl"
+              style={{ backgroundColor: effectiveColor }}
+            >
+              {/* Drag Handle */}
+              <div className="flex justify-center mb-4">
+                <div
+                  className="w-10 h-1.5 rounded-full"
+                  style={{ backgroundColor: textColor, opacity: 0.4 }}
+                />
+              </div>
+              {content}
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+    );
+  }
+
+  /* ---- desktop: centered modal ---- */
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/80 dark:bg-black/90 flex items-center justify-center p-4 z-popover animate-fadeIn"
       onClick={onCancel}
       role="dialog"
@@ -133,7 +201,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
         ref={modalRef}
         tabIndex={-1}
         className="relative max-w-md w-full p-6 md:p-8 animate-scaleIn focus:outline-none"
-        style={{ backgroundColor: playerColor || playerColors[0] }}
+        style={{ backgroundColor: effectiveColor }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -150,83 +218,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
           </svg>
         </button>
 
-        {/* Category Info */}
-        <div className="mb-4 md:mb-6">
-          <h2 id="modal-title" className="font-serif text-subtitle md:text-title mb-2" style={{ color: textColor }}>
-            {category.name.toUpperCase()}
-          </h2>
-          <p className="font-sans text-ui md:text-body opacity-90" style={{ color: textColor }}>
-            {category.description}
-          </p>
-        </div>
-
-        {isFixedScoreCategory ? (
-          /* Fixed Score Buttons - Keep existing behavior for fixed categories */
-          <div className="space-y-3">
-            <Button
-              variant="solid"
-              size="medium"
-              fullWidth
-              onClick={() => handleFixedScoreClick(category.fixedScore)}
-            >
-              Add {category.fixedScore} Points
-            </Button>
-            <Button
-              variant="outline"
-              size="medium"
-              fullWidth
-              textColor={textColor}
-              onClick={() => handleFixedScoreClick(0)}
-            >
-              Zero Out (0 Points)
-            </Button>
-          </div>
-        ) : (
-          <>
-            {/* Tab Switcher */}
-            <TabSwitcher
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-              firstTabRef={firstTabRef}
-              textColor={textColor}
-            />
-
-            {/* Score Display */}
-            <div className="mb-4 md:mb-6">
-              <div className="bg-black/20 p-4 md:p-6 text-center">
-                <div className="font-sans text-subtitle md:text-headline min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums" style={{ color: textColor }}>
-                  {score}
-                </div>
-              </div>
-              {!isValid && score !== 0 && (
-                <p className="font-sans text-ui text-bright-red mt-2 text-center">
-                  Invalid score for this category
-                </p>
-              )}
-            </div>
-
-            {/* Input Area - Show different input based on active tab */}
-            <div className="mb-4 md:mb-6">
-              {activeTab === 'dice' && (
-                <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={effectiveColor} textColor={textColor} />
-              )}
-              {activeTab === 'quick' && (
-                <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={effectiveColor} textColor={textColor} />
-              )}
-            </div>
-
-            {/* Action Button */}
-            <Button
-              variant="solid"
-              size="medium"
-              fullWidth
-              onClick={handleSubmit}
-              disabled={!isValid}
-            >
-              Confirm
-            </Button>
-          </>
-        )}
+        {content}
       </div>
     </div>
   );
