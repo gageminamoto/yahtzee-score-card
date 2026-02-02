@@ -48,8 +48,8 @@ export default function TabSwitcher({ activeTab, onTabChange, firstTabRef, textC
               transition-all duration-150 ease-out
               active:scale-[0.97]
               flex items-center justify-center gap-2
-              focus:outline-none focus:ring-2 focus:ring-offset-2
-              ${isDarkText ? 'focus:ring-black' : 'focus:ring-white'}
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+              ${isDarkText ? 'focus-visible:ring-black' : 'focus-visible:ring-white'}
               ${
                 isActive
                   ? `${isDarkText ? 'bg-black/10' : 'bg-white/30'} shadow-lg`

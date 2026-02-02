@@ -87,21 +87,9 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
     // Add event listener when modal is open
     window.addEventListener('keydown', handleKeyDown);
 
-    // Focus the first tab button for keyboard navigation
-    // Small delay to ensure modal is rendered
-    const focusTimer = setTimeout(() => {
-      // Try to focus the first tab button, otherwise focus the modal container
-      if (firstTabRef.current) {
-        firstTabRef.current.focus();
-      } else if (modalRef.current) {
-        modalRef.current.focus();
-      }
-    }, 100);
-
     // Cleanup
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      clearTimeout(focusTimer);
     };
   }, [categoryId, score, onCancel, handleSubmit]);
 
