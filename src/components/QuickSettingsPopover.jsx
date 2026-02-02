@@ -24,7 +24,7 @@ const TOGGLE_ITEMS = [
   },
 ];
 
-export default function QuickSettingsPopover({ textColor, playerColor }) {
+export default function QuickSettingsPopover({ textColor, playerColor, onQuitGame }) {
   const [isOpen, setIsOpen] = useState(false);
   const { settings, updateSetting } = useSettings();
 
@@ -135,6 +135,32 @@ export default function QuickSettingsPopover({ textColor, playerColor }) {
               </button>
             );
           })}
+
+          {/* Divider */}
+          <div
+            className="my-1 mx-3 border-t"
+            style={{ borderColor: isBlack ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)' }}
+          />
+
+          {/* Quit Game */}
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              onQuitGame();
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors duration-100 hover:bg-white/10 dark:hover:bg-black/10"
+            style={{ color: textColor }}
+            role="menuitem"
+            type="button"
+          >
+            <Icon
+              icon="basil:logout-solid"
+              className="w-5 h-5 flex-shrink-0"
+            />
+            <span className="font-sans text-ui font-bold flex-1 text-left whitespace-nowrap">
+              Quit Game
+            </span>
+          </button>
         </div>
       )}
     </span>
@@ -144,4 +170,5 @@ export default function QuickSettingsPopover({ textColor, playerColor }) {
 QuickSettingsPopover.propTypes = {
   textColor: PropTypes.string.isRequired,
   playerColor: PropTypes.string.isRequired,
+  onQuitGame: PropTypes.func.isRequired,
 };
