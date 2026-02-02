@@ -95,12 +95,14 @@ export default function Onboarding({ onComplete, colorIndex }) {
               enabled={settings.accessibility.enableSoundEffects}
               onChange={(value) => updateSetting('accessibility', 'enableSoundEffects', value)}
             />
-            <SettingToggle
-              label="Haptic Feedback"
-              description="Vibrate on interactions (mobile devices)"
-              enabled={settings.accessibility.enableHapticFeedback}
-              onChange={(value) => updateSetting('accessibility', 'enableHapticFeedback', value)}
-            />
+            {'vibrate' in navigator && (
+              <SettingToggle
+                label="Haptic Feedback"
+                description="Vibrate on interactions (mobile devices)"
+                enabled={settings.accessibility.enableHapticFeedback}
+                onChange={(value) => updateSetting('accessibility', 'enableHapticFeedback', value)}
+              />
+            )}
           </Card>
         </div>
 

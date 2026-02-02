@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
 import { useSettings } from '../context/SettingsContext';
 
+const supportsVibration = 'vibrate' in navigator;
+
 const TOGGLE_ITEMS = [
   {
     key: 'enableSoundEffects',
@@ -10,7 +12,7 @@ const TOGGLE_ITEMS = [
     icon: 'basil:volume-up-solid',
     iconOff: 'basil:volume-off-solid',
   },
-  {
+  supportsVibration && {
     key: 'enableHapticFeedback',
     label: 'Haptics',
     icon: 'basil:notification-on-solid',
@@ -22,7 +24,7 @@ const TOGGLE_ITEMS = [
     icon: 'basil:lightbulb-solid',
     iconOff: 'basil:lightbulb-outline',
   },
-];
+].filter(Boolean);
 
 export default function QuickSettingsPopover({ textColor, playerColor }) {
   const [isOpen, setIsOpen] = useState(false);
