@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { getCategoryById } from '../utils/gameConstants';
-import { playDiceAdd, isSoundEnabled } from '../utils/sounds';
+import { playDiceAdd, playDiceDud, isSoundEnabled } from '../utils/sounds';
 
 /**
  * Dice Input Component
@@ -52,13 +52,22 @@ export default function DiceInput({ categoryId, onScoreChange, playerColor, text
     }
   }, [selectedDice, category, onScoreChange]);
 
+  // Map upper section category IDs to their target die value
+  const upperTargetValue = category?.section === 'upper'
+    ? { ones: 1, twos: 2, threes: 3, fours: 4, fives: 5, sixes: 6 }[category.id] || null
+    : null;
+
   // Handle die selection - always adds a die when clicking the button
   const handleDieClick = (dieValue) => {
     if (selectedDice.length < 5) {
       const newCount = selectedDice.length + 1;
       setSelectedDice([...selectedDice, dieValue]);
       if (isSoundEnabled()) {
-        playDiceAdd(newCount);
+        if (upperTargetValue !== null && dieValue !== upperTargetValue) {
+          playDiceDud();
+        } else {
+          playDiceAdd(newCount);
+        }
       }
     }
   };

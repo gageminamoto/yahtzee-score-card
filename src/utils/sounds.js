@@ -131,6 +131,45 @@ export async function playDiceAdd(diceCount) {
 }
 
 /**
+ * Play a subtle descending "dud" tone when a die doesn't contribute to the score (~80ms)
+ * Short descending minor second — gentle but distinct from the positive add sound
+ */
+export async function playDiceDud() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.1;
+    masterGain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    // Descend from ~E4 to ~C4 for a subtle "nope" feel
+    osc.frequency.setValueAtTime(330, t);
+    osc.frequency.exponentialRampToValueAtTime(220, t + 0.08);
+
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.4, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.08);
+  } catch {
+    // Silently fail
+  }
+}
+
+/**
  * Play a celebratory Yahtzee chord stab (~500ms)
  * G major chord bloom, distinct from the arpeggio fanfare
  */
