@@ -167,7 +167,6 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
               variant="solid"
               size="medium"
               fullWidth
-              textColor={textColor}
               onClick={() => handleFixedScoreClick(category.fixedScore)}
             >
               Add {category.fixedScore} Points
@@ -221,7 +220,6 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
               variant="solid"
               size="medium"
               fullWidth
-              textColor={textColor}
               onClick={handleSubmit}
               disabled={!isValid}
             >
