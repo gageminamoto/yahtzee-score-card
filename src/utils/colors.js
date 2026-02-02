@@ -23,6 +23,7 @@ export const primaryColors = [
   colors.goldenYellow,
   colors.vividOrange,
   colors.deepPurple,
+  colors.brightGreen,
 ];
 
 /**
@@ -60,7 +61,7 @@ export const colorSchemes = {
     player: playerColors,
   },
   monochrome: {
-    primary: ['#000000', '#333333', '#555555', '#777777', '#999999'],
+    primary: ['#000000', '#333333', '#555555', '#777777', '#999999', '#BBBBBB'],
     player: ['#000000', '#333333', '#555555', '#777777', '#999999', '#BBBBBB'],
   },
   pastel: {
@@ -70,6 +71,7 @@ export const colorSchemes = {
       '#FFD84D', // Sunny Yellow (warm and bright)
       '#FFA366', // Coral Orange (vibrant pastel)
       '#B57FFF', // Bright Violet (saturated lavender)
+      '#5DD9A3', // Mint Green (bright and fresh)
     ],
     player: [
       '#5BA8FF', // Bright Sky Blue
@@ -87,6 +89,7 @@ export const colorSchemes = {
       '#CC0000', // Dark Red (better contrast)
       '#006600', // Dark Green (better contrast)
       '#0000CC', // Dark Blue
+      '#B8860B', // Dark Goldenrod
     ],
     player: [
       '#000000', // Black
