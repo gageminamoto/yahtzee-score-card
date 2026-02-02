@@ -11,3 +11,4 @@ export { default as DiceAnimation } from './DiceAnimation.jsx';
 export { default as PlayerColorPicker } from './PlayerColorPicker.jsx';
 export { default as FooterMenu } from './FooterMenu.jsx';
 export { default as UpperBonusModal } from './UpperBonusModal.jsx';
+export { default as QuickSettingsPopover } from './QuickSettingsPopover.jsx';
