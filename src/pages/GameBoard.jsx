@@ -41,8 +41,12 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
   const [showFinishDialog, setShowFinishDialog] = useState(false);
   const [bonusModalPlayer, setBonusModalPlayer] = useState(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const [showTabFadeLeft, setShowTabFadeLeft] = useState(false);
+  const [showTabFadeRight, setShowTabFadeRight] = useState(false);
   const scrollContainerRef = useRef(null);
   const scrollThrottleRef = useRef(null);
+  const playerTabRefs = useRef([]);
+  const tabContainerRef = useRef(null);
 
   // Guard: If players array is empty (e.g., during quit transition), return null
   // This prevents crashes when the parent clears players before unmounting
@@ -72,6 +76,47 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
       document.body.classList.remove('scroll-lock');
     };
   }, []);
+
+  // Auto-scroll player tabs to keep active player visible
+  useEffect(() => {
+    const activeTab = playerTabRefs.current[currentPlayerIndex];
+    if (!activeTab) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+    activeTab.scrollIntoView({
+      behavior: prefersReducedMotion ? 'instant' : 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    });
+  }, [currentPlayerIndex]);
+
+  // Check if player tabs can scroll left/right for fade indicators
+  const checkTabScroll = useCallback(() => {
+    const container = tabContainerRef.current;
+    if (!container) return;
+    const threshold = 4;
+    setShowTabFadeLeft(container.scrollLeft > threshold);
+    setShowTabFadeRight(
+      container.scrollWidth - container.scrollLeft - container.clientWidth > threshold
+    );
+  }, []);
+
+  useEffect(() => {
+    const container = tabContainerRef.current;
+    if (!container) return;
+
+    checkTabScroll();
+    container.addEventListener('scroll', checkTabScroll, { passive: true });
+    window.addEventListener('resize', checkTabScroll);
+
+    return () => {
+      container.removeEventListener('scroll', checkTabScroll);
+      window.removeEventListener('resize', checkTabScroll);
+    };
+  }, [checkTabScroll, players.length]);
 
   // Check if there's more content to scroll (throttled to prevent jitter)
   const checkScrollPosition = useCallback((immediate = false) => {
@@ -319,8 +364,15 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
         </div>
 
         {/* Player Switcher */}
-        <div className="flex justify-center mb-2 md:mb-4 flex-shrink-0">
+        <div className="relative flex justify-center mb-2 md:mb-4 flex-shrink-0">
+          {/* Left fade */}
           <div
+            className={`tab-fade tab-fade-left ${showTabFadeLeft ? 'tab-fade-visible' : 'tab-fade-hidden'}`}
+            style={{ background: `linear-gradient(to right, ${backgroundColor}, transparent)` }}
+            aria-hidden="true"
+          />
+          <div
+            ref={tabContainerRef}
             className="inline-flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full p-2"
             role="tablist"
             aria-label="Player switcher"
@@ -332,6 +384,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
               return (
                 <button
                   key={player.id}
+                  ref={(el) => { playerTabRefs.current[index] = el; }}
                   onClick={() => handlePlayerSwitch(index)}
                   disabled={!!selectedCategory}
                   role="tab"
@@ -377,6 +430,12 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
               );
             })}
           </div>
+          {/* Right fade */}
+          <div
+            className={`tab-fade tab-fade-right ${showTabFadeRight ? 'tab-fade-visible' : 'tab-fade-hidden'}`}
+            style={{ background: `linear-gradient(to left, ${backgroundColor}, transparent)` }}
+            aria-hidden="true"
+          />
         </div>
 
         {/* Scorecard - scrollable area */}

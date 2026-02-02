@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 :root {
   /* Page background - used by html/body for overscroll color */
   --page-bg: #FFFFFF;
@@ -215,6 +225,33 @@ button {
 
 .animate-scaleIn {
   animation: scaleIn var(--animation-duration) var(--ease-out-quart);
+}
+
+/* Tab fade gradients (horizontal, player switcher) */
+.tab-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  transition: opacity 150ms var(--ease-out-cubic);
+  z-index: 1;
+}
+
+.tab-fade-left {
+  left: 0;
+}
+
+.tab-fade-right {
+  right: 0;
+}
+
+.tab-fade-visible {
+  opacity: 1;
+}
+
+.tab-fade-hidden {
+  opacity: 0;
 }
 
 /* Scroll fade gradient */
