@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import { Button, Input, PlayerColorPicker } from '../components';
 import { getColorByScheme, getPlayerColorByScheme, getTextColorForBackground } from '../utils/colors';
@@ -18,12 +18,22 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
     playerId,
     players,
     sessionStatus,
+    turnOrder,
     isConnected,
     error,
     joinGame,
     leaveGame,
     clearError,
   } = useSession();
+
+  const orderedPlayers = useMemo(() => {
+    if (!players || players.length === 0) return [];
+    if (!Array.isArray(turnOrder) || turnOrder.length === 0) return players;
+    const byId = new Map(players.map((player) => [player.id, player]));
+    const ordered = turnOrder.map((id) => byId.get(id)).filter(Boolean);
+    const missing = players.filter((player) => !turnOrder.includes(player.id));
+    return [...ordered, ...missing];
+  }, [players, turnOrder]);
 
   const [code, setCode] = useState(() => {
     // Pre-fill from initialCode prop (from ?join= URL param)
@@ -120,8 +130,13 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
     onBack();
   }, [activeSession, leaveGame, onBack]);
 
+  const handleSessionCancelled = useCallback(async () => {
+    await leaveGame();
+    onBack();
+  }, [leaveGame, onBack]);
+
   // Colors already taken by other players in the session
-  const takenColors = players.map((p) => p.color);
+  const takenColors = orderedPlayers.map((p) => p.color);
 
   const wrapPage = (children) => {
     if (embedded) return children;
@@ -139,6 +154,19 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
   if (activeSession && playerId) {
     return wrapPage(
       <div className="max-w-2xl mx-auto">
+        {sessionStatus === 'cancelled' && (
+          <div className="fixed inset-0 z-[10001] flex items-center justify-center p-6 bg-white/95 dark:bg-black/90">
+            <div className="max-w-md w-full text-center">
+              <h1 className="font-serif text-title text-black dark:text-white mb-3">Session Cancelled</h1>
+              <p className="font-sans text-body text-black/70 dark:text-white/70 mb-6">
+                The host ended the session. You can return home to start a new game.
+              </p>
+              <Button variant="solid" size="large" fullWidth onClick={handleSessionCancelled}>
+                Return Home
+              </Button>
+            </div>
+          </div>
+        )}
         {!isConnected && (
           <div
             className="mb-4 text-center py-2 px-4 rounded-lg bg-bright-red/90"
@@ -205,7 +233,7 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
             Players ({players.length}/6)
           </p>
           <div className="space-y-3">
-            {players.map((player) => {
+            {orderedPlayers.map((player) => {
               const isYou = player.id === playerId;
               return (
                 <div
@@ -260,6 +288,19 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
   // Join form
   return wrapPage(
     <div className="max-w-2xl mx-auto">
+      {sessionStatus === 'cancelled' && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-6 bg-white/95 dark:bg-black/90">
+          <div className="max-w-md w-full text-center">
+            <h1 className="font-serif text-title text-black dark:text-white mb-3">Session Cancelled</h1>
+            <p className="font-sans text-body text-black/70 dark:text-white/70 mb-6">
+              The host ended the session. You can return home to start a new game.
+            </p>
+            <Button variant="solid" size="large" fullWidth onClick={handleSessionCancelled}>
+              Return Home
+            </Button>
+          </div>
+        </div>
+      )}
       {!embedded && (
         <>
           <button

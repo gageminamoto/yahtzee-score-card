@@ -1,5 +1,6 @@
 import {
   db,
+  ensureAuth,
   ref,
   set,
   get,
@@ -25,6 +26,7 @@ function generateId() {
  * Generate a random session code and verify it's unique in Firebase.
  */
 export async function generateSessionCode() {
+  await ensureAuth();
   let code;
   let attempts = 0;
 
@@ -63,6 +65,7 @@ export async function createSession(hostName, hostColor, settings = {}) {
       bonusPoints: settings.bonusPoints ?? 35,
       turnMode: settings.turnMode ?? 'strict',
     },
+    turnOrder: [playerId],
     players: {
       [playerId]: {
         name: hostName,
@@ -94,6 +97,7 @@ export async function createSession(hostName, hostColor, settings = {}) {
  * @returns {{ playerId: string }}
  */
 export async function joinSession(sessionCode, playerName, playerColor) {
+  await ensureAuth();
   const normalizedCode = sessionCode.toUpperCase().trim();
 
   let snapshot;
@@ -110,6 +114,12 @@ export async function joinSession(sessionCode, playerName, playerColor) {
   const session = snapshot.val();
 
   if (session.status !== 'lobby') {
+    if (session.status === 'cancelled') {
+      throw new Error('Session was cancelled by the host');
+    }
+    if (session.status === 'finished') {
+      throw new Error('Session has ended');
+    }
     throw new Error('Game already in progress');
   }
 
@@ -119,18 +129,22 @@ export async function joinSession(sessionCode, playerName, playerColor) {
   }
 
   const playerId = generateId();
+  const existingOrder = Array.isArray(session.turnOrder) && session.turnOrder.length > 0
+    ? session.turnOrder
+    : Object.keys(session.players || {});
+  const nextOrder = [...existingOrder, playerId].filter((id, index, arr) => arr.indexOf(id) === index);
 
   try {
-    await update(ref(db, `sessions/${normalizedCode}/players/${playerId}`), {
-      name: playerName,
-      color: playerColor,
-      isHost: false,
-      isConnected: true,
-      joinedAt: serverTimestamp(),
-      scorecard: createEmptyScorecard(),
-    });
-
     await update(ref(db, `sessions/${normalizedCode}`), {
+      [`players/${playerId}`]: {
+        name: playerName,
+        color: playerColor,
+        isHost: false,
+        isConnected: true,
+        joinedAt: serverTimestamp(),
+        scorecard: createEmptyScorecard(),
+      },
+      turnOrder: nextOrder,
       lastActivity: serverTimestamp(),
     });
   } catch {
@@ -144,6 +158,7 @@ export async function joinSession(sessionCode, playerName, playerColor) {
  * One-time read of a session. Returns null if not found.
  */
 export async function getSession(sessionCode) {
+  await ensureAuth();
   const normalizedCode = sessionCode.toUpperCase().trim();
   try {
     const snapshot = await get(ref(db, `sessions/${normalizedCode}`));
@@ -158,7 +173,8 @@ export async function getSession(sessionCode) {
  * @param {Function} onError - Optional error callback.
  * @returns {Function} Unsubscribe function.
  */
-export function subscribeToSession(sessionCode, callback, onError) {
+export async function subscribeToSession(sessionCode, callback, onError) {
+  await ensureAuth();
   const sessionRef = ref(db, `sessions/${sessionCode}`);
   return onValue(
     sessionRef,
@@ -176,7 +192,8 @@ export function subscribeToSession(sessionCode, callback, onError) {
  * @param {Function} onError - Optional error callback.
  * @returns {Function} Unsubscribe function.
  */
-export function subscribeToPlayers(sessionCode, callback, onError) {
+export async function subscribeToPlayers(sessionCode, callback, onError) {
+  await ensureAuth();
   const playersRef = ref(db, `sessions/${sessionCode}/players`);
   return onValue(
     playersRef,
@@ -193,6 +210,7 @@ export function subscribeToPlayers(sessionCode, callback, onError) {
  * Update a player's score for a specific category.
  */
 export async function updateScore(sessionCode, playerId, category, score) {
+  await ensureAuth();
   try {
     await update(ref(db, `sessions/${sessionCode}/players/${playerId}/scorecard`), {
       [category]: score,
@@ -209,6 +227,7 @@ export async function updateScore(sessionCode, playerId, category, score) {
  * Advance the turn to the next player.
  */
 export async function advanceTurn(sessionCode, nextPlayerIndex, completedTurns, round) {
+  await ensureAuth();
   try {
     await update(ref(db, `sessions/${sessionCode}/gameState`), {
       currentPlayerIndex: nextPlayerIndex,
@@ -224,9 +243,25 @@ export async function advanceTurn(sessionCode, nextPlayerIndex, completedTurns, 
 }
 
 /**
+ * Update the turn order for a session.
+ */
+export async function updateTurnOrder(sessionCode, turnOrder) {
+  await ensureAuth();
+  try {
+    await update(ref(db, `sessions/${sessionCode}`), {
+      turnOrder,
+      lastActivity: serverTimestamp(),
+    });
+  } catch {
+    throw new Error('Failed to update turn order. Check your connection.');
+  }
+}
+
+/**
  * Host starts the game (lobby → playing).
  */
 export async function startGame(sessionCode) {
+  await ensureAuth();
   try {
     await update(ref(db, `sessions/${sessionCode}`), {
       status: 'playing',
@@ -246,6 +281,7 @@ export async function startGame(sessionCode) {
  * Mark the game as finished.
  */
 export async function endGame(sessionCode) {
+  await ensureAuth();
   try {
     await update(ref(db, `sessions/${sessionCode}`), {
       status: 'finished',
@@ -261,7 +297,8 @@ export async function endGame(sessionCode) {
  * Marks the player as disconnected automatically when they go offline.
  * @returns {Function} Cleanup function to remove the onDisconnect handler.
  */
-export function setupPresence(sessionCode, playerId) {
+export async function setupPresence(sessionCode, playerId) {
+  await ensureAuth();
   const connectedRef = ref(db, `sessions/${sessionCode}/players/${playerId}/isConnected`);
 
   // Set connected to true
@@ -281,17 +318,30 @@ export function setupPresence(sessionCode, playerId) {
  * Player leaves the session. If the host leaves, end the session.
  */
 export async function leaveSession(sessionCode, playerId) {
+  await ensureAuth();
   try {
     const session = await getSession(sessionCode);
     if (!session) return;
 
     if (session.hostId === playerId) {
-      // Host leaving ends the session
-      await endGame(sessionCode);
+      // Host leaving cancels the session (unless already finished)
+      if (session.status !== 'finished') {
+        await update(ref(db, `sessions/${sessionCode}`), {
+          status: 'cancelled',
+          endedBy: playerId,
+          endedAt: serverTimestamp(),
+          lastActivity: serverTimestamp(),
+        });
+      }
     } else {
       // Remove the player
       await remove(ref(db, `sessions/${sessionCode}/players/${playerId}`));
+      const existingOrder = Array.isArray(session.turnOrder) && session.turnOrder.length > 0
+        ? session.turnOrder
+        : Object.keys(session.players || {});
+      const nextOrder = existingOrder.filter((id) => id !== playerId);
       await update(ref(db, `sessions/${sessionCode}`), {
+        turnOrder: nextOrder,
         lastActivity: serverTimestamp(),
       });
     }
@@ -304,6 +354,7 @@ export async function leaveSession(sessionCode, playerId) {
  * Delete an entire session from Firebase.
  */
 export async function deleteSession(sessionCode) {
+  await ensureAuth();
   try {
     await remove(ref(db, `sessions/${sessionCode}`));
   } catch {

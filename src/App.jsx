@@ -353,6 +353,7 @@ function App() {
       <MultiDeviceGameBoard
         onGameComplete={handleGameComplete}
         onQuit={handleMultiQuit}
+        onSessionCancelled={handleGoHome}
       />
     ),
     winner: (

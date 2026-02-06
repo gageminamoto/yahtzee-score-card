@@ -12,6 +12,7 @@ import {
   endGame as endGameService,
   leaveSession,
   setupPresence,
+  updateTurnOrder as updateTurnOrderService,
 } from '../services/sessionService';
 import { db, ref, onValue } from '../services/firebase';
 
@@ -27,6 +28,7 @@ const INITIAL_STATE = {
   players: [],
   gameState: null,
   settings: null,
+  turnOrder: [],
   isConnected: false,
   error: null,
 };
@@ -122,9 +124,9 @@ export function SessionProvider({ children }) {
   /**
    * Set up real-time listeners for a session.
    */
-  const setupSubscriptions = useCallback((sessionCode) => {
+  const setupSubscriptions = useCallback(async (sessionCode) => {
     // Listen to the full session for status, settings, gameState
-    const unsubSession = subscribeToSession(
+    const unsubSession = await subscribeToSession(
       sessionCode,
       (session) => {
         if (!isMountedRef.current) return;
@@ -133,6 +135,7 @@ export function SessionProvider({ children }) {
           setState((prev) => ({
             ...prev,
             sessionStatus: null,
+            turnOrder: [],
             error: 'Session no longer exists',
           }));
           cleanup();
@@ -144,6 +147,7 @@ export function SessionProvider({ children }) {
           sessionStatus: session.status,
           settings: session.settings ?? null,
           gameState: session.gameState ?? null,
+          turnOrder: Array.isArray(session.turnOrder) ? session.turnOrder : [],
           error: prev.error === 'Lost connection to server. Attempting to reconnect...' ? null : prev.error,
         }));
       },
@@ -151,7 +155,7 @@ export function SessionProvider({ children }) {
     );
 
     // Listen to players separately for more granular updates
-    const unsubPlayers = subscribeToPlayers(
+    const unsubPlayers = await subscribeToPlayers(
       sessionCode,
       (playersObj) => {
         if (!isMountedRef.current) return;
@@ -195,7 +199,7 @@ export function SessionProvider({ children }) {
         if (cancelled) return;
 
         // Only recover if session exists and is still active
-        if (!session || session.status === 'finished') {
+        if (!session || session.status === 'finished' || session.status === 'cancelled') {
           clearSessionStorage();
           return;
         }
@@ -206,18 +210,19 @@ export function SessionProvider({ children }) {
           return;
         }
 
-        const presenceCleanup = setupPresence(saved.sessionCode, saved.playerId);
+        const presenceCleanup = await setupPresence(saved.sessionCode, saved.playerId);
         unsubscribersRef.current.push(presenceCleanup);
 
-        setState((prev) => ({
-          ...prev,
-          sessionCode: saved.sessionCode,
-          playerId: saved.playerId,
-          isHost: saved.isHost,
-          sessionStatus: session.status,
-        }));
+          setState((prev) => ({
+            ...prev,
+            sessionCode: saved.sessionCode,
+            playerId: saved.playerId,
+            isHost: saved.isHost,
+            sessionStatus: session.status,
+            turnOrder: Array.isArray(session.turnOrder) ? session.turnOrder : [],
+          }));
 
-        setupSubscriptions(saved.sessionCode);
+        await setupSubscriptions(saved.sessionCode);
       } catch {
         clearSessionStorage();
       }
@@ -241,7 +246,7 @@ export function SessionProvider({ children }) {
         gameSettings,
       );
 
-      const presenceCleanup = setupPresence(sessionCode, playerId);
+      const presenceCleanup = await setupPresence(sessionCode, playerId);
       unsubscribersRef.current.push(presenceCleanup);
 
       setState((prev) => ({
@@ -253,7 +258,7 @@ export function SessionProvider({ children }) {
       }));
 
       saveSessionToStorage(sessionCode, playerId, true);
-      setupSubscriptions(sessionCode);
+      await setupSubscriptions(sessionCode);
 
       return { sessionCode, playerId };
     } catch (err) {
@@ -272,7 +277,7 @@ export function SessionProvider({ children }) {
       const normalizedCode = sessionCode.toUpperCase().trim();
       const { playerId } = await joinSession(normalizedCode, playerName, playerColor);
 
-      const presenceCleanup = setupPresence(normalizedCode, playerId);
+      const presenceCleanup = await setupPresence(normalizedCode, playerId);
       unsubscribersRef.current.push(presenceCleanup);
 
       setState((prev) => ({
@@ -284,7 +289,7 @@ export function SessionProvider({ children }) {
       }));
 
       saveSessionToStorage(normalizedCode, playerId, false);
-      setupSubscriptions(normalizedCode);
+      await setupSubscriptions(normalizedCode);
 
       return { playerId };
     } catch (err) {
@@ -317,7 +322,8 @@ export function SessionProvider({ children }) {
 
       // In strict mode, advance the turn after scoring
       if (state.settings?.turnMode === 'strict' && state.gameState) {
-        const playerCount = state.players.length;
+        const playerCount = state.turnOrder.length > 0 ? state.turnOrder.length : state.players.length;
+        if (playerCount === 0) return;
         const nextIndex = (state.gameState.currentPlayerIndex + 1) % playerCount;
         const newCompletedTurns = state.gameState.completedTurns + 1;
         const newRound = Math.floor(newCompletedTurns / playerCount) + 1;
@@ -333,7 +339,7 @@ export function SessionProvider({ children }) {
       setState((prev) => ({ ...prev, error: err.message }));
       throw err;
     }
-  }, [state.sessionCode, state.playerId, state.settings, state.gameState, state.players.length]);
+  }, [state.sessionCode, state.playerId, state.settings, state.gameState, state.players.length, state.turnOrder.length]);
 
   /**
    * End the game.
@@ -369,6 +375,19 @@ export function SessionProvider({ children }) {
     setState((prev) => ({ ...prev, error: null }));
   }, []);
 
+  /**
+   * Update turn order (host only).
+   */
+  const updateTurnOrder = useCallback(async (nextOrder) => {
+    if (!state.sessionCode || !state.isHost) return;
+    try {
+      await updateTurnOrderService(state.sessionCode, nextOrder);
+    } catch (err) {
+      setState((prev) => ({ ...prev, error: err.message }));
+      throw err;
+    }
+  }, [state.sessionCode, state.isHost]);
+
   const value = {
     ...state,
     hostGame,
@@ -378,6 +397,7 @@ export function SessionProvider({ children }) {
     endGame,
     leaveGame,
     clearError,
+    updateTurnOrder,
   };
 
   return (

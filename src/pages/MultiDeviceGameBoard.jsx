@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
@@ -20,7 +20,7 @@ import { isSoundEnabled, playScoreConfirm, playUpperBonus, playTurnChange } from
  * Each player sees their own scorecard and can only score on their turn (strict mode)
  * or anytime (freeform mode). All state synced via Firebase through SessionContext.
  */
-export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
+export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSessionCancelled }) {
   const { settings } = useSettings();
   const {
     players,
@@ -29,10 +29,12 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
     gameState,
     settings: sessionSettings,
     sessionStatus,
+    turnOrder,
     isConnected,
     error: sessionError,
     submitScore,
     endGame,
+    leaveGame,
     clearError,
   } = useSession();
 
@@ -49,11 +51,30 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
   const currentPlayerIndex = gameState?.currentPlayerIndex ?? 0;
   const turnMode = sessionSettings?.turnMode ?? 'strict';
 
+  const scoringSettings = useMemo(() => {
+    if (!sessionSettings) return settings;
+    return {
+      gameRules: {
+        upperBonusThreshold: sessionSettings.upperBonusThreshold,
+        upperBonusPoints: sessionSettings.bonusPoints,
+      },
+    };
+  }, [sessionSettings, settings]);
+
+  const orderedPlayers = useMemo(() => {
+    if (!players || players.length === 0) return [];
+    if (!Array.isArray(turnOrder) || turnOrder.length === 0) return players;
+    const byId = new Map(players.map((player) => [player.id, player]));
+    const ordered = turnOrder.map((id) => byId.get(id)).filter(Boolean);
+    const missing = players.filter((player) => !turnOrder.includes(player.id));
+    return [...ordered, ...missing];
+  }, [players, turnOrder]);
+
   // Find this device's player
-  const myPlayer = players.find((p) => p.id === playerId);
-  const myPlayerIndex = players.findIndex((p) => p.id === playerId);
+  const myPlayer = orderedPlayers.find((p) => p.id === playerId);
+  const myPlayerIndex = orderedPlayers.findIndex((p) => p.id === playerId);
   const isMyTurn = myPlayerIndex === currentPlayerIndex;
-  const currentTurnPlayer = players[currentPlayerIndex];
+  const currentTurnPlayer = orderedPlayers[currentPlayerIndex];
 
   // In strict mode, can only score on your turn. In freeform, always can.
   const canScore = turnMode === 'freeform' || isMyTurn;
@@ -62,34 +83,39 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
   const backgroundColor = myPlayer?.color || '#333333';
   const textColor = getTextColorForBackground(backgroundColor);
   const completedTurns = gameState?.completedTurns ?? 0;
-  const currentRound = Math.floor(completedTurns / Math.max(players.length, 1)) + 1;
+  const currentRound = Math.floor(completedTurns / Math.max(orderedPlayers.length, 1)) + 1;
+
+  const handleSessionCancelled = useCallback(async () => {
+    await leaveGame();
+    if (onSessionCancelled) onSessionCancelled();
+  }, [leaveGame, onSessionCancelled]);
 
   // When session status changes to finished, trigger game complete
   useEffect(() => {
     if (sessionStatus === 'finished') {
-      const finalPlayers = players.map((p) => ({
+      const finalPlayers = orderedPlayers.map((p) => ({
         ...p,
-        totalScore: calculateTotalScore(p.scorecard || createEmptyScorecard()),
+        totalScore: calculateTotalScore(p.scorecard || createEmptyScorecard(), scoringSettings),
       }));
       onGameComplete(finalPlayers);
     }
-  }, [sessionStatus, players, onGameComplete]);
+  }, [sessionStatus, orderedPlayers, onGameComplete, scoringSettings]);
 
   // Check for all players complete and auto-end
   useEffect(() => {
     if (sessionStatus !== 'playing') return;
-    const allComplete = players.length > 0 && players.every((p) =>
+    const allComplete = orderedPlayers.length > 0 && orderedPlayers.every((p) =>
       isGameComplete(p.scorecard || createEmptyScorecard())
     );
     if (allComplete && isHost) {
-      const finalPlayers = players.map((p) => ({
+      const finalPlayers = orderedPlayers.map((p) => ({
         ...p,
-        totalScore: calculateTotalScore(p.scorecard || createEmptyScorecard()),
+        totalScore: calculateTotalScore(p.scorecard || createEmptyScorecard(), scoringSettings),
       }));
       endGame();
       onGameComplete(finalPlayers);
     }
-  }, [players, sessionStatus, isHost, endGame, onGameComplete]);
+  }, [orderedPlayers, sessionStatus, isHost, endGame, onGameComplete, scoringSettings]);
 
   // Sync background color
   useEffect(() => {
@@ -189,7 +215,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
     const isUpperCategory = upperCategoryIds.includes(selectedCategory);
     if (isUpperCategory) {
       const newUpperSum = oldUpperSum + score - (myScorecard[selectedCategory] ?? 0);
-      const threshold = getUpperBonusThreshold(settings);
+      const threshold = getUpperBonusThreshold(scoringSettings);
       if (oldUpperSum < threshold && newUpperSum >= threshold) {
         setBonusModalPlayer({
           name: myPlayer?.name || 'You',
@@ -217,17 +243,38 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
 
   const handleConfirmFinish = async () => {
     setShowFinishDialog(false);
-    const finalPlayers = players.map((p) => ({
+    const finalPlayers = orderedPlayers.map((p) => ({
       ...p,
-      totalScore: calculateTotalScore(p.scorecard || createEmptyScorecard()),
+      totalScore: calculateTotalScore(p.scorecard || createEmptyScorecard(), scoringSettings),
     }));
     await endGame();
     onGameComplete(finalPlayers);
   };
 
-  if (!myPlayer || players.length === 0) return null;
+  if (sessionStatus === 'cancelled') {
+    return (
+      <div
+        className="min-h-dvh flex items-center justify-center p-6 bg-white/95 dark:bg-black/90"
+      >
+        <div className="max-w-md w-full text-center">
+          <h1 className="font-serif text-title text-black dark:text-white mb-3">Session Cancelled</h1>
+          <p className="font-sans text-body text-black/70 dark:text-white/70 mb-6">
+            The host ended the session. You can return home to start a new game.
+          </p>
+          <button
+            onClick={handleSessionCancelled}
+            className="w-full rounded-full py-3 px-4 font-sans font-bold bg-black text-white dark:bg-white dark:text-black transition-opacity hover:opacity-90"
+          >
+            Return Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const allComplete = players.every((p) => isGameComplete(p.scorecard || createEmptyScorecard()));
+  if (!myPlayer || orderedPlayers.length === 0) return null;
+
+  const allComplete = orderedPlayers.every((p) => isGameComplete(p.scorecard || createEmptyScorecard()));
 
   return (
     <div
@@ -339,10 +386,10 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
             role="tablist"
             aria-label="Players"
           >
-            {players.map((player, index) => {
+            {orderedPlayers.map((player, index) => {
               const isMe = player.id === playerId;
               const isActiveTurn = index === currentPlayerIndex;
-              const playerScore = calculateTotalScore(player.scorecard || createEmptyScorecard());
+              const playerScore = calculateTotalScore(player.scorecard || createEmptyScorecard(), scoringSettings);
 
               const TabWrapper = isMe ? 'div' : 'button';
 
@@ -397,6 +444,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
               onCategoryClick={handleCategoryClick}
               isCurrentPlayer={canScore}
               textColor={textColor}
+              settings={scoringSettings}
             />
           </div>
 
@@ -460,11 +508,11 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
             <div className="space-y-2">
               {[...players]
                 .sort((a, b) =>
-                  calculateTotalScore(b.scorecard || createEmptyScorecard()) -
-                  calculateTotalScore(a.scorecard || createEmptyScorecard())
+                  calculateTotalScore(b.scorecard || createEmptyScorecard(), scoringSettings) -
+                  calculateTotalScore(a.scorecard || createEmptyScorecard(), scoringSettings)
                 )
                 .map((player, index) => {
-                  const score = calculateTotalScore(player.scorecard || createEmptyScorecard());
+                  const score = calculateTotalScore(player.scorecard || createEmptyScorecard(), scoringSettings);
                   const isMe = player.id === playerId;
                   const RowTag = isMe ? 'div' : 'button';
                   return (
@@ -483,9 +531,9 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
                           #{index + 1}
                         </span>
                         <div className="w-8 h-8 rounded-full shrink-0" style={{ backgroundColor: player.color }} />
-                        <span className="font-sans text-body font-bold" style={{ color: textColor }}>
-                          {player.name}{isMe ? ' (You)' : ''}
-                        </span>
+                    <span className="font-sans text-body font-bold" style={{ color: textColor }}>
+                      {player.name}{isMe ? ' (You)' : ''}
+                    </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="font-sans text-body-lg font-bold tabular-nums" style={{ color: textColor }}>
@@ -541,7 +589,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
                     className="font-sans text-ui opacity-70"
                     style={{ color: getTextColorForBackground(viewingPlayerLive.color) }}
                   >
-                    Total: {calculateTotalScore(viewingPlayerLive.scorecard || createEmptyScorecard())}
+                    Total: {calculateTotalScore(viewingPlayerLive.scorecard || createEmptyScorecard(), scoringSettings)}
                   </p>
                 </div>
               </div>
@@ -565,6 +613,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
                 onCategoryClick={() => {}}
                 isCurrentPlayer={false}
                 textColor={getTextColorForBackground(viewingPlayerLive.color)}
+                settings={scoringSettings}
               />
             </div>
           </div>
@@ -586,8 +635,8 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit }) {
       {bonusModalPlayer && (
         <UpperBonusModal
           playerName={bonusModalPlayer.name}
-          bonusPoints={getUpperBonusPoints(settings)}
-          threshold={getUpperBonusThreshold(settings)}
+          bonusPoints={getUpperBonusPoints(scoringSettings)}
+          threshold={getUpperBonusThreshold(scoringSettings)}
           playerColor={bonusModalPlayer.color}
           onDismiss={() => setBonusModalPlayer(null)}
         />

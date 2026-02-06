@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 import {
   getDatabase,
   ref,
@@ -22,11 +23,24 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getDatabase(app);
+
+/**
+ * Ensure the user is signed in anonymously before any database operation.
+ * Returns the current user once authenticated.
+ */
+async function ensureAuth() {
+  if (auth.currentUser) return auth.currentUser;
+  const credential = await signInAnonymously(auth);
+  return credential.user;
+}
 
 export {
   app,
+  auth,
   db,
+  ensureAuth,
   ref,
   set,
   get,
