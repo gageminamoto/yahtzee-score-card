@@ -9,7 +9,7 @@ let lastYahtzeeTime = 0;
 let lastUpperBonusTime = 0;
 
 function getAudioContext() {
-  if (!audioContext) {
+  if (!audioContext || audioContext.state === 'closed') {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
   }
   return audioContext;
