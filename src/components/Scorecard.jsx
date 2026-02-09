@@ -9,14 +9,15 @@ import {
   calculateUpperBonus,
   isCategoryScored,
 } from '../utils/scoring';
-import { UPPER_SECTION_BONUS_THRESHOLD } from '../utils/gameConstants';
+import { getUpperBonusThreshold } from '../utils/gameConstants';
 
 /**
  * Scorecard component displaying all Yahtzee categories
  */
-export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer, textColor = '#FFFFFF' }) {
+export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer, textColor = '#FFFFFF', settings = null }) {
   const upperSum = calculateUpperSectionSum(scorecard);
-  const upperBonus = calculateUpperBonus(scorecard);
+  const upperBonus = calculateUpperBonus(scorecard, settings);
+  const upperThreshold = getUpperBonusThreshold(settings);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-4">
@@ -45,7 +46,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
         {/* Upper Section Bonus */}
         <div className="flex justify-between items-center py-2 px-3 mt-1 bg-white/10 dark:bg-black/10">
           <span className="font-sans text-ui opacity-80" style={{ color: textColor }}>
-            Bonus ({upperSum}/{UPPER_SECTION_BONUS_THRESHOLD})
+            Bonus ({upperSum}/{upperThreshold})
           </span>
           <span className="font-sans text-body font-bold tabular-nums" style={{ color: textColor }}>
             {upperBonus > 0 ? `+${upperBonus}` : '—'}
@@ -84,6 +85,7 @@ Scorecard.propTypes = {
   onCategoryClick: PropTypes.func.isRequired,
   isCurrentPlayer: PropTypes.bool,
   textColor: PropTypes.string,
+  settings: PropTypes.object,
 };
 
 /**

@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { SettingsProvider } from './context/SettingsContext';
+import { SessionProvider } from './context/SessionContext';
 import { ConfirmDialog } from './components';
+import SessionErrorBoundary from './components/SessionErrorBoundary';
 import Home from './pages/Home';
 import SingleDeviceSetup from './pages/SingleDeviceSetup';
 import GameBoard from './pages/GameBoard';
+import MultiDeviceHost from './pages/MultiDeviceHost';
+import MultiDeviceJoin from './pages/MultiDeviceJoin';
+import MultiDeviceLobby from './pages/MultiDeviceLobby';
+import MultiDeviceGameBoard from './pages/MultiDeviceGameBoard';
 import Winner from './pages/Winner';
 import Settings from './pages/Settings';
 import Changelog from './pages/Changelog';
@@ -16,12 +22,30 @@ import { loadGameState, saveGameState, clearGameState, addGameToHistory, loadSet
  * Handles routing between screens using state
  * Includes slide animation transitions between screens
  */
+
+// Check for ?join= URL param (QR code / shared link deep linking)
+function extractJoinCode() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('join');
+  if (code) {
+    // Clean the URL so the param doesn't persist on refresh
+    const url = new URL(window.location.href);
+    url.searchParams.delete('join');
+    window.history.replaceState({}, '', url.pathname);
+  }
+  return code || null;
+}
+
 // Load saved state once at module level for initialization
 const initialSavedState = loadGameState();
+const initialJoinCode = extractJoinCode();
 
 function App() {
   // Initialize state from localStorage if available
   const [screen, setScreen] = useState(() => {
+    // If there's a ?join= param, go straight to multi-join
+    if (initialJoinCode) return 'multi-lobby';
+
     const savedScreen = initialSavedState?.screen;
     // Restore game, winner, settings, changelog, history, and setup screens
     if (savedScreen === 'game' || savedScreen === 'winner' ||
@@ -44,7 +68,10 @@ function App() {
   // Use homeColorIndex for setup page so color changes from Home page reflect there too
   const setupColorIndex = homeColorIndex;
   const [winnerColorIndex] = useState(() => Math.floor(Math.random() * 5));
-  
+
+  // Join code from URL param
+  const [joinCode] = useState(initialJoinCode);
+
   // Transition state for slide animations
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [previousScreen, setPreviousScreen] = useState(null);
@@ -52,6 +79,8 @@ function App() {
 
   // Quit confirmation dialog state
   const [showQuitDialog, setShowQuitDialog] = useState(false);
+  // Track whether quit is from multi-device game
+  const [quitIsMulti, setQuitIsMulti] = useState(false);
 
   /**
    * Helper function to transition between screens with slide animation
@@ -87,9 +116,15 @@ function App() {
     if (mode === 'single') {
       saveGameState({ screen: 'setup', gameMode: mode });
       transitionToScreen('setup');
-    } else {
-      // Multi-device mode (future implementation)
-      alert('Multi-device mode coming soon!');
+    } else if (mode === 'multi') {
+      setGameMode('multi');
+      transitionToScreen('multi-lobby');
+    } else if (mode === 'multi-host') {
+      setGameMode('multi');
+      transitionToScreen('multi-host');
+    } else if (mode === 'multi-join') {
+      setGameMode('multi');
+      transitionToScreen('multi-join');
     }
   };
 
@@ -109,7 +144,11 @@ function App() {
 
   const handleGameComplete = (completedPlayers) => {
     setFinalPlayers(completedPlayers);
-    saveGameState({ screen: 'winner', gameMode, players, finalPlayers: completedPlayers });
+    // Only save to localStorage for single-device games.
+    // Multi-device sessions cannot be restored from localStorage.
+    if (gameMode !== 'multi') {
+      saveGameState({ screen: 'winner', gameMode, players, finalPlayers: completedPlayers });
+    }
 
     // Auto-save to game history if enabled
     const currentSettings = loadSettings();
@@ -128,9 +167,18 @@ function App() {
     transitionToScreen('winner');
   };
 
+  // Multi-device: host/join pages signal game started
+  const handleMultiGameStart = () => {
+    transitionToScreen('multi-game');
+  };
+
   const handlePlayAgain = () => {
-    // Keep same players but reset game
-    transitionToScreen('game');
+    if (gameMode === 'multi') {
+      transitionToScreen('multi-host');
+    } else {
+      // Keep same players but reset game
+      transitionToScreen('game');
+    }
   };
 
   const handleGoHome = () => {
@@ -143,6 +191,12 @@ function App() {
   };
 
   const handleQuit = () => {
+    setQuitIsMulti(false);
+    setShowQuitDialog(true);
+  };
+
+  const handleMultiQuit = () => {
+    setQuitIsMulti(true);
     setShowQuitDialog(true);
   };
 
@@ -157,6 +211,12 @@ function App() {
 
   const handleBackFromSetup = () => {
     saveGameState({ screen: 'home' });
+    transitionToScreen('home', () => {
+      setGameMode(null);
+    });
+  };
+
+  const handleBackFromMulti = () => {
     transitionToScreen('home', () => {
       setGameMode(null);
     });
@@ -207,9 +267,6 @@ function App() {
   /**
    * Render a screen component with optional animation class
    * Wraps the screen in a fixed container for slide animations
-   * @param {string} screenName - The screen identifier
-   * @param {JSX.Element} component - The component to render
-   * @param {string} animationClass - Optional animation class to apply
    */
   const renderScreen = (screenName, component, animationClass = '') => {
     const zIndexClass = screenName === nextScreen ? 'z-dropdown' : 'z-base';
@@ -223,263 +280,132 @@ function App() {
     );
   };
 
+  // Screen component map to reduce repetition
+  const screenComponents = {
+    home: (
+      <Home
+        onSelectMode={handleSelectMode}
+        onOpenSettings={handleOpenSettings}
+        onOpenChangelog={handleOpenChangelog}
+        onOpenHistory={handleOpenHistory}
+        colorIndex={homeColorIndex}
+        onTitleClick={handleHomeTitleClick}
+      />
+    ),
+    settings: (
+      <Settings
+        onBack={handleBackFromSettings}
+        colorIndex={homeColorIndex}
+      />
+    ),
+    changelog: (
+      <Changelog
+        onBack={handleBackFromChangelog}
+        colorIndex={homeColorIndex}
+      />
+    ),
+    history: (
+      <GameHistory
+        onBack={handleBackFromHistory}
+        colorIndex={homeColorIndex}
+      />
+    ),
+    setup: gameMode === 'single' ? (
+      <SingleDeviceSetup
+        onStartGame={handleStartGame}
+        onBack={handleBackFromSetup}
+        colorIndex={setupColorIndex}
+      />
+    ) : null,
+    game: (
+      <GameBoard
+        players={players}
+        initialPlayerIndex={currentPlayerIndex}
+        onGameComplete={handleGameComplete}
+        onQuit={handleQuit}
+        onStateChange={handleGameStateChange}
+      />
+    ),
+    'multi-lobby': (
+      <MultiDeviceLobby
+        onBack={handleBackFromMulti}
+        onGameStart={handleMultiGameStart}
+        colorIndex={homeColorIndex}
+        initialCode={joinCode || ''}
+      />
+    ),
+    'multi-host': (
+      <MultiDeviceHost
+        onBack={handleBackFromMulti}
+        onGameStart={handleMultiGameStart}
+        colorIndex={homeColorIndex}
+      />
+    ),
+    'multi-join': (
+      <MultiDeviceJoin
+        onBack={handleBackFromMulti}
+        onGameStart={handleMultiGameStart}
+        colorIndex={homeColorIndex}
+        initialCode={joinCode || ''}
+      />
+    ),
+    'multi-game': (
+      <MultiDeviceGameBoard
+        onGameComplete={handleGameComplete}
+        onQuit={handleMultiQuit}
+        onSessionCancelled={handleGoHome}
+      />
+    ),
+    winner: (
+      <Winner
+        players={finalPlayers}
+        onPlayAgain={handlePlayAgain}
+        onGoHome={handleGoHome}
+        colorIndex={winnerColorIndex}
+        gameMode={gameMode}
+      />
+    ),
+    onboarding: (
+      <Onboarding
+        onComplete={handleOnboardingComplete}
+        colorIndex={homeColorIndex}
+      />
+    ),
+  };
+
   // Render appropriate screen(s)
   return (
     <SettingsProvider>
-      <div className="relative w-full min-h-dvh overflow-hidden">
-        {/* Render previous screen with slide-out animation during transition */}
-        {isTransitioning && previousScreen && (
-          <>
-            {previousScreen === 'home' && renderScreen(
-              'home',
-              <Home
-                onSelectMode={handleSelectMode}
-                onOpenSettings={handleOpenSettings}
-                onOpenChangelog={handleOpenChangelog}
-                onOpenHistory={handleOpenHistory}
-                colorIndex={homeColorIndex}
-                onTitleClick={handleHomeTitleClick}
-              />,
-              'animate-slideOutToLeft'
-            )}
-            
-            {previousScreen === 'settings' && renderScreen(
-              'settings',
-              <Settings
-                onBack={handleBackFromSettings}
-                colorIndex={homeColorIndex}
-              />,
-              'animate-slideOutToLeft'
-            )}
-            
-            {previousScreen === 'changelog' && renderScreen(
-              'changelog',
-              <Changelog
-                onBack={handleBackFromChangelog}
-                colorIndex={homeColorIndex}
-              />,
-              'animate-slideOutToLeft'
+      <SessionErrorBoundary onReset={handleGoHome}>
+        <SessionProvider>
+          <div className="relative w-full min-h-dvh overflow-hidden">
+            {/* Render previous screen with slide-out animation during transition */}
+            {isTransitioning && previousScreen && screenComponents[previousScreen] && (
+              renderScreen(previousScreen, screenComponents[previousScreen], 'animate-slideOutToLeft')
             )}
 
-            {previousScreen === 'history' && renderScreen(
-              'history',
-              <GameHistory
-                onBack={handleBackFromHistory}
-                colorIndex={homeColorIndex}
-              />,
-              'animate-slideOutToLeft'
+            {/* Render next screen with slide-in animation during transition, or current screen normally */}
+            {isTransitioning ? (
+              screenComponents[nextScreen] && renderScreen(nextScreen, screenComponents[nextScreen], 'animate-slideInFromRight')
+            ) : (
+              screenComponents[screen] && screenComponents[screen]
             )}
+          </div>
 
-            {previousScreen === 'setup' && gameMode === 'single' && renderScreen(
-              'setup',
-              <SingleDeviceSetup
-                onStartGame={handleStartGame}
-                onBack={handleBackFromSetup}
-                colorIndex={setupColorIndex}
-              />,
-              'animate-slideOutToLeft'
-            )}
-            
-            {previousScreen === 'game' && renderScreen(
-              'game',
-              <GameBoard
-                players={players}
-                initialPlayerIndex={currentPlayerIndex}
-                onGameComplete={handleGameComplete}
-                onQuit={handleQuit}
-                onStateChange={handleGameStateChange}
-              />,
-              'animate-slideOutToLeft'
-            )}
-            
-            {previousScreen === 'winner' && renderScreen(
-              'winner',
-              <Winner
-                players={finalPlayers}
-                onPlayAgain={handlePlayAgain}
-                onGoHome={handleGoHome}
-                colorIndex={winnerColorIndex}
-              />,
-              'animate-slideOutToLeft'
-            )}
-
-            {previousScreen === 'onboarding' && renderScreen(
-              'onboarding',
-              <Onboarding
-                onComplete={handleOnboardingComplete}
-                colorIndex={homeColorIndex}
-              />,
-              'animate-slideOutToLeft'
-            )}
-          </>
-        )}
-
-        {/* Render next screen with slide-in animation during transition, or current screen normally */}
-        {isTransitioning ? (
-          <>
-            {nextScreen === 'home' && renderScreen(
-              'home',
-              <Home
-                onSelectMode={handleSelectMode}
-                onOpenSettings={handleOpenSettings}
-                onOpenChangelog={handleOpenChangelog}
-                onOpenHistory={handleOpenHistory}
-                colorIndex={homeColorIndex}
-                onTitleClick={handleHomeTitleClick}
-              />,
-              'animate-slideInFromRight'
-            )}
-            
-            {nextScreen === 'settings' && renderScreen(
-              'settings',
-              <Settings
-                onBack={handleBackFromSettings}
-                colorIndex={homeColorIndex}
-              />,
-              'animate-slideInFromRight'
-            )}
-            
-            {nextScreen === 'changelog' && renderScreen(
-              'changelog',
-              <Changelog
-                onBack={handleBackFromChangelog}
-                colorIndex={homeColorIndex}
-              />,
-              'animate-slideInFromRight'
-            )}
-
-            {nextScreen === 'history' && renderScreen(
-              'history',
-              <GameHistory
-                onBack={handleBackFromHistory}
-                colorIndex={homeColorIndex}
-              />,
-              'animate-slideInFromRight'
-            )}
-
-            {nextScreen === 'setup' && gameMode === 'single' && renderScreen(
-              'setup',
-              <SingleDeviceSetup
-                onStartGame={handleStartGame}
-                onBack={handleBackFromSetup}
-                colorIndex={setupColorIndex}
-              />,
-              'animate-slideInFromRight'
-            )}
-            
-            {nextScreen === 'game' && renderScreen(
-              'game',
-              <GameBoard
-                players={players}
-                initialPlayerIndex={currentPlayerIndex}
-                onGameComplete={handleGameComplete}
-                onQuit={handleQuit}
-                onStateChange={handleGameStateChange}
-              />,
-              'animate-slideInFromRight'
-            )}
-            
-            {nextScreen === 'winner' && renderScreen(
-              'winner',
-              <Winner
-                players={finalPlayers}
-                onPlayAgain={handlePlayAgain}
-                onGoHome={handleGoHome}
-                colorIndex={winnerColorIndex}
-              />,
-              'animate-slideInFromRight'
-            )}
-
-            {nextScreen === 'onboarding' && renderScreen(
-              'onboarding',
-              <Onboarding
-                onComplete={handleOnboardingComplete}
-                colorIndex={homeColorIndex}
-              />,
-              'animate-slideInFromRight'
-            )}
-          </>
-        ) : (
-          <>
-            {screen === 'home' && (
-              <Home
-                onSelectMode={handleSelectMode}
-                onOpenSettings={handleOpenSettings}
-                onOpenChangelog={handleOpenChangelog}
-                onOpenHistory={handleOpenHistory}
-                colorIndex={homeColorIndex}
-                onTitleClick={handleHomeTitleClick}
-              />
-            )}
-
-            {screen === 'settings' && (
-              <Settings
-                onBack={handleBackFromSettings}
-                colorIndex={homeColorIndex}
-              />
-            )}
-
-            {screen === 'changelog' && (
-              <Changelog
-                onBack={handleBackFromChangelog}
-                colorIndex={homeColorIndex}
-              />
-            )}
-
-            {screen === 'history' && (
-              <GameHistory
-                onBack={handleBackFromHistory}
-                colorIndex={homeColorIndex}
-              />
-            )}
-
-            {screen === 'setup' && gameMode === 'single' && (
-              <SingleDeviceSetup
-                onStartGame={handleStartGame}
-                onBack={handleBackFromSetup}
-                colorIndex={setupColorIndex}
-              />
-            )}
-
-            {screen === 'game' && (
-              <GameBoard
-                players={players}
-                initialPlayerIndex={currentPlayerIndex}
-                onGameComplete={handleGameComplete}
-                onQuit={handleQuit}
-                onStateChange={handleGameStateChange}
-              />
-            )}
-
-            {screen === 'winner' && (
-              <Winner
-                players={finalPlayers}
-                onPlayAgain={handlePlayAgain}
-                onGoHome={handleGoHome}
-                colorIndex={winnerColorIndex}
-              />
-            )}
-
-            {screen === 'onboarding' && (
-              <Onboarding
-                onComplete={handleOnboardingComplete}
-                colorIndex={homeColorIndex}
-              />
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Quit confirmation dialog */}
-      <ConfirmDialog
-        isOpen={showQuitDialog}
-        title="Quit Game?"
-        message="Are you sure you want to quit? Your progress will be lost."
-        confirmText="Quit"
-        cancelText="Cancel"
-        onConfirm={handleConfirmQuit}
-        onCancel={handleCancelQuit}
-      />
+          {/* Quit confirmation dialog */}
+          <ConfirmDialog
+            isOpen={showQuitDialog}
+            title="Quit Game?"
+            message={quitIsMulti
+              ? 'Are you sure you want to leave? You will disconnect from the session.'
+              : 'Are you sure you want to quit? Your progress will be lost.'}
+            confirmText="Quit"
+            cancelText="Cancel"
+            onConfirm={handleConfirmQuit}
+            onCancel={handleCancelQuit}
+          />
+        </SessionProvider>
+      </SessionErrorBoundary>
     </SettingsProvider>
   );
 }

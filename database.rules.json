@@ -1,0 +1,60 @@
+{
+  "rules": {
+    "sessions": {
+      "$sessionCode": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['hostId', 'status', 'players'])",
+        "status": {
+          ".validate": "newData.isString() && newData.val().matches(/^(lobby|playing|finished|cancelled)$/)"
+        },
+        "settings": {
+          "upperBonusThreshold": {
+            ".validate": "newData.isNumber()"
+          },
+          "bonusPoints": {
+            ".validate": "newData.isNumber()"
+          },
+          "turnMode": {
+            ".validate": "newData.isString() && newData.val().matches(/^(strict|free)$/)"
+          }
+        },
+        "players": {
+          "$playerId": {
+            ".validate": "newData.hasChildren(['name', 'color', 'scorecard'])",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 20"
+            },
+            "color": {
+              ".validate": "newData.isString()"
+            },
+            "isHost": {
+              ".validate": "newData.isBoolean()"
+            },
+            "isConnected": {
+              ".validate": "newData.isBoolean()"
+            },
+            "scorecard": {
+              "$category": {
+                ".validate": "newData.isNumber() || newData.val() === null"
+              }
+            }
+          }
+        },
+        "gameState": {
+          "currentPlayerIndex": {
+            ".validate": "newData.isNumber()"
+          },
+          "completedTurns": {
+            ".validate": "newData.isNumber()"
+          },
+          "round": {
+            ".validate": "newData.isNumber()"
+          }
+        }
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}
