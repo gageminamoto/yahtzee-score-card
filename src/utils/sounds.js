@@ -347,3 +347,41 @@ export async function playTurnChange() {
     // Silently fail
   }
 }
+
+/**
+ * Play a short percussive tick when a player's score is revealed (~80ms)
+ * Triangle wave descending from ~250Hz to ~150Hz
+ */
+export async function playRevealTick() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.10;
+    masterGain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(250, t);
+    osc.frequency.exponentialRampToValueAtTime(150, t + 0.08);
+
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.08);
+  } catch {
+    // Silently fail
+  }
+}
