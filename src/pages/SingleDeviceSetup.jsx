@@ -62,7 +62,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
   };
 
   const removePlayer = useCallback((id) => {
-    if (players.length > 2 && !exitingIds.has(id)) {
+    if (players.length > 1 && !exitingIds.has(id)) {
       // Start exit animation
       setExitingIds(prev => new Set(prev).add(id));
       // Remove after animation completes (200ms to match CSS)
@@ -77,8 +77,8 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
     }
   }, [players.length, exitingIds]);
 
-  // Allow starting with at least 2 players (names are optional)
-  const canStart = players.length >= 2;
+  // Allow starting with at least 1 player (names are optional)
+  const canStart = players.length >= 1;
 
   const handleStart = () => {
     // Pass all players to the game (names are optional, will show as "Player 1", "Player 2", etc.)
@@ -111,7 +111,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
           className="font-sans text-body opacity-90 mb-12 text-pretty"
           style={{ color: textColor }}
         >
-          Add 2-6 players to begin (names optional)
+          Add 1-6 players to begin (names optional)
         </p>
 
         {/* Player Inputs */}
@@ -155,8 +155,8 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
               <div
                 className="shrink-0 overflow-hidden"
                 style={{
-                  width: players.length > 2 && !exitingIds.has(player.id) ? 48 : 0,
-                  marginLeft: players.length > 2 && !exitingIds.has(player.id) ? 16 : 0,
+                  width: players.length > 1 && !exitingIds.has(player.id) ? 48 : 0,
+                  marginLeft: players.length > 1 && !exitingIds.has(player.id) ? 16 : 0,
                   transition: 'width 200ms var(--ease-in-out-cubic), margin-left 200ms var(--ease-in-out-cubic)',
                 }}
               >
@@ -165,7 +165,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
                   className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity text-2xl font-bold"
                   style={{ color: textColor }}
                   aria-label={`Remove ${player.name || `Player ${index + 1}`}`}
-                  tabIndex={players.length > 2 ? 0 : -1}
+                  tabIndex={players.length > 1 ? 0 : -1}
                 >
                   ×
                 </button>
@@ -205,7 +205,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
             className="font-sans text-ui opacity-70 text-center mt-4"
             style={{ color: textColor }}
           >
-            Add at least 2 players to start
+            Add at least 1 player to start
           </p>
         )}
       </div>

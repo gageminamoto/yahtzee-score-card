@@ -25,6 +25,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
   // Sort players by score
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
   const winner = sortedPlayers[0];
+  const isSoloGame = players.length === 1;
 
   // Play trumpet fanfare on mount
   useEffect(() => {
@@ -71,10 +72,10 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
       )}
 
       <div className="max-w-2xl w-full z-dropdown">
-        {/* Winner Announcement */}
+        {/* Winner/Game Over Announcement */}
         <div className="text-center mb-8 animate-scaleIn">
           <Icon
-            icon="mdi:trophy"
+            icon={isSoloGame ? "mdi:flag-checkered" : "mdi:trophy"}
             className="text-[3rem] md:text-[4rem] mx-auto mb-2"
             style={{ color: textColor }}
           />
@@ -82,20 +83,25 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
             className="font-serif text-headline md:text-display mb-2 text-balance"
             style={{ color: textColor }}
           >
-            WINNER
+            {isSoloGame ? 'GAME OVER' : 'WINNER'}
           </h1>
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <div
-              className="w-10 h-10 rounded-full shrink-0"
-              style={{ backgroundColor: winner.color }}
-            />
-            <h2
-              className="font-serif text-title md:text-headline text-balance"
-              style={{ color: textColor }}
-            >
-              {winner.name.toUpperCase()}
-            </h2>
-          </div>
+
+          {/* For multiplayer, show winner name and color dot */}
+          {!isSoloGame && (
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div
+                className="w-10 h-10 rounded-full shrink-0"
+                style={{ backgroundColor: winner.color }}
+              />
+              <h2
+                className="font-serif text-title md:text-headline text-balance"
+                style={{ color: textColor }}
+              >
+                {(winner.name || 'Player 1').toUpperCase()}
+              </h2>
+            </div>
+          )}
+
           <p className="font-sans text-title md:text-headline text-pretty tabular-nums" style={{ color: textColor }}>
             {winner.totalScore} points
           </p>
@@ -107,23 +113,26 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
             className="font-sans text-body-lg font-bold uppercase tracking-wider mb-4 text-center text-balance opacity-70"
             style={{ color: textColor }}
           >
-            Final Scores
+            {isSoloGame ? 'Final Score' : 'Final Scores'}
           </h3>
           <div className="space-y-1">
             {sortedPlayers.map((player, index) => (
               <div
                 key={player.id}
                 className={`flex items-center justify-between py-3 px-3 ${
-                  index === 0 ? 'bg-bright-green/20 dark:bg-bright-green/20' : ''
+                  index === 0 && !isSoloGame ? 'bg-bright-green/20 dark:bg-bright-green/20' : ''
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span
-                    className="font-sans text-body opacity-50 min-w-[2rem]"
-                    style={{ color: textColor }}
-                  >
-                    #{index + 1}
-                  </span>
+                  {/* Hide ranking number for solo games */}
+                  {!isSoloGame && (
+                    <span
+                      className="font-sans text-body opacity-50 min-w-[2rem]"
+                      style={{ color: textColor }}
+                    >
+                      #{index + 1}
+                    </span>
+                  )}
                   <div
                     className="w-8 h-8 rounded-full shrink-0"
                     style={{ backgroundColor: player.color }}
@@ -132,7 +141,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
                     className="font-sans text-body font-bold"
                     style={{ color: textColor }}
                   >
-                    {player.name}
+                    {player.name || `Player ${index + 1}`}
                   </span>
                 </div>
                 <span

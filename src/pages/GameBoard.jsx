@@ -265,9 +265,12 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
 
   // Determine the finish dialog message based on game state
   const allComplete = players.every(p => isGameComplete(p.scorecard));
+  const isSoloGame = players.length === 1;
   const finishDialogMessage = allComplete
     ? 'Finish game and see results?'
-    : 'Current scores will be used to determine the winner.';
+    : isSoloGame
+      ? 'Finish game and see your score?'
+      : 'Current scores will be used to determine the winner.';
 
   return (
     <div
@@ -311,14 +314,15 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
               `}
               style={{ color: textColor }}
               aria-label="Finish game and see results"
-              title="End the game and see who won"
+              title={players.length === 1 ? "End the game and see your score" : "End the game and see who won"}
             >
               Finish
             </button>
           </div>
         </div>
 
-        {/* Player Switcher */}
+        {/* Player Switcher - hidden for single player */}
+        {players.length > 1 && (
         <div className="flex justify-center mb-2 md:mb-4 flex-shrink-0">
           <div
             className="inline-flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full p-2"
@@ -378,6 +382,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
             })}
           </div>
         </div>
+        )}
 
         {/* Scorecard - scrollable area */}
         <div className="relative flex-1 min-h-0">
