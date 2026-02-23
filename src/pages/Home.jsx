@@ -142,12 +142,12 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, on
   };
 
   /**
-   * Handle Single Device button click
+   * Handle Pass & Play button click
    * Triggers dice animation from the top, then navigates to setup screen after delay
    * This gives time for the dice falling animation to complete
    */
   const handleSingleDeviceClick = () => {
-    // Single device button: dice come from the top of the screen
+    // Pass & Play button: dice come from the top of the screen
     setDiceFromTop(true);
     setDiceKey(prev => prev + 1);
     
@@ -284,7 +284,7 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, on
             fullWidth
             onClick={handleSingleDeviceClick}
           >
-            Single Device
+            Pass & Play
           </Button>
         )}
 
@@ -292,12 +292,9 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, on
           variant="primary"
           size="large"
           fullWidth
-          disabled
+          onClick={() => onSelectMode('multi')}
         >
-          <span className="flex items-center justify-center gap-2">
-            Multidevice
-            <Icon icon="basil:lock-solid" className="w-5 h-5" aria-hidden="true" />
-          </span>
+          Join Game
         </Button>
 
         <Button

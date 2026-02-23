@@ -4,7 +4,7 @@ A bold, design-forward web application for tracking Yahtzee scores. Built with R
 
 ## ✨ Features
 
-- **Single Device Mode**: Track scores for 2-6 players on one device
+- **Pass & Play Mode**: Track scores for 2-6 players on one device
 - **Bold Design**: High-contrast colors, oversized typography, and minimal UI
 - **Score Tracking**: Complete Yahtzee scorecard with automatic calculations
 - **Upper Section Bonus**: Automatic tracking of 35-point bonus (≥63 points)
@@ -51,7 +51,7 @@ npm run build
 
 ## 🎮 How to Play
 
-1. **Select Mode**: Choose "Single Device" on the home screen
+1. **Select Mode**: Choose "Pass & Play" on the home screen
 2. **Add Players**: Enter 2-6 player names (colors assigned automatically)
 3. **Start Game**: Tap "Start Game" to begin
 4. **Score Entry**:
@@ -109,14 +109,14 @@ src/
 ## 🎯 Roadmap
 
 ### MVP (Current)
-- ✅ Single device mode
+- ✅ Pass & Play mode
 - ✅ Score tracking and validation
 - ✅ Bold CMYK design system
 - ✅ Responsive layout
 - ✅ Winner screen
 
 ### Phase 2 (Future)
-- [ ] Multi-device mode with session codes
+- [ ] Join Game mode with session codes
 - [ ] Undo last entry
 - [ ] Game history
 - [ ] Illustrations for categories

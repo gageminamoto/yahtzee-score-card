@@ -1,5 +1,6 @@
 import {
   UPPER_SECTION_CATEGORIES,
+  ALL_CATEGORIES,
   getUpperBonusThreshold,
   getUpperBonusPoints,
   getCategoryById,
@@ -37,7 +38,7 @@ export const calculateUpperSectionSum = (scorecard) => {
 
   UPPER_SECTION_CATEGORIES.forEach(category => {
     const score = scorecard[category.id];
-    if (score !== null) {
+    if (score != null) {
       sum += score;
     }
   });
@@ -73,7 +74,7 @@ export const calculateLowerSectionSum = (scorecard) => {
 
   lowerCategories.forEach(category => {
     const score = scorecard[category];
-    if (score !== null) {
+    if (score != null) {
       sum += score;
     }
   });
@@ -96,14 +97,16 @@ export const calculateTotalScore = (scorecard, settings = null) => {
  * Check if a category has been scored
  */
 export const isCategoryScored = (scorecard, categoryId) => {
-  return scorecard[categoryId] !== null;
+  return scorecard[categoryId] != null;
 };
 
 /**
  * Get all available (unscored) categories
  */
 export const getAvailableCategories = (scorecard) => {
-  return Object.keys(scorecard).filter(categoryId => scorecard[categoryId] === null);
+  return ALL_CATEGORIES
+    .map(cat => cat.id)
+    .filter(categoryId => scorecard[categoryId] == null);
 };
 
 /**

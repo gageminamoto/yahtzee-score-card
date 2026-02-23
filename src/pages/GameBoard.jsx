@@ -451,6 +451,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
               onCategoryClick={handleCategoryClick}
               isCurrentPlayer={true}
               textColor={textColor}
+              settings={settings}
             />
           </div>
 

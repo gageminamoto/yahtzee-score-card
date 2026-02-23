@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { Button, Card } from '../components';
 import { getColorByIndex, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
+import { useSession } from '../context/SessionContext';
 import { playTrumpetFanfare, playRevealTick } from '../utils/sounds';
 
 /**
@@ -13,11 +14,14 @@ import { playTrumpetFanfare, playRevealTick } from '../utils/sounds';
  * - Phase 4: Winner celebration with confetti and fanfare
  * - Tap anywhere to skip to the end
  */
-export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
+export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gameMode }) {
   const winnerBg = getColorByIndex(colorIndex);
   const winnerTextColor = getTextColorForBackground(winnerBg);
   const { settings } = useSettings();
+  const { isHost, sessionCode, leaveGame } = useSession();
   const timersRef = useRef([]);
+
+  const isMulti = gameMode === 'multi';
 
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
   const winner = sortedPlayers[0];
@@ -37,6 +41,16 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
   const isNamesVisible = revealPhase === 'names' || revealPhase === 'winner';
   const currentBg = revealPhase === 'winner' ? winnerBg : '#1a1a1a';
   const currentTextColor = revealPhase === 'winner' ? winnerTextColor : '#FFFFFF';
+
+  const handlePlayAgain = async () => {
+    if (isMulti && sessionCode) await leaveGame();
+    onPlayAgain();
+  };
+
+  const handleGoHome = async () => {
+    if (isMulti && sessionCode) await leaveGame();
+    onGoHome();
+  };
 
   // Sync background color to html/body for overscroll
   useEffect(() => {
@@ -286,19 +300,21 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex }) {
             {/* Actions */}
             {showActions && (
               <div className="space-y-3 animate-fadeIn">
-                <Button
-                  variant="solid"
-                  size="large"
-                  fullWidth
-                  onClick={onPlayAgain}
-                >
-                  Play Again
-                </Button>
+                {(!isMulti || isHost) && (
+                  <Button
+                    variant="solid"
+                    size="large"
+                    fullWidth
+                    onClick={handlePlayAgain}
+                  >
+                    Play Again
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="medium"
                   fullWidth
-                  onClick={onGoHome}
+                  onClick={handleGoHome}
                   textColor={currentTextColor}
                 >
                   Home
