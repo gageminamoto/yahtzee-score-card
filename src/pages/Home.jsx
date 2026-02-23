@@ -20,7 +20,7 @@ import letterE from '../assets/header/E.png';
  * - Two primary action buttons
  * - Settings button
  */
-export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, onOpenHistory, colorIndex, onTitleClick }) {
+export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, onOpenHistory, colorIndex, onTitleClick, hasActiveGame, onResumeGame }) {
   const { settings } = useSettings();
   const [diceKey, setDiceKey] = useState(0);
   const [diceFromTop, setDiceFromTop] = useState(false);
@@ -268,14 +268,25 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, on
 
       {/* Mode Selection Buttons */}
       <div className="w-full max-w-md space-y-6">
-        <Button
-          variant="primary"
-          size="large"
-          fullWidth
-          onClick={handleSingleDeviceClick}
-        >
-          Pass & Play
-        </Button>
+        {hasActiveGame ? (
+          <Button
+            variant="primary"
+            size="large"
+            fullWidth
+            onClick={onResumeGame}
+          >
+            Resume Game
+          </Button>
+        ) : (
+          <Button
+            variant="primary"
+            size="large"
+            fullWidth
+            onClick={handleSingleDeviceClick}
+          >
+            Pass & Play
+          </Button>
+        )}
 
         <Button
           variant="primary"

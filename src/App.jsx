@@ -190,11 +190,25 @@ function App() {
     });
   };
 
-  const handleQuit = () => {
+  // Close game screen and return to home, preserving game state for resume
+  const handleCloseGame = () => {
+    saveGameState({ screen: 'home', gameMode, players, finalPlayers, currentPlayerIndex });
+    transitionToScreen('home');
+  };
+
+  // Resume an in-progress game from the home screen
+  const handleResumeGame = () => {
+    saveGameState({ screen: 'game', gameMode, players, finalPlayers, currentPlayerIndex });
+    transitionToScreen('game');
+  };
+
+  // Quit game from quick settings - shows confirmation dialog (single-device)
+  const handleQuitGame = () => {
     setQuitIsMulti(false);
     setShowQuitDialog(true);
   };
 
+  // Quit game from multi-device game
   const handleMultiQuit = () => {
     setQuitIsMulti(true);
     setShowQuitDialog(true);
@@ -290,6 +304,8 @@ function App() {
         onOpenHistory={handleOpenHistory}
         colorIndex={homeColorIndex}
         onTitleClick={handleHomeTitleClick}
+        hasActiveGame={players.length > 0 && !!gameMode}
+        onResumeGame={handleResumeGame}
       />
     ),
     settings: (
@@ -322,7 +338,8 @@ function App() {
         players={players}
         initialPlayerIndex={currentPlayerIndex}
         onGameComplete={handleGameComplete}
-        onQuit={handleQuit}
+        onClose={handleCloseGame}
+        onQuitGame={handleQuitGame}
         onStateChange={handleGameStateChange}
       />
     ),

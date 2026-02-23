@@ -20,7 +20,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
   const upperThreshold = getUpperBonusThreshold(settings);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-4 pb-16">
       {/* Upper Section */}
       <div className="flex flex-col">
         <h3

@@ -7,11 +7,9 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { loadSettings, saveSettings } from '../utils/storage';
 import { FONT_SIZE_MULTIPLIERS } from '../utils/defaultSettings';
+import { enableNoSleep, disableNoSleep } from '../utils/noSleep';
 
 const SettingsContext = createContext(null);
-
-// Store wake lock sentinel at module level for persistence
-let wakeLockSentinel = null;
 
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(() => loadSettings());
@@ -29,27 +27,11 @@ export function SettingsProvider({ children }) {
 
   // Manage wake lock based on setting
   useEffect(() => {
-    const manageWakeLock = async () => {
-      if (settings.accessibility.keepScreenAwake) {
-        await requestWakeLock();
-      } else {
-        await releaseWakeLock();
-      }
-    };
-
-    manageWakeLock();
-
-    // Re-acquire wake lock when page becomes visible again
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && settings.accessibility.keepScreenAwake) {
-        requestWakeLock();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    if (settings.accessibility.keepScreenAwake) {
+      enableNoSleep();
+    } else {
+      disableNoSleep();
+    }
   }, [settings.accessibility.keepScreenAwake]);
 
   /**
@@ -175,35 +157,3 @@ export function triggerHaptic(settings) {
   }
 }
 
-/**
- * Request a wake lock to keep the screen awake
- */
-async function requestWakeLock() {
-  if (!('wakeLock' in navigator)) {
-    return;
-  }
-
-  try {
-    // Only request if we don't have an active lock
-    if (!wakeLockSentinel || wakeLockSentinel.released) {
-      wakeLockSentinel = await navigator.wakeLock.request('screen');
-    }
-  } catch (err) {
-    // Wake lock request can fail (e.g., low battery, tab not visible)
-    console.debug('Wake lock request failed:', err.message);
-  }
-}
-
-/**
- * Release the wake lock
- */
-async function releaseWakeLock() {
-  if (wakeLockSentinel && !wakeLockSentinel.released) {
-    try {
-      await wakeLockSentinel.release();
-      wakeLockSentinel = null;
-    } catch (err) {
-      console.debug('Wake lock release failed:', err.message);
-    }
-  }
-}

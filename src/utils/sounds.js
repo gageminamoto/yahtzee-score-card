@@ -9,7 +9,7 @@ let lastYahtzeeTime = 0;
 let lastUpperBonusTime = 0;
 
 function getAudioContext() {
-  if (!audioContext) {
+  if (!audioContext || audioContext.state === 'closed') {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
   }
   return audioContext;
@@ -125,6 +125,45 @@ export async function playDiceAdd(diceCount) {
     const freq = pitches[Math.min(diceCount - 1, pitches.length - 1)];
 
     playBrassNote(ctx, masterGain, freq, t, 0.06, 0.25);
+  } catch {
+    // Silently fail
+  }
+}
+
+/**
+ * Play a subtle descending "dud" tone when a die doesn't contribute to the score (~80ms)
+ * Short descending minor second — gentle but distinct from the positive add sound
+ */
+export async function playDiceDud() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.1;
+    masterGain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    // Descend from ~E4 to ~C4 for a subtle "nope" feel
+    osc.frequency.setValueAtTime(330, t);
+    osc.frequency.exponentialRampToValueAtTime(220, t + 0.08);
+
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.4, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.08);
   } catch {
     // Silently fail
   }
@@ -304,6 +343,44 @@ export async function playTurnChange() {
 
     osc.start(t);
     osc.stop(t + 0.06);
+  } catch {
+    // Silently fail
+  }
+}
+
+/**
+ * Play a short percussive tick when a player's score is revealed (~80ms)
+ * Triangle wave descending from ~250Hz to ~150Hz
+ */
+export async function playRevealTick() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.10;
+    masterGain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(250, t);
+    osc.frequency.exponentialRampToValueAtTime(150, t + 0.08);
+
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.08);
   } catch {
     // Silently fail
   }
