@@ -79,8 +79,6 @@ function App() {
 
   // Quit confirmation dialog state
   const [showQuitDialog, setShowQuitDialog] = useState(false);
-  // Track whether quit is from multi-device game
-  const [quitIsMulti, setQuitIsMulti] = useState(false);
 
   /**
    * Helper function to transition between screens with slide animation
@@ -190,13 +188,20 @@ function App() {
     });
   };
 
-  const handleQuit = () => {
-    setQuitIsMulti(false);
-    setShowQuitDialog(true);
+  // Close game screen and return to home, preserving game state for resume
+  const handleCloseGame = () => {
+    saveGameState({ screen: 'home', gameMode, players, finalPlayers, currentPlayerIndex });
+    transitionToScreen('home');
   };
 
-  const handleMultiQuit = () => {
-    setQuitIsMulti(true);
+  // Resume an in-progress game from the home screen
+  const handleResumeGame = () => {
+    saveGameState({ screen: 'game', gameMode, players, finalPlayers, currentPlayerIndex });
+    transitionToScreen('game');
+  };
+
+  // Quit game from quick settings - shows confirmation dialog
+  const handleQuitGame = () => {
     setShowQuitDialog(true);
   };
 
@@ -290,6 +295,8 @@ function App() {
         onOpenHistory={handleOpenHistory}
         colorIndex={homeColorIndex}
         onTitleClick={handleHomeTitleClick}
+        hasActiveGame={players.length > 0 && !!gameMode}
+        onResumeGame={handleResumeGame}
       />
     ),
     settings: (
@@ -322,7 +329,8 @@ function App() {
         players={players}
         initialPlayerIndex={currentPlayerIndex}
         onGameComplete={handleGameComplete}
-        onQuit={handleQuit}
+        onClose={handleCloseGame}
+        onQuitGame={handleQuitGame}
         onStateChange={handleGameStateChange}
       />
     ),
@@ -352,7 +360,7 @@ function App() {
     'multi-game': (
       <MultiDeviceGameBoard
         onGameComplete={handleGameComplete}
-        onQuit={handleMultiQuit}
+        onQuit={handleQuitGame}
         onSessionCancelled={handleGoHome}
       />
     ),
@@ -396,7 +404,7 @@ function App() {
           <ConfirmDialog
             isOpen={showQuitDialog}
             title="Quit Game?"
-            message={quitIsMulti
+            message={gameMode === 'multi'
               ? 'Are you sure you want to leave? You will disconnect from the session.'
               : 'Are you sure you want to quit? Your progress will be lost.'}
             confirmText="Quit"

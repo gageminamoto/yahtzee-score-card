@@ -250,12 +250,14 @@ export default function Settings({ onBack, colorIndex }) {
               <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
                 FEEDBACK
               </h2>
-              <SettingToggle
-                label="Haptic Feedback"
-                description="Vibrate on interactions (mobile devices)"
-                enabled={settings.accessibility.enableHapticFeedback}
-                onChange={(value) => updateSetting('accessibility', 'enableHapticFeedback', value)}
-              />
+              {'vibrate' in navigator && (
+                <SettingToggle
+                  label="Haptic Feedback"
+                  description="Vibrate on interactions (mobile devices)"
+                  enabled={settings.accessibility.enableHapticFeedback}
+                  onChange={(value) => updateSetting('accessibility', 'enableHapticFeedback', value)}
+                />
+              )}
               <SettingToggle
                 label="Sound Effects"
                 description="Play audio feedback such as the winner fanfare"
