@@ -1,25 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
-import { Card, ConfirmDialog } from '../components';
-import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
-import { useSettings } from '../context/SettingsContext';
+import { Button, Card, ConfirmDialog, PageHeader } from '../components';
+import { usePageSurface } from '../hooks/useSurface';
 import { loadGameHistory, deleteGameFromHistory, clearGameHistory } from '../utils/storage';
 
 export default function GameHistory({ onBack, colorIndex }) {
-  const { settings } = useSettings();
-  const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
-  const textColor = getTextColorForBackground(backgroundColor);
+  const { style: surfaceStyle } = usePageSurface(colorIndex);
 
   const [games, setGames] = useState(() => loadGameHistory());
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showClearAll, setShowClearAll] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
-
-  useEffect(() => {
-    document.documentElement.style.setProperty('--page-bg', backgroundColor);
-  }, [backgroundColor]);
 
   // Close menu when clicking outside
   const handleClickOutside = useCallback((e) => {
@@ -76,55 +69,38 @@ export default function GameHistory({ onBack, colorIndex }) {
 
   return (
     <div
-      className="min-h-dvh p-4 md:p-8 transition-colors duration-500"
-      style={{ backgroundColor }}
+      className="min-h-dvh p-4 md:p-8 text-fg transition-colors duration-500"
+      style={surfaceStyle}
     >
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={onBack}
-            className="font-sans text-body hover:opacity-70 transition-opacity flex items-center gap-2"
-            style={{ color: textColor }}
-          >
-            <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
-            Back
-          </button>
-          <h1
-            className="font-serif text-subtitle md:text-title text-balance"
-            style={{ color: textColor }}
-          >
-            HISTORY
-          </h1>
-          <div className="w-20" />
-        </div>
+        <PageHeader
+          title="HISTORY"
+          onBack={onBack}
+          className="mb-6"
+          actions={games.length > 0 && (
+            <Button variant="ghost" size="small" onClick={() => setShowClearAll(true)}>
+              <Icon icon="basil:trash-solid" className="w-4 h-4" />
+              Clear All
+            </Button>
+          )}
+        />
 
         {/* Content */}
         {games.length === 0 ? (
           <Card padding="large" className="text-center">
             <Icon
-              icon="basil:document-outline"
-              className="w-16 h-16 mx-auto mb-4 opacity-50 text-white dark:text-black"
+              icon="basil:document-solid"
+              className="w-16 h-16 mx-auto mb-4 text-fg/70"
             />
-            <p className="font-sans text-subtitle mb-2 text-white dark:text-black">
+            <p className="font-serif text-subtitle mb-2">
               No games yet
             </p>
-            <p className="font-sans text-body opacity-70 text-white dark:text-black">
+            <p className="font-sans text-body text-fg/70">
               Completed games will appear here.
             </p>
           </Card>
         ) : (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowClearAll(true)}
-                className="font-sans text-ui opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5"
-                style={{ color: textColor }}
-              >
-                <Icon icon="basil:trash-solid" className="w-4 h-4" />
-                Clear All
-              </button>
-            </div>
             {games.map((game) => {
               const sorted = [...game.players].sort(
                 (a, b) => b.totalScore - a.totalScore
@@ -134,32 +110,32 @@ export default function GameHistory({ onBack, colorIndex }) {
                   {/* Date and delete row */}
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <p className="font-sans text-body font-bold text-white dark:text-black">
+                      <p className="font-sans text-body font-bold">
                         {formatDate(game.completedAt)}
                       </p>
-                      <p className="font-sans text-ui opacity-60 text-white dark:text-black">
+                      <p className="font-sans text-ui text-fg/70">
                         {formatTime(game.completedAt)}
                       </p>
                     </div>
                     <div className="relative" ref={openMenuId === game.gameId ? menuRef : undefined}>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setOpenMenuId(openMenuId === game.gameId ? null : game.gameId)}
-                        className="p-2 -mr-2 -mt-2 opacity-60 hover:opacity-100 transition-opacity text-white dark:text-black"
+                        className="-mr-3 -mt-3 text-fg/70 hover:text-fg"
                         aria-label="Game options"
+                        aria-expanded={openMenuId === game.gameId}
                       >
-                        <Icon
-                          icon="basil:other-1-outline"
-                          className="w-5 h-5"
-                        />
-                      </button>
+                        <Icon icon="basil:other-1-solid" className="w-5 h-5" />
+                      </Button>
                       {openMenuId === game.gameId && (
-                        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-black shadow-lg z-dropdown min-w-[140px]" style={{ animation: '100ms ease-out fadeIn' }}>
+                        <div className="absolute right-0 top-full mt-1 bg-fg text-surface shadow-lg z-dropdown min-w-[140px]" style={{ animation: '100ms ease-out fadeIn' }}>
                           <button
                             onClick={() => {
                               setOpenMenuId(null);
                               handleDelete(game.gameId);
                             }}
-                            className="w-full px-4 py-3 text-left font-sans text-body text-red-600 dark:text-red-400 hover:bg-black/10 dark:hover:bg-white/10 transition-colors flex items-center gap-2"
+                            className="w-full px-4 py-3 text-left font-sans text-body font-bold hover:bg-surface/10 transition-colors flex items-center gap-2"
                           >
                             <Icon icon="basil:trash-solid" className="w-4 h-4" />
                             Delete
@@ -186,10 +162,10 @@ export default function GameHistory({ onBack, colorIndex }) {
                                 <Icon
                                   icon="mdi:trophy"
                                   className="w-5 h-5"
-                                  style={{ color: '#facc15' }}
+                                  aria-label="Winner"
                                 />
                               ) : (
-                                <span className="font-sans text-ui opacity-50 text-white dark:text-black">
+                                <span className="font-sans text-ui text-fg/70">
                                   {index + 1}
                                 </span>
                               )}
@@ -198,11 +174,11 @@ export default function GameHistory({ onBack, colorIndex }) {
                               className="w-6 h-6 rounded-full shrink-0"
                               style={{ backgroundColor: player.color }}
                             />
-                            <span className="font-sans text-body text-white dark:text-black">
+                            <span className="font-sans text-body">
                               {player.name?.trim() || `Player ${player.id}`}
                             </span>
                           </div>
-                          <span className="font-sans text-body font-bold tabular-nums text-white dark:text-black">
+                          <span className="font-sans text-body font-bold tabular-nums">
                             {player.totalScore}
                           </span>
                         </div>

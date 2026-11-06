@@ -1,21 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Card } from '../components';
+import { Button, Card, PageHeader } from '../components';
 import SettingToggle from '../components/SettingToggle';
 import ColorSchemeCard from '../components/ColorSchemeCard';
-import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
+import { getColorByScheme } from '../utils/colors';
+import { usePageSurface } from '../hooks/useSurface';
 import { useSettings } from '../context/SettingsContext';
 import { COLOR_SCHEMES } from '../utils/defaultSettings';
 
 export default function Onboarding({ onComplete, colorIndex }) {
   const { settings, updateSetting } = useSettings();
   const [localColorScheme, setLocalColorScheme] = useState(settings.visual.colorScheme);
-  const backgroundColor = getColorByScheme(colorIndex, localColorScheme);
-  const textColor = getTextColorForBackground(backgroundColor);
-
-  useEffect(() => {
-    document.documentElement.style.setProperty('--page-bg', backgroundColor);
-  }, [backgroundColor]);
+  const { style: surfaceStyle } = usePageSurface(getColorByScheme(colorIndex, localColorScheme));
 
   const handleColorSchemeChange = (scheme) => {
     setLocalColorScheme(scheme);
@@ -29,41 +25,24 @@ export default function Onboarding({ onComplete, colorIndex }) {
 
   return (
     <div
-      className="min-h-dvh p-4 md:p-8 transition-colors duration-500"
-      style={{ backgroundColor }}
+      className="min-h-dvh p-4 md:p-8 text-fg transition-colors duration-500"
+      style={surfaceStyle}
     >
       <div className="max-w-4xl mx-auto">
-        {/* Header with Skip */}
-        <div className="flex justify-end mb-6">
-          <button
-            onClick={handleFinish}
-            className="font-sans text-body hover:opacity-70 transition-opacity"
-            style={{ color: textColor }}
-          >
-            Skip
-          </button>
-        </div>
-
-        {/* Welcome Title */}
-        <div className="text-center mb-12">
-          <h1
-            className="font-serif text-title md:text-headline mb-4 text-balance"
-            style={{ color: textColor }}
-          >
-            WELCOME
-          </h1>
-          <p
-            className="font-sans text-body-lg opacity-90 text-pretty"
-            style={{ color: textColor }}
-          >
-            Let&apos;s set up a few things before you start.
-          </p>
-        </div>
+        <PageHeader
+          title="WELCOME"
+          description="Let's set up a few things before you start."
+          actions={(
+            <Button variant="ghost" size="small" onClick={handleFinish} className="text-body">
+              Skip
+            </Button>
+          )}
+        />
 
         {/* Settings Sections */}
         <div className="space-y-6 mb-12">
           <Card padding="medium">
-            <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+            <h2 className="font-serif text-subtitle mb-4 text-balance">
               LOOK & FEEL
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -86,7 +65,7 @@ export default function Onboarding({ onComplete, colorIndex }) {
           </Card>
 
           <Card padding="medium">
-            <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+            <h2 className="font-serif text-subtitle mb-4 text-balance">
               SOUND & FEEDBACK
             </h2>
             <SettingToggle

@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Icon } from '@iconify/react';
-import { Button, Input, Card, PlayerColorPicker } from '../components';
-import { getColorByScheme, getPlayerColorByScheme, getTextColorForBackground } from '../utils/colors';
+import { Button, Input, PageHeader, PlayerColorPicker } from '../components';
+import { getPlayerColorByScheme } from '../utils/colors';
+import { usePageSurface } from '../hooks/useSurface';
 import { useSettings } from '../context/SettingsContext';
 
 /**
@@ -13,13 +14,7 @@ import { useSettings } from '../context/SettingsContext';
 export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
   const { settings } = useSettings();
   const colorScheme = settings.visual.colorScheme;
-  const backgroundColor = getColorByScheme(colorIndex, colorScheme);
-  const textColor = getTextColorForBackground(backgroundColor);
-
-  // Sync background color to html/body for overscroll
-  useEffect(() => {
-    document.documentElement.style.setProperty('--page-bg', backgroundColor);
-  }, [backgroundColor]);
+  const { style: surfaceStyle } = usePageSurface(colorIndex);
 
   const [players, setPlayers] = useState([
     { id: 1, name: '', color: getPlayerColorByScheme(0, colorScheme) },
@@ -87,32 +82,17 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
 
   return (
     <div
-      className="min-h-dvh p-8 transition-colors duration-500"
-      style={{ backgroundColor }}
+      className="min-h-dvh p-8 text-fg transition-colors duration-500"
+      style={surfaceStyle}
     >
       {/* Header */}
       <div className="max-w-2xl mx-auto">
-        <button
-          onClick={onBack}
-          className="font-sans text-body mb-8 hover:opacity-70 transition-opacity flex items-center gap-2"
-          style={{ color: textColor }}
-        >
-          <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
-          Back
-        </button>
-
-        <h1
-          className="font-serif text-title md:text-headline mb-4 text-balance"
-          style={{ color: textColor }}
-        >
-          PLAYERS
-        </h1>
-        <p
-          className="font-sans text-body opacity-90 mb-12 text-pretty"
-          style={{ color: textColor }}
-        >
-          Add 2-6 players to begin (names optional)
-        </p>
+        <PageHeader
+          title="PLAYERS"
+          description="Add 2-6 players to begin (names optional)"
+          onBack={onBack}
+          className="mb-12"
+        />
 
         {/* Player Inputs */}
         <div className="space-y-6 mb-8">
@@ -147,7 +127,6 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
                   onChange={(e) => handleNameChange(player.id, e.target.value)}
                   maxLength={20}
                   autoFocus={index === 0}
-                  textColor={textColor}
                 />
               </div>
 
@@ -160,15 +139,16 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
                   transition: 'width 200ms var(--ease-in-out-cubic), margin-left 200ms var(--ease-in-out-cubic)',
                 }}
               >
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => removePlayer(player.id)}
-                  className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity text-2xl font-bold"
-                  style={{ color: textColor }}
+                  className="w-12 h-12"
                   aria-label={`Remove ${player.name || `Player ${index + 1}`}`}
                   tabIndex={players.length > 2 ? 0 : -1}
                 >
-                  ×
-                </button>
+                  <Icon icon="basil:close-solid" className="w-6 h-6" />
+                </Button>
               </div>
             </div>
             );
@@ -183,7 +163,6 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
             fullWidth
             onClick={addPlayer}
             className="mb-8"
-            textColor={textColor}
           >
             + Add Player
           </Button>
@@ -201,10 +180,7 @@ export default function SingleDeviceSetup({ onStartGame, onBack, colorIndex }) {
         </Button>
 
         {!canStart && (
-          <p
-            className="font-sans text-ui opacity-70 text-center mt-4"
-            style={{ color: textColor }}
-          >
+          <p className="font-sans text-ui text-fg/70 text-center mt-4">
             Add at least 2 players to start
           </p>
         )}

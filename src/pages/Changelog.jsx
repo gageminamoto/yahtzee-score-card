@@ -6,22 +6,14 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
-import { Card } from '../components';
-import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
-import { useSettings } from '../context/SettingsContext';
+import { Card, PageHeader } from '../components';
+import { usePageSurface } from '../hooks/useSurface';
 
 export default function Changelog({ onBack, colorIndex }) {
-  const { settings } = useSettings();
   const [releases, setReleases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
-  const textColor = getTextColorForBackground(backgroundColor);
-
-  // Sync background color to html/body for overscroll
-  useEffect(() => {
-    document.documentElement.style.setProperty('--page-bg', backgroundColor);
-  }, [backgroundColor]);
+  const { style: surfaceStyle } = usePageSurface(colorIndex);
 
   // Fetch releases from GitHub API
   useEffect(() => {
@@ -90,7 +82,7 @@ export default function Changelog({ onBack, colorIndex }) {
         }
         // Handle links
         if (content.includes('[') && content.includes('](')) {
-          content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="underline hover:opacity-70" style="color: inherit;">$1</a>');
+          content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="underline hover:opacity-70">$1</a>');
         }
         processed.push(`<li>${content}</li>`);
       } else {
@@ -103,9 +95,9 @@ export default function Changelog({ onBack, colorIndex }) {
         // Process non-list lines
         // Headers (## or ###)
         if (trimmed.startsWith('### ')) {
-          processed.push(`<h3 class="font-sans text-subtitle text-white dark:text-black mb-2 mt-4">${trimmed.replace('### ', '')}</h3>`);
+          processed.push(`<h3 class="font-sans text-subtitle mb-2 mt-4">${trimmed.replace('### ', '')}</h3>`);
         } else if (trimmed.startsWith('## ')) {
-          processed.push(`<h2 class="font-serif text-title text-white dark:text-black mb-3 mt-6">${trimmed.replace('## ', '')}</h2>`);
+          processed.push(`<h2 class="font-serif text-title mb-3 mt-6">${trimmed.replace('## ', '')}</h2>`);
         } else if (trimmed === '') {
           // Empty lines
           processed.push('<br />');
@@ -118,7 +110,7 @@ export default function Changelog({ onBack, colorIndex }) {
           }
           // Handle links
           if (content.includes('[') && content.includes('](')) {
-            content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="underline hover:opacity-70" style="color: inherit;">$1</a>');
+            content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="underline hover:opacity-70">$1</a>');
           }
           processed.push(`<p class="mb-2">${content}</p>`);
         }
@@ -135,36 +127,18 @@ export default function Changelog({ onBack, colorIndex }) {
 
   return (
     <div
-      className="min-h-dvh p-4 md:p-8 transition-colors duration-500"
-      style={{ backgroundColor }}
+      className="min-h-dvh p-4 md:p-8 text-fg transition-colors duration-500"
+      style={surfaceStyle}
     >
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={onBack}
-            className="font-sans text-body hover:opacity-70 transition-opacity flex items-center gap-2"
-            style={{ color: textColor }}
-          >
-            <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
-            Back
-          </button>
-          <h1
-            className="font-serif text-subtitle md:text-title text-balance"
-            style={{ color: textColor }}
-          >
-            CHANGELOG
-          </h1>
-          <div className="w-20" /> {/* Spacer for centering */}
-        </div>
+        <PageHeader title="CHANGELOG" onBack={onBack} className="mb-6" />
 
         {/* Loading State */}
         {loading && (
           <Card padding="medium">
             <div className="text-center py-8">
               <p
-                className="font-sans text-body text-white dark:text-black"
-                style={{ color: textColor }}
+                className="font-sans text-body"
               >
                 Loading changelog...
               </p>
@@ -177,8 +151,7 @@ export default function Changelog({ onBack, colorIndex }) {
           <Card padding="medium">
             <div className="text-center py-8">
               <p
-                className="font-sans text-body text-white dark:text-black mb-4"
-                style={{ color: textColor }}
+                className="font-sans text-body mb-4"
               >
                 {error}
               </p>
@@ -187,7 +160,6 @@ export default function Changelog({ onBack, colorIndex }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-sans text-body underline hover:opacity-70 transition-opacity inline-block"
-                style={{ color: textColor }}
               >
                 View on GitHub
               </a>
@@ -202,8 +174,7 @@ export default function Changelog({ onBack, colorIndex }) {
               <Card padding="medium">
                 <div className="text-center py-8">
                   <p
-                    className="font-sans text-body text-white dark:text-black mb-4"
-                    style={{ color: textColor }}
+                    className="font-sans text-body mb-4"
                   >
                     No releases yet. Check back soon!
                   </p>
@@ -212,7 +183,6 @@ export default function Changelog({ onBack, colorIndex }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-sans text-body underline hover:opacity-70 transition-opacity inline-block"
-                    style={{ color: textColor }}
                   >
                     View on GitHub
                   </a>
@@ -224,23 +194,20 @@ export default function Changelog({ onBack, colorIndex }) {
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                       <h2
-                        className="font-serif text-title text-white dark:text-black"
-                        style={{ color: textColor }}
+                        className="font-serif text-title"
                       >
                         {release.name || release.tag_name}
                       </h2>
                       {release.prerelease && (
                         <span
-                          className="font-sans text-ui px-3 py-1 bg-white/20 dark:bg-black/20 text-white dark:text-black rounded"
-                          style={{ color: textColor }}
+                          className="font-sans text-ui px-3 py-1 bg-fg/20"
                         >
                           Pre-release
                         </span>
                       )}
                     </div>
                     <p
-                      className="font-sans text-ui opacity-70"
-                      style={{ color: textColor }}
+                      className="font-sans text-ui text-fg/70"
                     >
                       {formatDate(release.published_at)}
                     </p>
@@ -249,8 +216,7 @@ export default function Changelog({ onBack, colorIndex }) {
                   {/* Release Notes */}
                   {release.body && (
                     <div
-                      className="font-sans text-body text-white dark:text-black"
-                      style={{ color: textColor }}
+                      className="font-sans text-body"
                       dangerouslySetInnerHTML={{
                         __html: parseReleaseNotes(release.body),
                       }}
@@ -258,13 +224,12 @@ export default function Changelog({ onBack, colorIndex }) {
                   )}
 
                   {/* GitHub Link */}
-                  <div className="mt-4 pt-4 border-t border-white/20 dark:border-black/20">
+                  <div className="mt-4 pt-4 border-t border-fg/20">
                     <a
                       href={release.html_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-sans text-body underline hover:opacity-70 transition-opacity inline-flex items-center gap-2"
-                      style={{ color: textColor }}
                     >
                       View on GitHub
                       <Icon icon="basil:arrow-right-solid" className="w-4 h-4" />
@@ -284,7 +249,6 @@ export default function Changelog({ onBack, colorIndex }) {
               target="_blank"
               rel="noopener noreferrer"
               className="font-sans text-body underline hover:opacity-70 transition-opacity"
-              style={{ color: textColor }}
             >
               View all releases on GitHub
             </a>

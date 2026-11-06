@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import { Button, Card } from '../components';
-import { getColorByIndex, getTextColorForBackground } from '../utils/colors';
+import { getColorByIndex } from '../utils/colors';
+import { usePageSurface } from '../hooks/useSurface';
+import { cn } from '../utils/cn';
 import { useSettings } from '../context/SettingsContext';
 import { useSession } from '../context/SessionContext';
 import { playTrumpetFanfare, playRevealTick } from '../utils/sounds';
@@ -16,7 +18,6 @@ import { playTrumpetFanfare, playRevealTick } from '../utils/sounds';
  */
 export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gameMode }) {
   const winnerBg = getColorByIndex(colorIndex);
-  const winnerTextColor = getTextColorForBackground(winnerBg);
   const { settings } = useSettings();
   const { isHost, sessionCode, leaveGame } = useSession();
   const timersRef = useRef([]);
@@ -40,7 +41,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
 
   const isNamesVisible = revealPhase === 'names' || revealPhase === 'winner';
   const currentBg = revealPhase === 'winner' ? winnerBg : '#1a1a1a';
-  const currentTextColor = revealPhase === 'winner' ? winnerTextColor : '#FFFFFF';
+  const { style: surfaceStyle } = usePageSurface(currentBg);
 
   const handlePlayAgain = async () => {
     if (isMulti && sessionCode) await leaveGame();
@@ -51,11 +52,6 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
     if (isMulti && sessionCode) await leaveGame();
     onGoHome();
   };
-
-  // Sync background color to html/body for overscroll
-  useEffect(() => {
-    document.documentElement.style.setProperty('--page-bg', currentBg);
-  }, [currentBg]);
 
   // Play fanfare immediately for skipped reveal
   useEffect(() => {
@@ -155,8 +151,8 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
 
   return (
     <div
-      className="min-h-dvh p-8 flex items-center justify-center transition-colors duration-500 relative overflow-hidden"
-      style={{ backgroundColor: currentBg }}
+      className="min-h-dvh p-8 flex items-center justify-center text-fg transition-colors duration-500 relative overflow-hidden"
+      style={surfaceStyle}
       onClick={handleSkip}
     >
       {/* Confetti effect */}
@@ -191,7 +187,6 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
           <div className="text-center animate-fadeIn">
             <h1
               className="font-serif text-headline md:text-display text-balance"
-              style={{ color: currentTextColor }}
             >
               FINAL SCORES
             </h1>
@@ -206,30 +201,26 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
               <div className="text-center mb-8 animate-revealScaleIn">
                 <Icon
                   icon="mdi:trophy"
-                  className="text-[3rem] md:text-[4rem] mx-auto mb-2"
-                  style={{ color: currentTextColor }}
+                  className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-2"
                 />
                 <h1
                   className="font-serif text-headline md:text-display mb-2 text-balance"
-                  style={{ color: currentTextColor }}
                 >
                   WINNER
                 </h1>
                 <div className="flex items-center justify-center gap-3 mb-2">
                   <div
-                    className="w-10 h-10 rounded-full shrink-0 border-2"
-                    style={{ backgroundColor: winner.color, borderColor: currentTextColor + '40' }}
+                    className="w-10 h-10 rounded-full shrink-0 border-2 border-fg/40"
+                    style={{ backgroundColor: winner.color }}
                   />
                   <h2
                     className="font-serif text-title md:text-headline text-balance"
-                    style={{ color: currentTextColor }}
                   >
                     {winner.name.toUpperCase()}
                   </h2>
                 </div>
                 <p
                   className="font-sans text-title md:text-headline text-pretty tabular-nums"
-                  style={{ color: currentTextColor }}
                 >
                   {winner.totalScore} points
                 </p>
@@ -239,8 +230,7 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
             {/* Scores card */}
             <Card padding="medium" className="mb-6">
               <h3
-                className="font-sans text-body-lg font-bold uppercase tracking-wider mb-4 text-center text-balance opacity-70"
-                style={{ color: currentTextColor }}
+                className="font-sans text-body-lg font-bold uppercase tracking-wider mb-4 text-center text-balance text-fg/70"
               >
                 Final Scores
               </h3>
@@ -251,14 +241,15 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
                   return (
                     <div
                       key={player.id}
-                      className={`flex items-center justify-between py-3 px-3 ${
-                        isWinner && revealPhase === 'winner' ? 'bg-bright-green/20 dark:bg-bright-green/20' : ''
-                      } ${revealPhase === 'scores' && visibleScores[0]?.id === player.id ? 'animate-revealSlideUp' : ''}`}
+                      className={cn(
+                        'flex items-center justify-between py-3 px-3',
+                        isWinner && revealPhase === 'winner' && 'bg-fg/20',
+                        revealPhase === 'scores' && visibleScores[0]?.id === player.id && 'animate-revealSlideUp',
+                      )}
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          className="font-sans text-body opacity-50 min-w-[2rem]"
-                          style={{ color: currentTextColor }}
+                          className="font-sans text-body text-fg/70 min-w-[2rem]"
                         >
                           #{rank}
                         </span>
@@ -266,20 +257,18 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
                         {isNamesVisible ? (
                           <>
                             <div
-                              className="w-8 h-8 rounded-full shrink-0 animate-fadeIn border-2"
-                              style={{ backgroundColor: player.color, borderColor: currentTextColor + '40' }}
+                              className="w-8 h-8 rounded-full shrink-0 animate-fadeIn border-2 border-fg/40"
+                              style={{ backgroundColor: player.color }}
                             />
                             <span
                               className="font-sans text-body font-bold animate-fadeIn"
-                              style={{ color: currentTextColor }}
                             >
                               {player.name}
                             </span>
                           </>
                         ) : (
                           <span
-                            className="font-sans text-body opacity-30"
-                            style={{ color: currentTextColor }}
+                            className="font-sans text-body text-fg/70"
                           >
                             ???
                           </span>
@@ -287,7 +276,6 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
                       </div>
                       <span
                         className="font-sans text-body-lg font-bold tabular-nums"
-                        style={{ color: currentTextColor }}
                       >
                         {player.totalScore}
                       </span>
@@ -315,7 +303,6 @@ export default function Winner({ players, onPlayAgain, onGoHome, colorIndex, gam
                   size="medium"
                   fullWidth
                   onClick={handleGoHome}
-                  textColor={currentTextColor}
                 >
                   Home
                 </Button>
