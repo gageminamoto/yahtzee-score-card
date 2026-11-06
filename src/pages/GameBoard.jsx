@@ -339,6 +339,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
             <>
               <QuickSettingsPopover onQuitGame={onQuitGame} />
               <HeaderPill
+                variant="ghost"
                 onClick={handleFinishGame}
                 disabled={!!selectedCategory}
                 aria-label="Finish game and see results"
@@ -351,7 +352,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
         />
 
         {/* Player Switcher */}
-        <div className="relative flex justify-center mb-2 md:mb-4 flex-shrink-0">
+        <div className="relative flex justify-center mb-1 md:mb-3 flex-shrink-0">
           {/* Left fade */}
           <div
             className={`tab-fade tab-fade-left bg-gradient-to-r from-surface to-transparent ${showTabFadeLeft ? 'tab-fade-visible' : 'tab-fade-hidden'}`}
@@ -359,7 +360,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
           />
           <div
             ref={tabContainerRef}
-            className="inline-flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full p-2"
+            className="inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full p-1"
             role="tablist"
             aria-label="Player switcher"
           >
