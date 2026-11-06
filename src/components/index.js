@@ -12,3 +12,6 @@ export { default as PlayerColorPicker } from './PlayerColorPicker.jsx';
 export { default as FooterMenu } from './FooterMenu.jsx';
 export { default as UpperBonusModal } from './UpperBonusModal.jsx';
 export { default as QuickSettingsPopover } from './QuickSettingsPopover.jsx';
+export { default as PageHeader } from './PageHeader.jsx';
+export { default as Modal } from './Modal.jsx';
+export { default as SegmentedControl } from './SegmentedControl.jsx';

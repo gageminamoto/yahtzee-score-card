@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Icon } from '@iconify/react';
-import { Button, Input, PlayerColorPicker } from '../components';
-import { getColorByScheme, getPlayerColorByScheme, getTextColorForBackground } from '../utils/colors';
+import { Button, Input, PageHeader, PlayerColorPicker } from '../components';
+import LobbyPlayerRow from '../components/LobbyPlayerRow';
+import { SessionCancelledOverlay, ConnectionLostBanner } from '../components/SessionNotices';
+import { getPlayerColorByScheme } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
 import { useSession } from '../context/SessionContext';
+import { usePageSurface } from '../hooks/useSurface';
 
 const CODE_LENGTH = 6;
 
 export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initialCode = '', embedded = false }) {
   const { settings } = useSettings();
   const colorScheme = settings.visual.colorScheme;
-  const backgroundColor = getColorByScheme(colorIndex, colorScheme);
-  const textColor = getTextColorForBackground(backgroundColor);
+  const { style: pageStyle } = usePageSurface(colorIndex);
 
   const {
     sessionCode: activeSession,
@@ -44,13 +45,6 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
   const [playerColor, setPlayerColor] = useState(getPlayerColorByScheme(1, colorScheme));
   const [isJoining, setIsJoining] = useState(false);
   const inputRefs = useRef([]);
-
-  // Sync background color to html/body for overscroll
-  useEffect(() => {
-    if (!embedded) {
-      document.documentElement.style.setProperty('--page-bg', backgroundColor);
-    }
-  }, [backgroundColor, embedded]);
 
   // When game status changes to "playing", notify parent
   useEffect(() => {
@@ -141,10 +135,7 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
   const wrapPage = (children) => {
     if (embedded) return children;
     return (
-      <div
-        className="min-h-dvh p-8 transition-colors duration-500"
-        style={{ backgroundColor }}
-      >
+      <div className="min-h-dvh p-8 text-fg transition-colors duration-500" style={pageStyle}>
         {children}
       </div>
     );
@@ -155,130 +146,36 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
     return wrapPage(
       <div className="max-w-2xl mx-auto">
         {sessionStatus === 'cancelled' && (
-          <div className="fixed inset-0 z-[10001] flex items-center justify-center p-6 bg-white/95 dark:bg-black/90">
-            <div className="max-w-md w-full text-center">
-              <h1 className="font-serif text-title text-black dark:text-white mb-3">Session Cancelled</h1>
-              <p className="font-sans text-body text-black/70 dark:text-white/70 mb-6">
-                The host ended the session. You can return home to start a new game.
-              </p>
-              <Button variant="solid" size="large" fullWidth onClick={handleSessionCancelled}>
-                Return Home
-              </Button>
-            </div>
-          </div>
+          <SessionCancelledOverlay onReturnHome={handleSessionCancelled} />
         )}
-        {!isConnected && (
-          <div
-            className="mb-4 text-center py-2 px-4 rounded-lg bg-bright-red/90"
-            role="alert"
-            aria-live="assertive"
-          >
-            <p className="font-sans text-ui font-bold text-white">
-              Connection lost — reconnecting...
-            </p>
-          </div>
-        )}
+        {!isConnected && <ConnectionLostBanner />}
 
-        <button
-          onClick={handleBack}
-          className="font-sans text-body mb-8 hover:opacity-70 transition-opacity flex items-center gap-2"
-          style={{ color: textColor }}
-        >
-          <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
-          Leave
-        </button>
-
-        <div className="text-center mb-8">
-          <Icon
-            icon="basil:clock-solid"
-            className="w-12 h-12 mx-auto mb-4 opacity-60"
-            style={{ color: textColor }}
-          />
-          <h1
-            className="font-serif text-title md:text-headline mb-2 text-balance"
-            style={{ color: textColor }}
-          >
-            WAITING
-          </h1>
-          <p
-            className="font-sans text-body opacity-80 text-pretty"
-            style={{ color: textColor }}
-          >
-            Waiting for host to start the game...
-          </p>
-        </div>
+        <PageHeader
+          title="WAITING"
+          description="Waiting for host to start the game..."
+          onBack={handleBack}
+          backLabel="Leave"
+        />
 
         {/* Session Code Display */}
         <div className="text-center mb-8">
-          <p
-            className="font-sans text-ui uppercase tracking-widest opacity-60 mb-1"
-            style={{ color: textColor }}
-          >
+          <p className="font-sans text-ui uppercase tracking-widest text-fg/70 mb-1">
             Session
           </p>
-          <p
-            className="font-mono text-title font-bold tracking-[0.2em]"
-            style={{ color: textColor }}
-          >
+          <p className="font-mono text-title font-bold tracking-[0.2em]">
             {activeSession}
           </p>
         </div>
 
         {/* Player List */}
         <div>
-          <p
-            className="font-sans text-body-lg font-bold uppercase tracking-wider mb-4"
-            style={{ color: textColor }}
-          >
+          <p className="font-sans text-body-lg font-bold uppercase tracking-wider mb-4">
             Players ({players.length}/6)
           </p>
           <div className="space-y-3">
-            {orderedPlayers.map((player) => {
-              const isYou = player.id === playerId;
-              return (
-                <div
-                  key={player.id}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg"
-                  style={{
-                    backgroundColor: isYou
-                      ? (textColor === '#000000'
-                        ? 'rgba(0, 0, 0, 0.15)'
-                        : 'rgba(255, 255, 255, 0.2)')
-                      : (textColor === '#000000'
-                        ? 'rgba(0, 0, 0, 0.08)'
-                        : 'rgba(255, 255, 255, 0.12)'),
-                  }}
-                >
-                  <div
-                    className="w-8 h-8 rounded-full shrink-0"
-                    style={{ backgroundColor: player.color }}
-                  />
-                  <span
-                    className="font-sans text-body font-bold flex-1"
-                    style={{ color: textColor }}
-                  >
-                    {player.name}
-                    {isYou && (
-                      <span className="opacity-60 font-normal ml-2">(You)</span>
-                    )}
-                  </span>
-                  {player.isHost && (
-                    <span
-                      className="font-sans text-ui uppercase opacity-60"
-                      style={{ color: textColor }}
-                    >
-                      Host
-                    </span>
-                  )}
-                  <div
-                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                      player.isConnected ? 'bg-bright-green' : 'bg-bright-red'
-                    }`}
-                    aria-label={player.isConnected ? 'Connected' : 'Disconnected'}
-                  />
-                </div>
-              );
-            })}
+            {orderedPlayers.map((player) => (
+              <LobbyPlayerRow key={player.id} player={player} isYou={player.id === playerId} />
+            ))}
           </div>
         </div>
       </div>
@@ -289,42 +186,15 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
   return wrapPage(
     <div className="max-w-2xl mx-auto">
       {sessionStatus === 'cancelled' && (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-6 bg-white/95 dark:bg-black/90">
-          <div className="max-w-md w-full text-center">
-            <h1 className="font-serif text-title text-black dark:text-white mb-3">Session Cancelled</h1>
-            <p className="font-sans text-body text-black/70 dark:text-white/70 mb-6">
-              The host ended the session. You can return home to start a new game.
-            </p>
-            <Button variant="solid" size="large" fullWidth onClick={handleSessionCancelled}>
-              Return Home
-            </Button>
-          </div>
-        </div>
-      )}
+          <SessionCancelledOverlay onReturnHome={handleSessionCancelled} />
+        )}
       {!embedded && (
-        <>
-          <button
-            onClick={onBack}
-            className="font-sans text-body mb-8 hover:opacity-70 transition-opacity flex items-center gap-2"
-            style={{ color: textColor }}
-          >
-            <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
-            Back
-          </button>
-
-          <h1
-            className="font-serif text-title md:text-headline mb-4 text-balance"
-            style={{ color: textColor }}
-          >
-            JOIN GAME
-          </h1>
-          <p
-            className="font-sans text-body opacity-90 mb-10 text-pretty"
-            style={{ color: textColor }}
-          >
-            Enter the 6-character code to join a session
-          </p>
-        </>
+        <PageHeader
+          title="JOIN GAME"
+          description="Enter the 6-character code to join a session"
+          onBack={onBack}
+          className="mb-10"
+        />
       )}
 
       {/* Code Input */}
@@ -340,17 +210,7 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
             onChange={(e) => handleCodeInput(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             autoFocus={index === 0 && !initialCode}
-            className="w-12 h-16 md:w-14 md:h-18 text-center font-mono text-title font-bold border-2 rounded-lg outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent transition-[border-color,background-color,box-shadow] duration-100 uppercase"
-            style={{
-              borderColor: textColor === '#000000'
-                ? 'rgba(0, 0, 0, 0.3)'
-                : 'rgba(255, 255, 255, 0.4)',
-              backgroundColor: textColor === '#000000'
-                ? 'rgba(0, 0, 0, 0.08)'
-                : 'rgba(255, 255, 255, 0.12)',
-              color: textColor,
-              '--tw-ring-color': textColor,
-            }}
+            className="w-12 h-16 md:w-14 md:h-18 text-center font-mono text-title font-bold uppercase border-2 border-fg/40 bg-fg/10 text-fg outline-none focus:border-fg transition-[border-color,background-color] duration-100"
             aria-label={`Code character ${index + 1}`}
           />
         ))}
@@ -371,19 +231,13 @@ export default function MultiDeviceJoin({ onBack, onGameStart, colorIndex, initi
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               maxLength={20}
-              textColor={textColor}
             />
           </div>
         </div>
       </div>
 
       {error && (
-        <p
-          className="font-sans text-body mb-4 text-center font-bold"
-          style={{ color: textColor }}
-        >
-          {error}
-        </p>
+        <p className="font-sans text-body mb-4 text-center font-bold">{error}</p>
       )}
 
       <Button

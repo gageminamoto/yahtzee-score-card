@@ -1,31 +1,19 @@
 import PropTypes from 'prop-types';
+import { cn } from '../utils/cn';
 
 /**
- * Card component for content grouping:
- * - Bold borders
- * - Clean geometric shapes
- * - Flexible background colors
+ * Card for grouping content: a subtle fg-tinted panel on the current surface.
  */
-export default function Card({
-  children,
-  className = '',
-  padding = 'medium',
-  border = true,
-}) {
-  // Use theme-aware overlay colors that work in both light and dark modes
-  const baseStyles = "bg-black/20 dark:bg-white/20";
-  const borderStyles = "";
+const PADDING = {
+  none: 'p-0',
+  small: 'p-3',
+  medium: 'p-6',
+  large: 'p-8',
+};
 
-  const paddingStyles = {
-    none: "p-0",
-    xs: "p-2",
-    small: "p-3",
-    medium: "p-6",
-    large: "p-8",
-  };
-
+export default function Card({ children, className, padding = 'medium' }) {
   return (
-    <div className={`${baseStyles} ${borderStyles} ${paddingStyles[padding]} ${className}`}>
+    <div className={cn('bg-fg/10 text-fg', PADDING[padding], className)}>
       {children}
     </div>
   );
@@ -34,6 +22,5 @@ export default function Card({
 Card.propTypes = {
   children: PropTypes.node.isRequired,
   className: PropTypes.string,
-  padding: PropTypes.oneOf(['none', 'xs', 'small', 'medium', 'large']),
-  border: PropTypes.bool,
+  padding: PropTypes.oneOf(['none', 'small', 'medium', 'large']),
 };

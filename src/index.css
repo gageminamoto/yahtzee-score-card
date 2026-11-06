@@ -16,6 +16,11 @@
   /* Page background - used by html/body for overscroll color */
   --page-bg: #FFFFFF;
 
+  /* Surface tokens (RGB triplets) - overridden per surface by utils/theme.js.
+     Tailwind exposes them as `fg` and `surface`: text-fg, bg-fg/20, text-surface */
+  --fg: 255 255 255;
+  --surface: 0 0 0;
+
   /* CMYK Color Palette - work in both light and dark modes */
   --color-electric-blue: #0066FF;
   --color-hot-magenta: #FF0099;
@@ -27,17 +32,6 @@
   --color-white: #FFFFFF;
   --color-black: #000000;
 
-  /* Light Mode Theme Colors */
-  --bg-surface: #FFFFFF;
-  --bg-overlay: rgba(0, 0, 0, 0.2);
-  --bg-overlay-hover: rgba(0, 0, 0, 0.3);
-  --bg-overlay-active: rgba(0, 0, 0, 0.4);
-  --text-primary: #000000;
-  --text-secondary: rgba(0, 0, 0, 0.7);
-  --text-muted: rgba(0, 0, 0, 0.5);
-  --border-color: rgba(255, 255, 255, 1);
-  --border-color-muted: rgba(255, 255, 255, 0.5);
-  --border-color-subtle: rgba(255, 255, 255, 0.2);
 
   /* Typography */
   --font-serif: 'Instrument Serif', serif;
@@ -69,20 +63,6 @@
   --font-size-multiplier: 1;
   --button-min-height: 60px;
   --animation-duration: 200ms;
-}
-
-/* Dark Mode Theme Colors */
-.dark {
-  --bg-surface: #1a1a1a;
-  --bg-overlay: rgba(255, 255, 255, 0.2);
-  --bg-overlay-hover: rgba(255, 255, 255, 0.3);
-  --bg-overlay-active: rgba(255, 255, 255, 0.4);
-  --text-primary: #FFFFFF;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-muted: rgba(255, 255, 255, 0.5);
-  --border-color: rgba(255, 255, 255, 1);
-  --border-color-muted: rgba(255, 255, 255, 0.5);
-  --border-color-subtle: rgba(255, 255, 255, 0.2);
 }
 
 * {
@@ -293,16 +273,6 @@ button {
   pointer-events: none;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .scroll-indicator-visible:hover {
-    background-color: rgba(255, 255, 255, 0.35);
-  }
-
-  .dark .scroll-indicator-visible:hover {
-    background-color: rgba(0, 0, 0, 0.35);
-  }
-}
-
 .animate-slideUp {
   animation: slideUp var(--animation-duration) var(--ease-out-quart);
 }
@@ -365,14 +335,6 @@ button {
 .high-contrast * {
   border-width: var(--border-width) !important;
 }
-
-.high-contrast .bg-opacity-20,
-.high-contrast .bg-opacity-30 {
-  opacity: 1 !important;
-}
-
-/* Dark Mode - Now handled via CSS variables and Tailwind dark: variants */
-/* Removed filter-based dark mode in favor of proper theme system */
 
 /* Reduced Motion - disable all animations */
 @media (prefers-reduced-motion: reduce) {

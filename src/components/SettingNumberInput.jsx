@@ -3,20 +3,11 @@
  */
 
 import PropTypes from 'prop-types';
+import SettingRow from './SettingRow';
+
+const STEP_BUTTON = 'w-12 h-12 bg-fg text-surface font-sans text-body-lg font-bold hover:bg-fg/85 disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.97] transition-[transform,background-color,opacity] duration-100 ease-out';
 
 export default function SettingNumberInput({ label, description, value, min, max, onChange }) {
-  const handleIncrement = () => {
-    if (value < max) {
-      onChange(value + 1);
-    }
-  };
-
-  const handleDecrement = () => {
-    if (value > min) {
-      onChange(value - 1);
-    }
-  };
-
   const handleInputChange = (e) => {
     const newValue = parseInt(e.target.value);
     if (!isNaN(newValue) && newValue >= min && newValue <= max) {
@@ -25,22 +16,14 @@ export default function SettingNumberInput({ label, description, value, min, max
   };
 
   return (
-    <div className="py-4 border-b-2 border-white/20 dark:border-black/20 last:border-0">
-      <div className="mb-3">
-        <div className="font-sans text-body font-bold text-white dark:text-black mb-1">
-          {label}
-        </div>
-        {description && (
-          <div className="font-sans text-ui text-white/70 dark:text-black/70">
-            {description}
-          </div>
-        )}
-      </div>
+    <SettingRow label={label} description={description}>
       <div className="flex items-center gap-4">
         <button
-          onClick={handleDecrement}
+          type="button"
+          onClick={() => value > min && onChange(value - 1)}
           disabled={value <= min}
-          className="w-12 h-12 bg-white dark:bg-black text-black dark:text-white font-sans text-body-lg font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-opacity-90 dark:hover:bg-opacity-90 active:scale-[0.97] transition-[transform,opacity] duration-100 ease-out"
+          aria-label={`Decrease ${label}`}
+          className={STEP_BUTTON}
         >
           −
         </button>
@@ -50,17 +33,20 @@ export default function SettingNumberInput({ label, description, value, min, max
           onChange={handleInputChange}
           min={min}
           max={max}
-          className="flex-1 h-12 px-4 bg-white dark:bg-black text-black dark:text-white font-sans text-body-lg font-bold text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          aria-label={label}
+          className="flex-1 h-12 px-4 bg-fg/10 border-2 border-fg/40 focus:border-fg outline-none text-fg font-sans text-body-lg font-bold text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
         <button
-          onClick={handleIncrement}
+          type="button"
+          onClick={() => value < max && onChange(value + 1)}
           disabled={value >= max}
-          className="w-12 h-12 bg-white dark:bg-black text-black dark:text-white font-sans text-body-lg font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-opacity-90 dark:hover:bg-opacity-90 active:scale-[0.97] transition-[transform,opacity] duration-100 ease-out"
+          aria-label={`Increase ${label}`}
+          className={STEP_BUTTON}
         >
           +
         </button>
       </div>
-    </div>
+    </SettingRow>
   );
 }
 
