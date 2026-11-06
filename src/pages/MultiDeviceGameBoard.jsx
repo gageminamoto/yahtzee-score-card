@@ -211,10 +211,12 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
 
     // Check bonus (locally since Firebase update is async)
     const isUpperCategory = upperCategoryIds.includes(selectedCategory);
+    let bonusJustEarned = false;
     if (isUpperCategory) {
       const newUpperSum = oldUpperSum + score - (myScorecard[selectedCategory] ?? 0);
       const threshold = getUpperBonusThreshold(scoringSettings);
       if (oldUpperSum < threshold && newUpperSum >= threshold) {
+        bonusJustEarned = true;
         setBonusModalPlayer({
           name: myPlayer?.name || 'You',
           color: myPlayer?.color || '#333',
@@ -224,7 +226,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
 
     if (isSoundEnabled()) {
       playScoreConfirm();
-      if (bonusModalPlayer) {
+      if (bonusJustEarned) {
         setTimeout(() => playUpperBonus(), 300);
       }
     }
@@ -386,7 +388,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
           categoryId={selectedCategory}
           onSubmit={handleScoreSubmit}
           onCancel={handleScoreCancel}
-          initialScore={myScorecard[selectedCategory] ?? 0}
+          initialScore={myScorecard[selectedCategory] ?? null}
           playerColor={backgroundColor}
         />
       )}

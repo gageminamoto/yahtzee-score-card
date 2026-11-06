@@ -1,78 +1,67 @@
-import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { getCategoryById } from '../utils/gameConstants';
 import { getValidScoresForCategory } from '../utils/scoring';
+import { cn } from '../utils/cn';
 
-const FINE_TUNE_BUTTON = 'px-6 py-3 bg-fg/10 text-fg font-sans text-body-lg hover:bg-fg/20 active:scale-[0.97] transition-[background-color,transform] duration-150 disabled:opacity-30 disabled:cursor-not-allowed';
+const OPTION = 'font-sans text-body-lg tabular-nums transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.95] focus:outline-none focus-visible:ring-2 focus-visible:ring-fg';
+const FINE_TUNE_BUTTON = 'h-12 bg-fg/10 text-fg font-sans text-body hover:bg-fg/20 active:scale-[0.97] transition-[background-color,transform] duration-150 disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-fg';
 
 /**
- * Quick Input Component
- * Shows category-aware preset buttons for quick score selection
- * Upper section: multiples of die value (0 to 5×value)
- * Lower variable: common presets (0, 10, 15, 20, 25) + fine-tune
+ * Category-aware preset buttons (controlled).
+ *
+ * Upper section: one button per non-zero multiple of the die value. These are
+ * exact scores, so when `onCommit` is given a tap submits straight away.
+ * Lower variable (3/4 of a Kind, Chance): 10-25 starting points plus a fine
+ * tune row with a compact readout; these always select, never submit.
+ * Scoring 0 is a separate, explicit "Scratch (0)" button.
+ *
+ * @param value    currently selected score, or null for none
+ * @param onChange select a score (the parent shows a Confirm button)
+ * @param onCommit optional: submit an exact score immediately
  */
-export default function QuickInput({ categoryId, onScoreChange }) {
-  const [selectedScore, setSelectedScore] = useState(null);
+export default function QuickInput({ categoryId, value, onChange, onCommit }) {
   const category = getCategoryById(categoryId);
-  
-  // Get valid scores for this category
-  const rawScores = getValidScoresForCategory(categoryId);
+  if (!category) return null;
 
-  // For lower variable categories, we'll show presets + fine-tune
-  const isLowerVariable = category?.section === 'lower' &&
-                          category?.maxScore !== undefined &&
-                          !category?.fixedScore;
+  const isLowerVariable = category.section === 'lower' &&
+                          category.maxScore !== undefined &&
+                          category.fixedScore === undefined;
 
-  // Filter presets for lower variable categories: 0, 10, 15, 20, 25 (skip 5 and 30)
-  const validScores = isLowerVariable
-    ? rawScores.filter(score => [0, 10, 15, 20, 25].includes(score))
+  const rawScores = getValidScoresForCategory(categoryId).filter(score => score > 0);
+  const presets = isLowerVariable
+    ? rawScores.filter(score => [10, 15, 20, 25].includes(score))
     : rawScores;
 
-  // Handle preset button click
-  const handlePresetClick = (score) => {
-    setSelectedScore(score);
-    onScoreChange(score);
-  };
+  // Exact scores submit immediately when the parent allows it
+  const pickExact = (score) => (onCommit ? onCommit(score) : onChange(score));
+  const handlePresetClick = (score) => (isLowerVariable ? onChange(score) : pickExact(score));
 
-  // Fine-tune handlers for lower variable categories
   const handleFineTune = (delta) => {
-    if (selectedScore === null) {
-      // Start from 0 if nothing selected
-      const newScore = Math.max(0, Math.min(delta, category.maxScore));
-      setSelectedScore(newScore);
-      onScoreChange(newScore);
-    } else {
-      const newScore = Math.max(0, Math.min(selectedScore + delta, category.maxScore));
-      setSelectedScore(newScore);
-      onScoreChange(newScore);
-    }
+    const base = value ?? 0;
+    onChange(Math.max(0, Math.min(base + delta, category.maxScore)));
   };
 
-  // Reset when category changes
-  useEffect(() => {
-    setSelectedScore(null);
-  }, [categoryId]);
+  // Selection highlights only matter when a tap selects rather than submits
+  const showsSelection = (score) => (isLowerVariable || !onCommit) && value === score;
+  const scratchSelected = !onCommit && value === 0;
 
   return (
-    <div className="space-y-4">
-      {/* Preset Buttons Grid */}
-      <div className={`grid gap-3 ${
-        validScores.length <= 5 ? 'grid-cols-5' : 'grid-cols-6'
-      }`}>
-        {validScores.map((score) => {
-          const isSelected = selectedScore === score;
+    <div className="space-y-3">
+      <div className={cn('grid gap-2', presets.length <= 4 ? 'grid-cols-4' : 'grid-cols-5')}>
+        {presets.map((score) => {
+          const isSelected = showsSelection(score);
           return (
             <button
               key={score}
+              type="button"
               onClick={() => handlePresetClick(score)}
-              aria-pressed={isSelected}
-              className={`
-                py-4 px-4
-                font-sans text-body-lg
-                transition-[background-color,color,transform] duration-150 ease-out
-                active:scale-[0.95]
-                ${isSelected ? 'bg-fg text-surface' : 'bg-fg/10 text-fg hover:bg-fg/20'}
-              `}
+              aria-pressed={isLowerVariable || !onCommit ? isSelected : undefined}
+              aria-label={!isLowerVariable && onCommit ? `Score ${score}` : undefined}
+              className={cn(
+                OPTION,
+                'h-14',
+                isSelected ? 'bg-fg text-surface' : 'bg-fg/10 text-fg hover:bg-fg/20',
+              )}
             >
               {score}
             </button>
@@ -80,49 +69,73 @@ export default function QuickInput({ categoryId, onScoreChange }) {
         })}
       </div>
 
-      {/* Fine-tune controls for lower variable categories */}
+      {/* Fine-tune with compact readout for lower variable categories */}
       {isLowerVariable && (
-        <div className="space-y-3 pt-2 border-t border-fg/20">
-          <p className="font-sans text-ui text-center text-fg/70">
-            Fine tune:
-          </p>
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={() => handleFineTune(-5)}
-              disabled={selectedScore !== null && selectedScore <= 0}
-              className={FINE_TUNE_BUTTON}
-            >
-              -5
-            </button>
-            <button
-              onClick={() => handleFineTune(-1)}
-              disabled={selectedScore !== null && selectedScore <= 0}
-              className={FINE_TUNE_BUTTON}
-            >
-              -1
-            </button>
-            <button
-              onClick={() => handleFineTune(1)}
-              disabled={selectedScore !== null && selectedScore >= category.maxScore}
-              className={FINE_TUNE_BUTTON}
-            >
-              +1
-            </button>
-            <button
-              onClick={() => handleFineTune(5)}
-              disabled={selectedScore !== null && selectedScore >= category.maxScore}
-              className={FINE_TUNE_BUTTON}
-            >
-              +5
-            </button>
-          </div>
+        <div className="grid grid-cols-5 gap-2 items-center" role="group" aria-label="Fine tune score">
+          <button
+            type="button"
+            onClick={() => handleFineTune(-5)}
+            disabled={value === null || value <= 0}
+            className={FINE_TUNE_BUTTON}
+            aria-label="Minus 5"
+          >
+            -5
+          </button>
+          <button
+            type="button"
+            onClick={() => handleFineTune(-1)}
+            disabled={value === null || value <= 0}
+            className={FINE_TUNE_BUTTON}
+            aria-label="Minus 1"
+          >
+            -1
+          </button>
+          <output
+            className="h-12 flex items-center justify-center font-serif text-body-lg tabular-nums border-2 border-fg/40"
+            aria-live="polite"
+            aria-label="Selected score"
+          >
+            {value ?? '–'}
+          </output>
+          <button
+            type="button"
+            onClick={() => handleFineTune(1)}
+            disabled={value !== null && value >= category.maxScore}
+            className={FINE_TUNE_BUTTON}
+            aria-label="Plus 1"
+          >
+            +1
+          </button>
+          <button
+            type="button"
+            onClick={() => handleFineTune(5)}
+            disabled={value !== null && value >= category.maxScore}
+            className={FINE_TUNE_BUTTON}
+            aria-label="Plus 5"
+          >
+            +5
+          </button>
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={() => pickExact(0)}
+        aria-pressed={!onCommit ? scratchSelected : undefined}
+        className={cn(
+          'w-full h-11 font-sans text-ui font-bold uppercase border-2 transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-fg',
+          scratchSelected ? 'bg-fg text-surface border-fg' : 'border-fg/40 text-fg/70 hover:text-fg hover:bg-fg/10',
+        )}
+      >
+        Scratch (0)
+      </button>
     </div>
   );
 }
 
 QuickInput.propTypes = {
   categoryId: PropTypes.string.isRequired,
-  onScoreChange: PropTypes.func.isRequired,
+  value: PropTypes.number,
+  onChange: PropTypes.func.isRequired,
+  onCommit: PropTypes.func,
 };

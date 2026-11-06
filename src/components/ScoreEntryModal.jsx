@@ -15,12 +15,21 @@ import useIsMobile from '../hooks/useIsMobile';
 
 /**
  * Score entry UI — renders as a Vaul bottom drawer on mobile,
- * and the original centered modal on desktop (md+).
+ * and a centered modal on desktop (md+).
+ *
+ * New entries open with nothing selected. With `instantSubmit`, exact
+ * choices (upper presets, fixed scores, Scratch) submit on tap; the parent is
+ * expected to offer an undo. Otherwise, and when editing an already-scored
+ * category (`initialScore` is a number), a choice selects and Confirm submits.
  */
-export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initialScore = 0, playerColor }) {
+export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initialScore = null, playerColor, instantSubmit = false }) {
   const isMobile = useIsMobile();
+  const initial = initialScore ?? null;
+  const isEditing = initial !== null;
+  const commitImmediately = instantSubmit && !isEditing;
+
   const [activeTab, setActiveTab] = useState(() => getInputMode());
-  const [score, setScore] = useState(initialScore);
+  const [score, setScore] = useState(initial);
   const category = getCategoryById(categoryId);
   const surface = useSurface();
   const { style: surfaceStyle } = surface(playerColor || playerColors[0]);
@@ -32,21 +41,19 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
     setInputMode(activeTab);
   }, [activeTab]);
 
-  // Reset score when category changes
-  useEffect(() => {
-    setScore(initialScore);
-  }, [categoryId, initialScore]);
+  const isValid = score !== null && isValidScore(categoryId, score);
 
-  if (!category) return null;
-
-  const handleScoreChange = (newScore) => setScore(newScore);
-  const handleTabChange = (tabId) => setActiveTab(tabId);
+  const commit = useCallback((value) => {
+    if (!isValidScore(categoryId, value)) return;
+    if (categoryId === 'yahtzee' && value === 50 && isSoundEnabled()) {
+      playYahtzeeSound();
+    }
+    onSubmit(value);
+  }, [categoryId, onSubmit]);
 
   const handleSubmit = useCallback(() => {
-    if (isValidScore(categoryId, score)) {
-      onSubmit(score);
-    }
-  }, [categoryId, score, onSubmit]);
+    if (score !== null) commit(score);
+  }, [score, commit]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -57,8 +64,10 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
         return;
       }
 
-      if (e.key === 'Enter' && isValidScore(categoryId, score)) {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      if (e.key === 'Enter' && isValid) {
+        // Let Enter on an option button select that option instead
+        const isOption = e.target.hasAttribute?.('aria-pressed');
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !isOption) {
           e.preventDefault();
           handleSubmit();
         }
@@ -66,45 +75,69 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
     };
 
     window.addEventListener('keydown', handleKeyDown);
-
-    // Focus management for desktop modal
-    if (!isMobile) {
-      const focusTimer = setTimeout(() => {
-        if (firstTabRef.current) firstTabRef.current.focus();
-        else if (modalRef.current) modalRef.current.focus();
-      }, 100);
-      return () => {
-        window.removeEventListener('keydown', handleKeyDown);
-        clearTimeout(focusTimer);
-      };
-    }
-
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isMobile, categoryId, score, onCancel, handleSubmit]);
+  }, [isMobile, isValid, onCancel, handleSubmit]);
 
-  const handleFixedScoreClick = (scoreValue) => {
-    if (isValidScore(categoryId, scoreValue)) {
-      if (categoryId === 'yahtzee' && scoreValue === 50 && isSoundEnabled()) {
-        playYahtzeeSound();
-      }
-      onSubmit(scoreValue);
-    }
+  // Focus management for desktop modal
+  useEffect(() => {
+    if (isMobile) return undefined;
+    const focusTimer = setTimeout(() => {
+      if (firstTabRef.current) firstTabRef.current.focus();
+      else if (modalRef.current) modalRef.current.focus();
+    }, 100);
+    return () => clearTimeout(focusTimer);
+  }, [isMobile]);
+
+  if (!category) return null;
+
+  const handleTabChange = (tabId) => {
+    if (tabId === activeTab) return;
+    setActiveTab(tabId);
+    // A score built in one mode shouldn't carry into the other
+    setScore(initial);
   };
 
-  const isValid = isValidScore(categoryId, score);
   const isFixedScoreCategory = category.fixedScore !== undefined;
+  const isUpper = category.section === 'upper';
+  // Quick-mode upper presets submit on tap, so no Confirm is needed there
+  const needsConfirm = !commitImmediately || activeTab === 'dice' || (!isUpper && !isFixedScoreCategory);
+
+  const confirmLabel = score === null
+    ? 'Confirm'
+    : `${isEditing ? 'Save' : 'Score'} ${score}`;
+
+  const confirmButton = (
+    <Button variant="solid" size="medium" fullWidth onClick={handleSubmit} disabled={!isValid}>
+      {confirmLabel}
+    </Button>
+  );
+
+  const fixedOption = (value, label, primary) => {
+    const selected = !commitImmediately && score === value;
+    return (
+      <Button
+        variant={selected || (commitImmediately && primary) ? 'solid' : 'outline'}
+        size="medium"
+        fullWidth
+        onClick={() => (commitImmediately ? commit(value) : setScore(value))}
+        aria-pressed={commitImmediately ? undefined : selected}
+      >
+        {label}
+      </Button>
+    );
+  };
 
   /* ---- shared inner content ---- */
   const content = (
     <>
       {/* Category Info */}
-      <div className="mb-4 md:mb-6">
+      <div className="mb-4">
         {isMobile ? (
-          <Drawer.Title className="font-serif text-subtitle md:text-title mb-2">
+          <Drawer.Title className="font-serif text-subtitle md:text-title mb-1">
             {category.name.toUpperCase()}
           </Drawer.Title>
         ) : (
-          <h2 id="modal-title" className="font-serif text-subtitle md:text-title mb-2">
+          <h2 id="modal-title" className="font-serif text-subtitle md:text-title mb-1">
             {category.name.toUpperCase()}
           </h2>
         )}
@@ -115,12 +148,9 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
 
       {isFixedScoreCategory ? (
         <div className="space-y-3">
-          <Button variant="solid" size="medium" fullWidth onClick={() => handleFixedScoreClick(category.fixedScore)}>
-            Add {category.fixedScore} Points
-          </Button>
-          <Button variant="outline" size="medium" fullWidth onClick={() => handleFixedScoreClick(0)}>
-            Zero Out (0 Points)
-          </Button>
+          {fixedOption(category.fixedScore, `Add ${category.fixedScore} Points`, true)}
+          {fixedOption(0, 'Scratch (0)', false)}
+          {!commitImmediately && confirmButton}
         </div>
       ) : (
         <>
@@ -130,31 +160,26 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
             firstTabRef={isMobile ? undefined : firstTabRef}
           />
 
-          <div className="mb-4 md:mb-6">
-            <div className="bg-fg/10 p-4 md:p-6 text-center">
-              <div className="font-sans text-subtitle md:text-headline min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums">
-                {score}
-              </div>
-            </div>
-            {!isValid && score !== 0 && (
-              <p className="font-sans text-ui text-bright-red mt-2 text-center">
+          <div id={`tabpanel-${activeTab}`} role="tabpanel" className="mb-4">
+            {activeTab === 'dice' && (
+              <DiceInput categoryId={categoryId} onScoreChange={setScore} />
+            )}
+            {activeTab === 'quick' && (
+              <QuickInput
+                categoryId={categoryId}
+                value={score}
+                onChange={setScore}
+                onCommit={commitImmediately ? commit : undefined}
+              />
+            )}
+            {score !== null && !isValid && (
+              <p className="font-sans text-ui text-bright-red mt-2 text-center" role="alert">
                 Invalid score for this category
               </p>
             )}
           </div>
 
-          <div className="mb-4 md:mb-6">
-            {activeTab === 'dice' && (
-              <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} />
-            )}
-            {activeTab === 'quick' && (
-              <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} />
-            )}
-          </div>
-
-          <Button variant="solid" size="medium" fullWidth onClick={handleSubmit} disabled={!isValid}>
-            Confirm
-          </Button>
+          {needsConfirm && confirmButton}
         </>
       )}
     </>
@@ -171,11 +196,11 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
             aria-describedby={undefined}
           >
             <div
-              className="mx-auto max-w-md w-full p-6 text-fg"
+              className="mx-auto max-w-md w-full px-6 pt-3 pb-6 text-fg"
               style={surfaceStyle}
             >
               {/* Drag Handle */}
-              <div className="flex justify-center mb-4">
+              <div className="flex justify-center mb-3">
                 <div className="w-10 h-1.5 rounded-full bg-fg/40" />
               </div>
               {content}
@@ -223,6 +248,9 @@ ScoreEntryModal.propTypes = {
   categoryId: PropTypes.string.isRequired,
   onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
+  /** Existing score when editing; null/undefined for a new entry */
   initialScore: PropTypes.number,
   playerColor: PropTypes.string,
+  /** Submit exact choices on tap (the parent must offer an undo) */
+  instantSubmit: PropTypes.bool,
 };

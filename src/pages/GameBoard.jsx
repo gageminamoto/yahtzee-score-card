@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
 import QuickSettingsPopover from '../components/QuickSettingsPopover';
+import UndoToast from '../components/UndoToast';
 import { Button, ConfirmDialog, UpperBonusModal } from '../components';
 import { GameHeader, HeaderPill, PlayerTab, ScrollMore } from '../components/GameBoardParts';
 import {
@@ -13,7 +14,7 @@ import {
   isGameComplete,
   isCategoryScored,
 } from '../utils/scoring';
-import { ALL_CATEGORIES, TOTAL_ROUNDS, UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
+import { ALL_CATEGORIES, TOTAL_ROUNDS, UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints, getCategoryById } from '../utils/gameConstants';
 import { useSettings } from '../context/SettingsContext';
 import { usePageSurface } from '../hooks/useSurface';
 import { isSoundEnabled, playScoreConfirm, playUpperBonus, playTurnChange } from '../utils/sounds';
@@ -41,6 +42,8 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
   const [bonusModalPlayer, setBonusModalPlayer] = useState(null);
+  // Last score entry that can be undone: { id, message, snapshot }
+  const [undoEntry, setUndoEntry] = useState(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const [showTabFadeLeft, setShowTabFadeLeft] = useState(false);
   const [showTabFadeRight, setShowTabFadeRight] = useState(false);
@@ -187,6 +190,8 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
   };
 
   const handleCategoryClick = (categoryId) => {
+    // Starting another entry ends the undo window for the previous one
+    setUndoEntry(null);
     setSelectedCategory(categoryId);
   };
 
@@ -199,13 +204,15 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
     // Capture upper section sum before scoring for bonus detection
     const oldUpperSum = calculateUpperSectionSum(currentPlayer.scorecard);
 
-    // Update the player's scorecard
-    const updatedPlayers = [...players];
-    updatedPlayers[currentPlayerIndex].scorecard = updateScorecard(
-      currentPlayer.scorecard,
-      selectedCategory,
-      score
-    );
+    // Everything this submit changes, so Undo can put it back exactly
+    const snapshot = { players, currentPlayerIndex, bonusModalPlayer };
+
+    // Update the player's scorecard (without mutating the previous state)
+    const updatedPlayers = players.map((p, i) => (
+      i === currentPlayerIndex
+        ? { ...p, scorecard: updateScorecard(p.scorecard, selectedCategory, score) }
+        : p
+    ));
 
     // Check if upper bonus was just unlocked
     const bonusJustEarned = upperCategoryIds.includes(selectedCategory) && (() => {
@@ -234,6 +241,18 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
     // This ensures the UI and finish game button always have current scores
     setPlayers(updatedPlayers);
     setSelectedCategory(null);
+
+    const playerName = currentPlayer.name || `Player ${currentPlayerIndex + 1}`;
+    const categoryName = getCategoryById(selectedCategory)?.name ?? selectedCategory;
+    setUndoEntry((prev) => ({
+      id: (prev?.id ?? 0) + 1,
+      snapshot,
+      message: isEditing
+        ? `${categoryName} changed to ${score}`
+        : score === 0
+          ? `${playerName} scratched ${categoryName}`
+          : `${playerName} scored ${score} in ${categoryName}`,
+    }));
 
     // Only advance to the next player if this was a new score, not an edit
     if (!isEditing) {
@@ -275,6 +294,19 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
 
   const handleScoreCancel = () => {
     setSelectedCategory(null);
+  };
+
+  // Restore the state from before the last score entry
+  const handleUndo = () => {
+    if (!undoEntry) return;
+    const { snapshot } = undoEntry;
+    setPlayers(snapshot.players);
+    setCurrentPlayerIndex(snapshot.currentPlayerIndex);
+    setBonusModalPlayer(snapshot.bonusModalPlayer);
+    setUndoEntry(null);
+    if (onStateChange) {
+      onStateChange(snapshot.players, snapshot.currentPlayerIndex);
+    }
   };
 
   // Handle clicking on a player's color to switch to that player
@@ -411,8 +443,19 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
           categoryId={selectedCategory}
           onSubmit={handleScoreSubmit}
           onCancel={handleScoreCancel}
-          initialScore={currentPlayer.scorecard[selectedCategory] ?? 0}
+          initialScore={currentPlayer.scorecard[selectedCategory] ?? null}
           playerColor={backgroundColor}
+          instantSubmit
+        />
+      )}
+
+      {/* Undo for the last score entry */}
+      {undoEntry && (
+        <UndoToast
+          key={undoEntry.id}
+          message={undoEntry.message}
+          onUndo={handleUndo}
+          onExpire={() => setUndoEntry(null)}
         />
       )}
 
