@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Drawer } from 'vaul';
-import { Button } from './';
+import { Icon } from '@iconify/react';
+import Button from './Button';
 import TabSwitcher from './TabSwitcher';
 import DiceInput from './DiceInput';
 import QuickInput from './QuickInput';
 import { getCategoryById, isValidScore } from '../utils/gameConstants';
 import { getInputMode, setInputMode } from '../utils/storage';
-import { playerColors, getTextColorForBackground } from '../utils/colors';
+import { playerColors } from '../utils/colors';
+import { useSurface } from '../hooks/useSurface';
 import { playYahtzeeSound, isSoundEnabled } from '../utils/sounds';
 import useIsMobile from '../hooks/useIsMobile';
 
@@ -20,8 +22,8 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
   const [activeTab, setActiveTab] = useState(() => getInputMode());
   const [score, setScore] = useState(initialScore);
   const category = getCategoryById(categoryId);
-  const effectiveColor = playerColor || playerColors[0];
-  const textColor = getTextColorForBackground(effectiveColor);
+  const surface = useSurface();
+  const { style: surfaceStyle } = surface(playerColor || playerColors[0]);
   const modalRef = useRef(null);
   const firstTabRef = useRef(null);
 
@@ -98,15 +100,15 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
       {/* Category Info */}
       <div className="mb-4 md:mb-6">
         {isMobile ? (
-          <Drawer.Title className="font-serif text-subtitle md:text-title mb-2" style={{ color: textColor }}>
+          <Drawer.Title className="font-serif text-subtitle md:text-title mb-2">
             {category.name.toUpperCase()}
           </Drawer.Title>
         ) : (
-          <h2 id="modal-title" className="font-serif text-subtitle md:text-title mb-2" style={{ color: textColor }}>
+          <h2 id="modal-title" className="font-serif text-subtitle md:text-title mb-2">
             {category.name.toUpperCase()}
           </h2>
         )}
-        <p className="font-sans text-ui md:text-body opacity-90" style={{ color: textColor }}>
+        <p className="font-sans text-ui md:text-body text-fg/70">
           {category.description}
         </p>
       </div>
@@ -116,7 +118,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
           <Button variant="solid" size="medium" fullWidth onClick={() => handleFixedScoreClick(category.fixedScore)}>
             Add {category.fixedScore} Points
           </Button>
-          <Button variant="outline" size="medium" fullWidth textColor={textColor} onClick={() => handleFixedScoreClick(0)}>
+          <Button variant="outline" size="medium" fullWidth onClick={() => handleFixedScoreClick(0)}>
             Zero Out (0 Points)
           </Button>
         </div>
@@ -126,12 +128,11 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
             activeTab={activeTab}
             onTabChange={handleTabChange}
             firstTabRef={isMobile ? undefined : firstTabRef}
-            textColor={textColor}
           />
 
           <div className="mb-4 md:mb-6">
-            <div className="bg-black/20 p-4 md:p-6 text-center rounded-lg">
-              <div className="font-sans text-subtitle md:text-headline min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums" style={{ color: textColor }}>
+            <div className="bg-fg/10 p-4 md:p-6 text-center">
+              <div className="font-sans text-subtitle md:text-headline min-h-[60px] md:min-h-[80px] flex items-center justify-center tabular-nums">
                 {score}
               </div>
             </div>
@@ -144,10 +145,10 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
 
           <div className="mb-4 md:mb-6">
             {activeTab === 'dice' && (
-              <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={effectiveColor} textColor={textColor} />
+              <DiceInput categoryId={categoryId} onScoreChange={handleScoreChange} />
             )}
             {activeTab === 'quick' && (
-              <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} playerColor={effectiveColor} textColor={textColor} />
+              <QuickInput categoryId={categoryId} onScoreChange={handleScoreChange} />
             )}
           </div>
 
@@ -164,21 +165,18 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
     return (
       <Drawer.Root open={true} onOpenChange={(open) => { if (!open) onCancel(); }}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/80 dark:bg-black/90 z-popover" />
+          <Drawer.Overlay className="fixed inset-0 bg-black/80 z-popover" />
           <Drawer.Content
             className="fixed bottom-0 left-0 right-0 z-popover outline-none"
             aria-describedby={undefined}
           >
             <div
-              className="mx-auto max-w-md w-full p-6 rounded-t-2xl"
-              style={{ backgroundColor: effectiveColor }}
+              className="mx-auto max-w-md w-full p-6 text-fg"
+              style={surfaceStyle}
             >
               {/* Drag Handle */}
               <div className="flex justify-center mb-4">
-                <div
-                  className="w-10 h-1.5 rounded-full"
-                  style={{ backgroundColor: textColor, opacity: 0.4 }}
-                />
+                <div className="w-10 h-1.5 rounded-full bg-fg/40" />
               </div>
               {content}
             </div>
@@ -191,7 +189,7 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
   /* ---- desktop: centered modal ---- */
   return (
     <div
-      className="fixed inset-0 bg-black/80 dark:bg-black/90 flex items-center justify-center p-4 z-popover animate-fadeIn"
+      className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-popover animate-fadeIn"
       onClick={onCancel}
       role="dialog"
       aria-modal="true"
@@ -200,23 +198,20 @@ export default function ScoreEntryModal({ categoryId, onSubmit, onCancel, initia
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="relative max-w-md w-full p-6 md:p-8 animate-scaleIn focus:outline-none"
-        style={{ backgroundColor: effectiveColor }}
+        className="relative max-w-md w-full p-6 md:p-8 text-fg animate-scaleIn focus:outline-none"
+        style={surfaceStyle}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onCancel}
-          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/30 rounded-full transition-colors"
-          style={{ color: textColor }}
+          className="absolute top-4 right-4 rounded-full"
           aria-label="Close"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+          <Icon icon="basil:cross-solid" className="w-6 h-6" />
+        </Button>
 
         {content}
       </div>

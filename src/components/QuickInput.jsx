@@ -3,14 +3,15 @@ import PropTypes from 'prop-types';
 import { getCategoryById } from '../utils/gameConstants';
 import { getValidScoresForCategory } from '../utils/scoring';
 
+const FINE_TUNE_BUTTON = 'px-6 py-3 bg-fg/10 text-fg font-sans text-body-lg hover:bg-fg/20 active:scale-[0.97] transition-[background-color,transform] duration-150 disabled:opacity-30 disabled:cursor-not-allowed';
+
 /**
  * Quick Input Component
  * Shows category-aware preset buttons for quick score selection
  * Upper section: multiples of die value (0 to 5×value)
  * Lower variable: common presets (0, 10, 15, 20, 25) + fine-tune
  */
-export default function QuickInput({ categoryId, onScoreChange, playerColor, textColor }) {
-  const isDarkText = textColor === '#000000';
+export default function QuickInput({ categoryId, onScoreChange }) {
   const [selectedScore, setSelectedScore] = useState(null);
   const category = getCategoryById(categoryId);
   
@@ -64,18 +65,14 @@ export default function QuickInput({ categoryId, onScoreChange, playerColor, tex
             <button
               key={score}
               onClick={() => handlePresetClick(score)}
+              aria-pressed={isSelected}
               className={`
                 py-4 px-4
-                font-sans text-body-lg rounded-md
-                transition-all duration-150 ease-out
+                font-sans text-body-lg
+                transition-[background-color,color,transform] duration-150 ease-out
                 active:scale-[0.95]
-                ${
-                  isSelected
-                    ? `ring-2 ${isDarkText ? 'ring-black' : 'ring-white'}`
-                    : 'bg-black/20 hover:bg-opacity-40'
-                }
+                ${isSelected ? 'bg-fg text-surface' : 'bg-fg/10 text-fg hover:bg-fg/20'}
               `}
-              style={{ color: textColor, ...(isSelected ? { backgroundColor: playerColor } : {}) }}
             >
               {score}
             </button>
@@ -85,40 +82,36 @@ export default function QuickInput({ categoryId, onScoreChange, playerColor, tex
 
       {/* Fine-tune controls for lower variable categories */}
       {isLowerVariable && (
-        <div className={`space-y-3 pt-2 border-t ${isDarkText ? 'border-black/20' : 'border-white/20'}`}>
-          <p className="font-sans text-ui text-center opacity-90" style={{ color: textColor }}>
+        <div className="space-y-3 pt-2 border-t border-fg/20">
+          <p className="font-sans text-ui text-center text-fg/70">
             Fine tune:
           </p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => handleFineTune(-5)}
               disabled={selectedScore !== null && selectedScore <= 0}
-              className="px-6 py-3 bg-black/20 font-sans text-body-lg rounded-md hover:bg-opacity-40 active:scale-[0.97] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{ color: textColor }}
+              className={FINE_TUNE_BUTTON}
             >
               -5
             </button>
             <button
               onClick={() => handleFineTune(-1)}
               disabled={selectedScore !== null && selectedScore <= 0}
-              className="px-6 py-3 bg-black/20 font-sans text-body-lg rounded-md hover:bg-opacity-40 active:scale-[0.97] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{ color: textColor }}
+              className={FINE_TUNE_BUTTON}
             >
               -1
             </button>
             <button
               onClick={() => handleFineTune(1)}
               disabled={selectedScore !== null && selectedScore >= category.maxScore}
-              className="px-6 py-3 bg-black/20 font-sans text-body-lg rounded-md hover:bg-opacity-40 active:scale-[0.97] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{ color: textColor }}
+              className={FINE_TUNE_BUTTON}
             >
               +1
             </button>
             <button
               onClick={() => handleFineTune(5)}
               disabled={selectedScore !== null && selectedScore >= category.maxScore}
-              className="px-6 py-3 bg-black/20 font-sans text-body-lg rounded-md hover:bg-opacity-40 active:scale-[0.97] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{ color: textColor }}
+              className={FINE_TUNE_BUTTON}
             >
               +5
             </button>
@@ -132,6 +125,4 @@ export default function QuickInput({ categoryId, onScoreChange, playerColor, tex
 QuickInput.propTypes = {
   categoryId: PropTypes.string.isRequired,
   onScoreChange: PropTypes.func.isRequired,
-  playerColor: PropTypes.string,
-  textColor: PropTypes.string,
 };

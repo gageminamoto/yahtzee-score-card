@@ -15,7 +15,7 @@ import PropTypes from 'prop-types';
  * - Escape key to close
  * - Smooth scale-in animation
  */
-export default function FooterMenu({ textColor, onOpenChangelog }) {
+export default function FooterMenu({ onOpenChangelog }) {
   const [isOpen, setIsOpen] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ bottom: 0, left: null, right: null });
 
@@ -93,8 +93,7 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
       <button
         ref={buttonRef}
         onClick={handleButtonClick}
-        className="font-sans text-ui opacity-70 hover:opacity-100 transition-opacity cursor-pointer underline"
-        style={{ color: textColor }}
+        className="font-sans text-ui text-fg/70 hover:text-fg transition-colors cursor-pointer underline"
         aria-label="Open info menu"
         type="button"
       >
@@ -105,7 +104,7 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
       {isOpen && (
         <div
           ref={popupRef}
-          className="fixed z-[10000] bg-black/90 dark:bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-2xl"
+          className="fixed z-popover bg-fg text-surface p-4 shadow-2xl"
           style={{
             minWidth: '180px',
             maxWidth: 'calc(100vw - 24px)',
@@ -121,13 +120,13 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
               href="https://github.com/gageminamoto/yahtzee-score-card"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-sans text-body text-white dark:text-black hover:opacity-70 transition-opacity"
+              className="font-sans text-body hover:opacity-70 transition-opacity"
             >
               GitHub
             </a>
             <button
               onClick={handleChangelogClick}
-              className="font-sans text-body text-white dark:text-black hover:opacity-70 transition-opacity"
+              className="font-sans text-body hover:opacity-70 transition-opacity"
               type="button"
             >
               Changelog
@@ -136,7 +135,7 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
               href="https://gageminamoto.notion.site/ba3aa99c094c4e2eaec51c80ce6ba251?v=8e0862ea3dcc4a028acfacc9125b35d4&source=copy_link"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-sans text-body text-white dark:text-black hover:opacity-70 transition-opacity"
+              className="font-sans text-body hover:opacity-70 transition-opacity"
             >
               Roadmap
             </a>
@@ -148,6 +147,5 @@ export default function FooterMenu({ textColor, onOpenChangelog }) {
 }
 
 FooterMenu.propTypes = {
-  textColor: PropTypes.string.isRequired,
   onOpenChangelog: PropTypes.func.isRequired,
 };

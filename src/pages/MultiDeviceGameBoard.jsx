@@ -2,16 +2,18 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
-import { ConfirmDialog, UpperBonusModal } from '../components';
+import { Button, ConfirmDialog, UpperBonusModal } from '../components';
+import { GameHeader, HeaderPill, PlayerTab, ScrollMore } from '../components/GameBoardParts';
+import { SessionCancelledOverlay, ConnectionLostBanner } from '../components/SessionNotices';
 import {
   createEmptyScorecard,
   calculateTotalScore,
   calculateUpperSectionSum,
   isGameComplete,
 } from '../utils/scoring';
-import { TOTAL_ROUNDS, UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
-import { getTextColorForBackground } from '../utils/colors';
+import { UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
 import { useSettings } from '../context/SettingsContext';
+import { usePageSurface, useSurface } from '../hooks/useSurface';
 import { useSession } from '../context/SessionContext';
 import { isSoundEnabled, playScoreConfirm, playUpperBonus, playTurnChange } from '../utils/sounds';
 
@@ -81,7 +83,8 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
 
   const myScorecard = myPlayer?.scorecard || createEmptyScorecard();
   const backgroundColor = myPlayer?.color || '#333333';
-  const textColor = getTextColorForBackground(backgroundColor);
+  const { style: pageStyle } = usePageSurface(backgroundColor);
+  const surface = useSurface();
   const completedTurns = gameState?.completedTurns ?? 0;
   const currentRound = Math.floor(completedTurns / Math.max(orderedPlayers.length, 1)) + 1;
 
@@ -116,11 +119,6 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
       onGameComplete(finalPlayers);
     }
   }, [orderedPlayers, sessionStatus, isHost, endGame, onGameComplete, scoringSettings]);
-
-  // Sync background color
-  useEffect(() => {
-    document.documentElement.style.setProperty('--page-bg', backgroundColor);
-  }, [backgroundColor]);
 
   // Lock body scroll
   useEffect(() => {
@@ -252,24 +250,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
   };
 
   if (sessionStatus === 'cancelled') {
-    return (
-      <div
-        className="min-h-dvh flex items-center justify-center p-6 bg-white/95 dark:bg-black/90"
-      >
-        <div className="max-w-md w-full text-center">
-          <h1 className="font-serif text-title text-black dark:text-white mb-3">Session Cancelled</h1>
-          <p className="font-sans text-body text-black/70 dark:text-white/70 mb-6">
-            The host ended the session. You can return home to start a new game.
-          </p>
-          <button
-            onClick={handleSessionCancelled}
-            className="w-full rounded-full py-3 px-4 font-sans font-bold bg-black text-white dark:bg-white dark:text-black transition-opacity hover:opacity-90"
-          >
-            Return Home
-          </button>
-        </div>
-      </div>
-    );
+    return <SessionCancelledOverlay onReturnHome={handleSessionCancelled} />;
   }
 
   if (!myPlayer || orderedPlayers.length === 0) return null;
@@ -278,39 +259,28 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
 
   return (
     <div
-      className="h-dvh px-2 py-1.5 md:p-6 transition-colors duration-500 flex flex-col mobile-compact overflow-hidden"
-      style={{ backgroundColor }}
+      className="h-dvh px-2 py-1.5 md:p-6 transition-colors duration-500 flex flex-col mobile-compact overflow-hidden text-fg"
+      style={pageStyle}
     >
       {/* Reconnection Banner */}
       {!isConnected && (
-        <div
-          className="fixed top-0 left-0 right-0 z-[10000] text-center py-2 px-4 bg-bright-red/90 backdrop-blur-sm"
-          role="alert"
-          aria-live="assertive"
-        >
-          <p className="font-sans text-ui font-bold text-white">
-            Connection lost — reconnecting...
-          </p>
-        </div>
+        <ConnectionLostBanner className="fixed top-0 left-0 right-0 z-popover" />
       )}
 
       {/* Score Error Toast */}
       {(scoreError || sessionError) && (
         <div
-          className="fixed top-0 left-0 right-0 z-[10000] text-center py-2 px-4"
-          style={{
-            backgroundColor: textColor === '#000000' ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.9)',
-          }}
+          className="fixed top-0 left-0 right-0 z-popover text-center py-2 px-4 bg-fg text-surface"
           role="alert"
           aria-live="polite"
         >
-          <p className="font-sans text-ui font-bold" style={{ color: textColor === '#000000' ? '#ffffff' : '#000000' }}>
+          <p className="font-sans text-ui font-bold">
             {scoreError || sessionError}
           </p>
           <button
+            type="button"
             onClick={() => { setScoreError(null); clearError(); }}
-            className="font-sans text-ui underline opacity-80 mt-0.5"
-            style={{ color: textColor === '#000000' ? '#ffffff' : '#000000' }}
+            className="font-sans text-ui underline opacity-70 hover:opacity-100 mt-0.5"
           >
             Dismiss
           </button>
@@ -319,61 +289,42 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
 
       <div className="max-w-6xl mx-auto w-full flex flex-col flex-1 min-h-0">
         {/* Header */}
-        <div className="flex items-center mb-1.5 md:mb-2 flex-shrink-0">
-          <div className="flex-1 flex justify-start">
-            <button
-              onClick={onQuit}
-              className="font-sans text-ui hover:opacity-70 transition-opacity flex items-center gap-2"
-              style={{ color: textColor }}
-            >
+        <GameHeader
+          round={currentRound}
+          left={(
+            <Button variant="ghost" size="small" onClick={onQuit} className="-ml-2 min-h-9 py-2">
               <Icon icon="basil:arrow-left-solid" className="w-5 h-5" />
               Quit
-            </button>
-          </div>
-          <div className="font-sans text-ui opacity-90" style={{ color: textColor }} aria-label={`Round ${currentRound} of ${TOTAL_ROUNDS}`}>
-            R{currentRound}/{TOTAL_ROUNDS}
-          </div>
-          <div className="flex-1 flex justify-end gap-2">
-            {/* Scores overlay button */}
-            <button
-              onClick={() => setShowScoresOverlay(true)}
-              className="font-sans text-ui font-bold px-4 py-2 rounded-full bg-white/15 dark:bg-black/15 hover:bg-white/25 dark:hover:bg-black/25 active:scale-95 transition-all duration-150"
-              style={{ color: textColor }}
-              aria-label="View all players' scores"
-            >
-              Scores
-            </button>
-            {isHost && (
-              <button
-                onClick={handleFinishGame}
-                disabled={!!selectedCategory}
-                className={`font-sans text-ui font-bold px-4 py-2 rounded-full bg-white/15 dark:bg-black/15 hover:bg-white/25 dark:hover:bg-black/25 active:scale-95 transition-all duration-150 ${selectedCategory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                style={{ color: textColor }}
-                aria-label="Finish game"
-              >
-                Finish
-              </button>
-            )}
-          </div>
-        </div>
+            </Button>
+          )}
+          right={(
+            <>
+              <HeaderPill onClick={() => setShowScoresOverlay(true)} aria-label="View all players' scores">
+                Scores
+              </HeaderPill>
+              {isHost && (
+                <HeaderPill onClick={handleFinishGame} disabled={!!selectedCategory} aria-label="Finish game">
+                  Finish
+                </HeaderPill>
+              )}
+            </>
+          )}
+        />
 
         {/* Turn Banner */}
         <div
-          className="text-center py-2 mb-2 rounded-lg flex-shrink-0"
-          style={{
-            backgroundColor: textColor === '#000000' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)',
-          }}
+          className="text-center py-2 mb-2 bg-fg/10 flex-shrink-0"
           role="status"
           aria-live="polite"
         >
           {turnMode === 'strict' ? (
-            <p className="font-sans text-body font-bold uppercase" style={{ color: textColor }}>
+            <p className="font-sans text-body font-bold uppercase">
               {isMyTurn
                 ? 'Your Turn'
                 : `${currentTurnPlayer?.name || 'Player'}'s Turn`}
             </p>
           ) : (
-            <p className="font-sans text-body font-bold uppercase" style={{ color: textColor }}>
+            <p className="font-sans text-body font-bold uppercase">
               Free Play — Score Anytime
             </p>
           )}
@@ -391,46 +342,24 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
               const isActiveTurn = index === currentPlayerIndex;
               const playerScore = calculateTotalScore(player.scorecard || createEmptyScorecard(), scoringSettings);
 
-              const TabWrapper = isMe ? 'div' : 'button';
-
               return (
-                <TabWrapper
+                <PlayerTab
                   key={player.id}
-                  role="tab"
-                  aria-selected={isMe}
-                  {...(!isMe && { onClick: () => setViewingPlayer(player) })}
+                  player={player}
+                  index={index}
+                  score={settings.visual.showHeaderTotals ? playerScore : undefined}
+                  isActive={isMe}
+                  highlight={isActiveTurn && turnMode === 'strict'}
+                  onClick={isMe ? undefined : () => setViewingPlayer(player)}
                   aria-label={`${player.name || `Player ${index + 1}`}${isMe ? ' (you)' : ''}${isActiveTurn && turnMode === 'strict' ? ' — current turn' : ''}`}
-                  className={`relative flex items-center gap-3 px-5 py-3 rounded-full min-w-fit min-h-[52px] transition-all duration-150 ease-out ${
-                    isMe
-                      ? 'bg-white/25 dark:bg-black/25'
-                      : 'opacity-60 hover:opacity-80 cursor-pointer'
-                  } ${isActiveTurn && turnMode === 'strict' ? 'ring-2 ring-white/60 dark:ring-black/60' : ''}`}
-                >
-                  <div className="relative">
+                  badge={!player.isConnected && (
                     <div
-                      className="w-9 h-9 md:w-10 md:h-10 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: player.color }}
+                      className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-bright-red border-2 border-surface"
+                      aria-label={`${player.name} disconnected`}
+                      role="img"
                     />
-                    {!player.isConnected && (
-                      <div
-                        className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-bright-red border-2 border-current"
-                        aria-label={`${player.name} disconnected`}
-                        role="img"
-                      />
-                    )}
-                  </div>
-                  <span
-                    className="font-sans text-body font-bold uppercase tracking-wide truncate max-w-[60px] md:max-w-[80px]"
-                    style={{ color: textColor }}
-                  >
-                    {player.name || `P${index + 1}`}
-                  </span>
-                  {settings.visual.showHeaderTotals && (
-                    <span className="font-sans text-body font-bold tabular-nums" style={{ color: textColor }}>
-                      {playerScore}
-                    </span>
                   )}
-                </TabWrapper>
+                />
               );
             })}
           </div>
@@ -443,26 +372,11 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
               scorecard={myScorecard}
               onCategoryClick={handleCategoryClick}
               isCurrentPlayer={canScore}
-              textColor={textColor}
               settings={scoringSettings}
             />
           </div>
 
-          <div
-            className={`scroll-fade-gradient ${showScrollIndicator ? 'scroll-fade-visible' : 'scroll-fade-hidden'}`}
-            style={{ background: `linear-gradient(to bottom, transparent, ${backgroundColor})` }}
-            aria-hidden="true"
-          />
-          <button
-            onClick={scrollToBottom}
-            className={`scroll-indicator absolute bottom-3 flex items-center justify-center w-10 h-10 rounded-full bg-white/25 dark:bg-black/25 backdrop-blur-sm shadow-lg ${showScrollIndicator ? 'scroll-indicator-visible' : 'scroll-indicator-hidden'}`}
-            style={{ color: textColor }}
-            aria-label="Scroll to see more categories"
-            aria-hidden={!showScrollIndicator}
-            tabIndex={showScrollIndicator ? 0 : -1}
-          >
-            <Icon icon="basil:arrow-down-solid" className="w-6 h-6" />
-          </button>
+          <ScrollMore visible={showScrollIndicator} onClick={scrollToBottom} />
         </div>
       </div>
 
@@ -480,7 +394,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
       {/* Scores Overlay */}
       {showScoresOverlay && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          className="fixed inset-0 z-modal flex items-center justify-center p-4"
           onClick={() => setShowScoresOverlay(false)}
           role="dialog"
           aria-label="Player scores"
@@ -488,22 +402,23 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
-            className="relative w-full max-w-md rounded-2xl p-6 max-h-[80vh] overflow-y-auto"
-            style={{ backgroundColor }}
+            className="relative w-full max-w-md p-6 max-h-[80vh] overflow-y-auto text-fg"
+            style={pageStyle}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-sans text-body-lg font-bold uppercase tracking-wider" style={{ color: textColor }}>
+              <h2 className="font-sans text-body-lg font-bold uppercase tracking-wider">
                 Scores
               </h2>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setShowScoresOverlay(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/15 dark:hover:bg-black/15 transition-colors"
-                style={{ color: textColor }}
+                className="rounded-full -mr-2"
                 aria-label="Close scores"
               >
-                <Icon icon="basil:cross-solid" className="w-5 h-5" />
-              </button>
+                <Icon icon="basil:cross-solid" className="w-6 h-6" />
+              </Button>
             </div>
             <div className="space-y-2">
               {[...players]
@@ -524,23 +439,23 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
                           setViewingPlayer(player);
                         },
                       })}
-                      className={`flex items-center justify-between py-3 px-3 rounded-lg w-full text-left ${isMe ? 'bg-white/15 dark:bg-black/15' : 'hover:bg-white/10 dark:hover:bg-black/10 cursor-pointer'}`}
+                      className={`flex items-center justify-between py-3 px-3 w-full text-left ${isMe ? 'bg-fg/20' : 'hover:bg-fg/10 cursor-pointer'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="font-sans text-body opacity-50 min-w-[2rem]" style={{ color: textColor }}>
+                        <span className="font-sans text-body text-fg/70 min-w-[2rem]">
                           #{index + 1}
                         </span>
                         <div className="w-8 h-8 rounded-full shrink-0" style={{ backgroundColor: player.color }} />
-                    <span className="font-sans text-body font-bold" style={{ color: textColor }}>
-                      {player.name}{isMe ? ' (You)' : ''}
-                    </span>
+                        <span className="font-sans text-body font-bold">
+                          {player.name}{isMe ? ' (You)' : ''}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-sans text-body-lg font-bold tabular-nums" style={{ color: textColor }}>
+                        <span className="font-sans text-body-lg font-bold tabular-nums">
                           {score}
                         </span>
                         {!isMe && (
-                          <Icon icon="basil:arrow-right-solid" className="w-4 h-4 opacity-40" style={{ color: textColor }} />
+                          <Icon icon="basil:arrow-right-solid" className="w-4 h-4 text-fg/70" />
                         )}
                       </div>
                     </RowTag>
@@ -554,7 +469,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
       {/* Player Scorecard Viewer */}
       {viewingPlayerLive && (
         <div
-          className="fixed inset-0 z-[9999] flex flex-col"
+          className="fixed inset-0 z-modal flex flex-col"
           onClick={() => setViewingPlayer(null)}
           role="dialog"
           aria-label={`${viewingPlayerLive.name}'s scorecard`}
@@ -565,56 +480,40 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
             className="relative flex flex-col w-full h-full max-w-2xl mx-auto p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div
-              className="flex items-center justify-between p-4 rounded-t-2xl flex-shrink-0"
-              style={{ backgroundColor: viewingPlayerLive.color }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-full border-2 flex-shrink-0"
-                  style={{
-                    backgroundColor: viewingPlayerLive.color,
-                    borderColor: getTextColorForBackground(viewingPlayerLive.color),
-                  }}
-                />
-                <div>
-                  <h2
-                    className="font-sans text-body-lg font-bold uppercase tracking-wider"
-                    style={{ color: getTextColorForBackground(viewingPlayerLive.color) }}
-                  >
-                    {viewingPlayerLive.name}
-                  </h2>
-                  <p
-                    className="font-sans text-ui opacity-70"
-                    style={{ color: getTextColorForBackground(viewingPlayerLive.color) }}
-                  >
-                    Total: {calculateTotalScore(viewingPlayerLive.scorecard || createEmptyScorecard(), scoringSettings)}
-                  </p>
+            <div className="flex flex-col flex-1 min-h-0 text-fg" style={surface(viewingPlayerLive.color).style}>
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full border-2 border-fg bg-surface flex-shrink-0" />
+                  <div>
+                    <h2 className="font-sans text-body-lg font-bold uppercase tracking-wider">
+                      {viewingPlayerLive.name}
+                    </h2>
+                    <p className="font-sans text-ui text-fg/70">
+                      Total: {calculateTotalScore(viewingPlayerLive.scorecard || createEmptyScorecard(), scoringSettings)}
+                    </p>
+                  </div>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setViewingPlayer(null)}
+                  className="rounded-full"
+                  aria-label="Close scorecard"
+                >
+                  <Icon icon="basil:cross-solid" className="w-6 h-6" />
+                </Button>
               </div>
-              <button
-                onClick={() => setViewingPlayer(null)}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/15 dark:hover:bg-black/15 transition-colors"
-                style={{ color: getTextColorForBackground(viewingPlayerLive.color) }}
-                aria-label="Close scorecard"
-              >
-                <Icon icon="basil:cross-solid" className="w-6 h-6" />
-              </button>
-            </div>
 
-            {/* Scorecard body */}
-            <div
-              className="flex-1 min-h-0 overflow-y-auto rounded-b-2xl p-4"
-              style={{ backgroundColor: viewingPlayerLive.color }}
-            >
-              <Scorecard
-                scorecard={viewingPlayerLive.scorecard || createEmptyScorecard()}
-                onCategoryClick={() => {}}
-                isCurrentPlayer={false}
-                textColor={getTextColorForBackground(viewingPlayerLive.color)}
-                settings={scoringSettings}
-              />
+              {/* Scorecard body */}
+              <div className="flex-1 min-h-0 overflow-y-auto p-4">
+                <Scorecard
+                  scorecard={viewingPlayerLive.scorecard || createEmptyScorecard()}
+                  onCategoryClick={() => {}}
+                  isCurrentPlayer={false}
+                  settings={scoringSettings}
+                />
+              </div>
             </div>
           </div>
         </div>
