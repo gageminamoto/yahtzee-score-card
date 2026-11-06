@@ -5,7 +5,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { loadSettings, saveSettings } from '../utils/storage';
+import { loadSettings, saveSettings, resetSettings } from '../utils/storage';
 import { FONT_SIZE_MULTIPLIERS } from '../utils/defaultSettings';
 import { enableNoSleep, disableNoSleep } from '../utils/noSleep';
 
@@ -67,7 +67,6 @@ export function SettingsProvider({ children }) {
    * Reset all settings to defaults
    */
   const resetAllSettings = () => {
-    const { resetSettings } = require('../utils/storage');
     const defaults = resetSettings();
     setSettings(defaults);
     applyThemeSettings(defaults);
@@ -112,30 +111,10 @@ function applyThemeSettings(settings) {
   const fontMultiplier = FONT_SIZE_MULTIPLIERS[settings.visual.fontSize];
   root.style.setProperty('--font-size-multiplier', fontMultiplier);
 
-  // Button size
-  const buttonHeight = settings.accessibility.largeButtons ? '80px' : '60px';
-  root.style.setProperty('--button-min-height', buttonHeight);
-
-  // Animation duration (0 if disabled)
-  const animationDuration = settings.visual.enableAnimations && !settings.visual.reducedMotion
-    ? '500ms'
-    : '0ms';
-  root.style.setProperty('--animation-duration', animationDuration);
-
-  // Reduced motion (system preference override)
-  if (settings.visual.reducedMotion) {
-    root.style.setProperty('--animation-duration', '0ms');
-    root.classList.add('reduced-motion');
-  } else {
-    root.classList.remove('reduced-motion');
-  }
-
-  // High contrast mode
-  if (settings.accessibility.highContrast) {
-    root.classList.add('high-contrast');
-  } else {
-    root.classList.remove('high-contrast');
-  }
+  // Reduce motion: zero the shared animation duration and disable
+  // animations/transitions app-wide (see .reduced-motion in index.css)
+  root.style.setProperty('--animation-duration', settings.visual.reducedMotion ? '0ms' : '500ms');
+  root.classList.toggle('reduced-motion', settings.visual.reducedMotion);
 
   // Dark mode darkens surface colours (see hooks/useSurface.js); no class needed.
   root.classList.remove('dark');

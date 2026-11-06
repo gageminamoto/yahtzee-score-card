@@ -30,7 +30,7 @@ export default function ColorSchemeCard({ scheme, label, isSelected, onClick, co
           />
         ))}
       </div>
-      <div className="font-sans text-body font-bold text-fg">{label}</div>
+      <div className="font-sans text-ui font-bold text-fg">{label}</div>
       {isSelected && (
         <div className={cn('absolute bg-fg rounded-full flex items-center justify-center', compact ? 'top-1 right-1 w-5 h-5' : 'top-2 right-2 w-6 h-6')}>
           <Icon icon="basil:check-solid" className="w-4 h-4 text-surface" />

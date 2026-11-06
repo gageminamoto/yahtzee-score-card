@@ -69,15 +69,22 @@ function migrateSettings(loadedSettings) {
   // Start with defaults and merge loaded settings
   let settings = { ...DEFAULT_SETTINGS };
 
-  // Deep merge each category
+  // Deep merge each category, keeping only keys that still exist so retired
+  // settings (and whole retired categories) are dropped on the next save
   Object.keys(DEFAULT_SETTINGS).forEach(category => {
-    if (loadedSettings[category]) {
-      settings[category] = {
-        ...DEFAULT_SETTINGS[category],
-        ...loadedSettings[category],
-      };
+    const loaded = loadedSettings[category];
+    if (loaded && typeof loaded === 'object') {
+      settings[category] = { ...DEFAULT_SETTINGS[category] };
+      Object.keys(DEFAULT_SETTINGS[category]).forEach(key => {
+        if (key in loaded) settings[category][key] = loaded[key];
+      });
     }
   });
+
+  // "Animations" and "Reduced Motion" were merged into one Reduce Motion toggle
+  if (loadedSettings.visual?.enableAnimations === false) {
+    settings.visual = { ...settings.visual, reducedMotion: true };
+  }
 
   // Version-specific migrations
   if (version < 1) {

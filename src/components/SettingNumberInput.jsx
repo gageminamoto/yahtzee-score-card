@@ -1,11 +1,12 @@
 /**
- * Number input component for numeric settings (e.g., bonus thresholds)
+ * Compact stepper for numeric settings (e.g. bonus thresholds), shown to the
+ * right of the setting's label.
  */
 
 import PropTypes from 'prop-types';
 import SettingRow from './SettingRow';
 
-const STEP_BUTTON = 'w-12 h-12 bg-fg text-surface font-sans text-body-lg font-bold hover:bg-fg/85 disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.97] transition-[transform,background-color,opacity] duration-100 ease-out';
+const STEP_BUTTON = 'shrink-0 w-10 h-10 bg-fg/20 hover:bg-fg/30 text-fg font-sans text-body-lg font-bold leading-none disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-fg transition-[transform,background-color,opacity] duration-100 ease-out';
 
 export default function SettingNumberInput({ label, description, value, min, max, onChange }) {
   const handleInputChange = (e) => {
@@ -16,8 +17,8 @@ export default function SettingNumberInput({ label, description, value, min, max
   };
 
   return (
-    <SettingRow label={label} description={description}>
-      <div className="flex items-center gap-4">
+    <SettingRow label={label} description={description} inline>
+      <div className="flex items-center gap-1 shrink-0">
         <button
           type="button"
           onClick={() => value > min && onChange(value - 1)}
@@ -29,12 +30,13 @@ export default function SettingNumberInput({ label, description, value, min, max
         </button>
         <input
           type="number"
+          inputMode="numeric"
           value={value}
           onChange={handleInputChange}
           min={min}
           max={max}
           aria-label={label}
-          className="flex-1 h-12 px-4 bg-fg/10 border-2 border-fg/40 focus:border-fg outline-none text-fg font-sans text-body-lg font-bold text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-16 h-10 bg-transparent border-2 border-fg/40 focus:border-fg outline-none text-fg font-serif text-body-lg text-center tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
         <button
           type="button"
