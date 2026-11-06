@@ -13,7 +13,7 @@ import {
   isGameComplete,
   isCategoryScored,
 } from '../utils/scoring';
-import { UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
+import { ALL_CATEGORIES, TOTAL_ROUNDS, UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
 import { useSettings } from '../context/SettingsContext';
 import { usePageSurface } from '../hooks/useSurface';
 import { isSoundEnabled, playScoreConfirm, playUpperBonus, playTurnChange } from '../utils/sounds';
@@ -39,7 +39,6 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
 
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(initialPlayerIndex);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [completedTurns, setCompletedTurns] = useState(0);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
   const [bonusModalPlayer, setBonusModalPlayer] = useState(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
@@ -68,7 +67,12 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
   }
 
   const backgroundColor = currentPlayer.color;
-  const currentRound = Math.floor(completedTurns / players.length) + 1;
+  // Round = the fewest categories any player has filled, plus one (derived from
+  // the scorecards so it survives a reload and edits never advance it)
+  const currentRound = Math.min(
+    Math.min(...players.map(p => ALL_CATEGORIES.filter(c => isCategoryScored(p.scorecard, c.id)).length)) + 1,
+    TOTAL_ROUNDS
+  );
 
   // Lock body scroll to prevent double scrollbars
   useEffect(() => {
@@ -231,10 +235,8 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
     setPlayers(updatedPlayers);
     setSelectedCategory(null);
 
-    // Only increment turns and advance player if this was a new score, not an edit
+    // Only advance to the next player if this was a new score, not an edit
     if (!isEditing) {
-      setCompletedTurns(completedTurns + 1);
-
       // Check if game is complete
       if (isGameComplete(updatedPlayers[currentPlayerIndex].scorecard)) {
         // Check if all players are done

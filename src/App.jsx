@@ -16,6 +16,7 @@ import Changelog from './pages/Changelog';
 import Onboarding from './pages/Onboarding';
 import GameHistory from './pages/GameHistory';
 import { loadGameState, saveGameState, clearGameState, addGameToHistory, loadSettings, isFirstTimeUser } from './utils/storage';
+import { createEmptyScorecard } from './utils/scoring';
 
 /**
  * Main App component
@@ -176,8 +177,13 @@ function App() {
     if (gameMode === 'multi') {
       transitionToScreen('multi-host');
     } else {
-      // Keep same players but reset game
-      transitionToScreen('game');
+      // Keep same players (names, colours, order) with fresh scorecards
+      const freshPlayers = players.map(p => ({ ...p, scorecard: createEmptyScorecard() }));
+      setPlayers(freshPlayers);
+      setCurrentPlayerIndex(0);
+      saveGameState({ screen: 'game', gameMode, players: freshPlayers, finalPlayers: [], currentPlayerIndex: 0 });
+      // Clear results only after the Winner screen has slid out
+      transitionToScreen('game', () => setFinalPlayers([]));
     }
   };
 
