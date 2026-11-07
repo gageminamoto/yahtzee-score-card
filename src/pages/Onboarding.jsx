@@ -22,7 +22,6 @@ export default function Onboarding({ onComplete, colorIndex }) {
   };
 
   const handleFinish = () => {
-    updateSetting('preferences', 'showTutorial', false);
     onComplete();
   };
 
