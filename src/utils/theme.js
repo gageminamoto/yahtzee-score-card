@@ -11,7 +11,7 @@
  * `bg-fg text-surface`, ... and stay legible on any background without
  * threading a textColor prop through the tree.
  */
-import { getTextColorForBackground } from './colors';
+import { getTextColorForBackground, getContrastRatio } from './colors';
 
 const hexToTriplet = (hex) => {
   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
@@ -37,16 +37,27 @@ export const darken = (hex, amount = 0.55) => {
 /** Apply the dark-mode treatment to a surface colour when enabled. */
 export const themedColor = (hex, darkMode) => (darkMode ? darken(hex) : hex);
 
-/** Black or white for text on the given surface colour. */
-export const fgFor = (hex) => getTextColorForBackground(hex);
+/** Whichever of black or white has the higher contrast on the colour. */
+const bestContrastFg = (hex) =>
+  getContrastRatio(hex, '#000000') >= getContrastRatio(hex, '#FFFFFF') ? '#000000' : '#FFFFFF';
+
+/**
+ * Black or white for text on the given surface colour.
+ * Light mode keeps the design's palette rule (white on all but the lightest
+ * colours). Darkened surfaces have no such rule and can land mid-grey (white
+ * becomes #7D7D7D), so there we take whichever reads best.
+ */
+export const fgFor = (hex, { bestContrast = false } = {}) =>
+  (bestContrast ? bestContrastFg(hex) : getTextColorForBackground(hex));
 
 /**
  * Inline style that paints a surface and scopes the fg/surface variables to it.
  * @param {string} hex surface colour (already themed)
- * @param {{ paint?: boolean }} options set paint:false to only set variables
+ * @param {{ paint?: boolean, fg?: string }} options set paint:false to only set
+ *   variables; pass fg to override the computed text colour
  */
-export const surfaceStyle = (hex, { paint = true } = {}) => ({
+export const surfaceStyle = (hex, { paint = true, fg = fgFor(hex) } = {}) => ({
   ...(paint ? { backgroundColor: hex } : {}),
-  '--fg': hexToTriplet(fgFor(hex)),
+  '--fg': hexToTriplet(fg),
   '--surface': hexToTriplet(hex),
 });
