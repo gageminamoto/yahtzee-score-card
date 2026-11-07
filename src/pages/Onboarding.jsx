@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Card, PageHeader } from '../components';
+import { Button, PageHeader } from '../components';
 import SettingToggle from '../components/SettingToggle';
 import ColorSchemeCard from '../components/ColorSchemeCard';
 import { getColorByScheme } from '../utils/colors';
 import { usePageSurface } from '../hooks/useSurface';
 import { useSettings } from '../context/SettingsContext';
 import { COLOR_SCHEMES } from '../utils/defaultSettings';
+
+// Shorter labels so the compact 2x2 cards stay on one line
+const SCHEME_LABELS = { ...COLOR_SCHEMES, default: 'CMYK' };
 
 export default function Onboarding({ onComplete, colorIndex }) {
   const { settings, updateSetting } = useSettings();
@@ -25,75 +28,54 @@ export default function Onboarding({ onComplete, colorIndex }) {
 
   return (
     <div
-      className="min-h-dvh p-4 md:p-8 text-fg transition-colors duration-500"
+      className="min-h-dvh flex flex-col text-fg transition-colors duration-500"
       style={surfaceStyle}
     >
-      <div className="max-w-4xl mx-auto">
+      {/* Bottom padding reserves room for the fixed footer below */}
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 pt-8 pb-[calc(8rem+env(safe-area-inset-bottom))] md:px-8">
         <PageHeader
           title="WELCOME"
-          description="Let's set up a few things before you start."
-          actions={(
-            <Button variant="ghost" size="small" onClick={handleFinish} className="text-body">
-              Skip
-            </Button>
-          )}
+          description="Pick a colour scheme. You can change it any time in Settings."
+          className="mb-6"
         />
 
-        {/* Settings Sections */}
-        <div className="space-y-6 mb-12">
-          <Card padding="medium">
-            <h2 className="font-serif text-subtitle mb-4 text-balance">
-              LOOK & FEEL
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              {Object.entries(COLOR_SCHEMES).map(([scheme, label]) => (
-                <ColorSchemeCard
-                  key={scheme}
-                  scheme={scheme}
-                  label={label}
-                  isSelected={localColorScheme === scheme}
-                  onClick={() => handleColorSchemeChange(scheme)}
-                />
-              ))}
-            </div>
-            <SettingToggle
-              label="Dark Mode"
-              description="Use darker colors for backgrounds"
-              enabled={settings.visual.enableDarkMode}
-              onChange={(value) => updateSetting('visual', 'enableDarkMode', value)}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Object.keys(COLOR_SCHEMES).map((scheme) => (
+            <ColorSchemeCard
+              key={scheme}
+              scheme={scheme}
+              label={SCHEME_LABELS[scheme]}
+              isSelected={localColorScheme === scheme}
+              onClick={() => handleColorSchemeChange(scheme)}
+              compact
             />
-          </Card>
-
-          <Card padding="medium">
-            <h2 className="font-serif text-subtitle mb-4 text-balance">
-              SOUND & FEEDBACK
-            </h2>
-            <SettingToggle
-              label="Sound Effects"
-              description="Play audio feedback such as the winner fanfare"
-              enabled={settings.accessibility.enableSoundEffects}
-              onChange={(value) => updateSetting('accessibility', 'enableSoundEffects', value)}
-            />
-            {'vibrate' in navigator && (
-              <SettingToggle
-                label="Haptic Feedback"
-                description="Vibrate on interactions (mobile devices)"
-                enabled={settings.accessibility.enableHapticFeedback}
-                onChange={(value) => updateSetting('accessibility', 'enableHapticFeedback', value)}
-              />
-            )}
-          </Card>
+          ))}
         </div>
 
-        {/* Get Started Button */}
-        <Button
-          variant="solid"
-          size="large"
-          fullWidth
-          onClick={handleFinish}
-        >
-          Get Started
-        </Button>
+        <div className="mt-4 border-t-2 border-fg/20">
+          <SettingToggle
+            label="Dark Mode"
+            description="Use darker colours for backgrounds"
+            enabled={settings.visual.enableDarkMode}
+            onChange={(value) => updateSetting('visual', 'enableDarkMode', value)}
+          />
+        </div>
+      </main>
+
+      {/* Pinned to the viewport (fixed, not sticky: App's overflow-hidden
+          wrapper would otherwise become the sticky container and let the
+          footer scroll away when the content overflows) */}
+      <div className="fixed inset-x-0 bottom-0 z-sticky bg-surface transition-colors duration-500">
+        <div className="max-w-4xl mx-auto px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-8">
+          <Button
+            variant="solid"
+            size="large"
+            fullWidth
+            onClick={handleFinish}
+          >
+            Get Started
+          </Button>
+        </div>
       </div>
     </div>
   );
