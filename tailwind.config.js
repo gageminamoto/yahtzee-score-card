@@ -7,10 +7,12 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class', // Enable class-based dark mode
   theme: {
     extend: {
       colors: {
+        // Contrast-aware tokens, scoped per surface via utils/theme.js
+        'fg': 'rgb(var(--fg) / <alpha-value>)',
+        'surface': 'rgb(var(--surface) / <alpha-value>)',
         // CMYK-inspired bold color palette
         'electric-blue': '#0066FF',
         'hot-magenta': '#FF0099',

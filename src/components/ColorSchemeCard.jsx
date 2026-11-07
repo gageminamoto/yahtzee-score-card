@@ -4,27 +4,22 @@
 
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
-import { colorSchemes, getTextColorForBackground } from '../utils/colors';
+import { colorSchemes } from '../utils/colors';
+import { cn } from '../utils/cn';
 
 export default function ColorSchemeCard({ scheme, label, isSelected, onClick }) {
-  // Get preview colors based on scheme
-  const getPreviewColors = () => {
-    const schemeColors = colorSchemes[scheme]?.primary || colorSchemes.default.primary;
-    return schemeColors.slice(0, 4);
-  };
-
-  const previewColors = getPreviewColors();
+  const previewColors = (colorSchemes[scheme]?.primary || colorSchemes.default.primary).slice(0, 4);
 
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`relative w-full p-4 bg-white/20 dark:bg-black/20 transition-[transform] duration-150 ease-out ${
-        isSelected
-          ? 'scale-[1.02] bg-opacity-30 dark:bg-opacity-30'
-          : 'hover:bg-opacity-25 dark:hover:bg-opacity-25 hover:scale-[1.01]'
-      }`}
+      aria-pressed={isSelected}
+      className={cn(
+        'relative w-full p-4 border-2 transition-[background-color,border-color] duration-150 ease-out',
+        isSelected ? 'bg-fg/20 border-fg' : 'bg-fg/10 border-transparent hover:bg-fg/20',
+      )}
     >
-      {/* Color preview circles */}
       <div className="flex justify-center gap-2 mb-3">
         {previewColors.map((color, index) => (
           <div
@@ -34,17 +29,10 @@ export default function ColorSchemeCard({ scheme, label, isSelected, onClick }) 
           />
         ))}
       </div>
-      {/* Label */}
-      <div className="font-sans text-body font-bold text-white dark:text-black">
-        {label}
-      </div>
-      {/* Selected indicator */}
+      <div className="font-sans text-body font-bold text-fg">{label}</div>
       {isSelected && (
-        <div className="absolute top-2 right-2 w-6 h-6 bg-white dark:bg-black rounded-full flex items-center justify-center">
-          <Icon 
-            icon="basil:check-solid" 
-            className="w-4 h-4 text-black dark:text-white"
-          />
+        <div className="absolute top-2 right-2 w-6 h-6 bg-fg rounded-full flex items-center justify-center">
+          <Icon icon="basil:check-solid" className="w-4 h-4 text-surface" />
         </div>
       )}
     </button>

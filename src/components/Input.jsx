@@ -1,62 +1,30 @@
-import { useId } from 'react';
+import { forwardRef } from 'react';
 import PropTypes from 'prop-types';
+import { cn } from '../utils/cn';
 
 /**
- * Input component with bold CMYK styling:
- * - White border, transparent fill
- * - Large, readable text
- * - Clear focus states
+ * Text input with bold CMYK styling. Colours follow the surrounding surface.
  */
-export default function Input({
-  type = 'text',
-  placeholder,
-  value,
-  onChange,
-  disabled = false,
-  maxLength,
-  className = '',
-  autoFocus = false,
-  textColor = '#ffffff',
-}) {
-  const isBlack = textColor === '#000000';
-  const baseStyles = "w-full border-2 font-sans text-body-lg px-6 py-4 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent transition-[border-color,background-color,box-shadow] duration-100 ease-out disabled:opacity-40 disabled:cursor-not-allowed";
-
-  // Use React's useId for stable unique ID
-  const reactId = useId();
-  const inputId = `input${reactId.replace(/:/g, '')}`;
-
+const Input = forwardRef(function Input({ className, type = 'text', ...rest }, ref) {
   return (
-    <>
-      <style>{`#${inputId}::placeholder { color: ${textColor}; opacity: 0.6; }`}</style>
-      <input
-        id={inputId}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        maxLength={maxLength}
-        autoFocus={autoFocus}
-        className={`${baseStyles} ${className}`}
-        style={{
-          borderColor: isBlack ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)',
-          backgroundColor: isBlack ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.12)',
-          color: textColor,
-          '--tw-ring-color': textColor,
-        }}
-      />
-    </>
+    <input
+      ref={ref}
+      type={type}
+      className={cn(
+        'w-full border-2 border-fg/40 bg-fg/10 text-fg placeholder:text-fg/60',
+        'font-sans text-body-lg px-6 py-4 outline-none',
+        'focus:border-fg transition-[border-color,background-color] duration-100 ease-out',
+        'disabled:opacity-40 disabled:cursor-not-allowed',
+        className,
+      )}
+      {...rest}
+    />
   );
-}
+});
 
 Input.propTypes = {
   type: PropTypes.string,
-  placeholder: PropTypes.string,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  onChange: PropTypes.func,
-  disabled: PropTypes.bool,
-  maxLength: PropTypes.number,
   className: PropTypes.string,
-  autoFocus: PropTypes.bool,
-  textColor: PropTypes.string,
 };
+
+export default Input;

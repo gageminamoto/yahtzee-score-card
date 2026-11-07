@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
 import { useSettings } from '../context/SettingsContext';
+import Button from './Button';
+import { cn } from '../utils/cn';
 
 const supportsVibration = 'vibrate' in navigator;
 
@@ -26,7 +28,13 @@ const TOGGLE_ITEMS = [
   },
 ].filter(Boolean);
 
-export default function QuickSettingsPopover({ textColor, playerColor, onQuitGame }) {
+const MENU_ITEM = 'w-full flex items-center gap-3 px-3 py-2.5 text-fg transition-colors duration-100 hover:bg-fg/10';
+
+/**
+ * Quick settings menu for the game header. The panel uses the surrounding
+ * surface (bg-surface / text-fg), so it matches the current player colour.
+ */
+export default function QuickSettingsPopover({ onQuitGame }) {
   const [isOpen, setIsOpen] = useState(false);
   const { settings, updateSetting } = useSettings();
 
@@ -66,29 +74,26 @@ export default function QuickSettingsPopover({ textColor, playerColor, onQuitGam
     };
   }, [isOpen]);
 
-  const isBlack = textColor === '#000000';
-
   return (
     <span className="relative inline-block" ref={containerRef}>
-      <button
+      <Button
         ref={buttonRef}
+        variant="ghost"
+        size="icon"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/15 dark:hover:bg-black/15 active:scale-95 transition-all duration-150"
-        style={{ color: textColor }}
+        className="rounded-full"
         aria-label="Quick settings"
         aria-expanded={isOpen}
         aria-haspopup="true"
-        type="button"
       >
         <Icon icon="basil:settings-solid" className="w-5 h-5" />
-      </button>
+      </Button>
 
       {isOpen && (
         <div
           ref={popoverRef}
-          className="absolute top-full right-0 mt-2 z-popover rounded-lg shadow-2xl p-2"
+          className="absolute top-full right-0 mt-2 z-popover bg-surface border-2 border-fg/20 shadow-2xl p-2"
           style={{
-            backgroundColor: playerColor,
             minWidth: '200px',
             transformOrigin: 'top right',
             animation: 'popoverScaleIn 200ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards',
@@ -102,8 +107,7 @@ export default function QuickSettingsPopover({ textColor, playerColor, onQuitGam
               <button
                 key={key}
                 onClick={() => updateSetting('accessibility', key, !enabled)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors duration-100 hover:bg-white/10 dark:hover:bg-black/10"
-                style={{ color: textColor }}
+                className={MENU_ITEM}
                 role="menuitemcheckbox"
                 aria-checked={enabled}
                 type="button"
@@ -116,22 +120,16 @@ export default function QuickSettingsPopover({ textColor, playerColor, onQuitGam
                   {label}
                 </span>
                 <div
-                  className="w-9 h-5 rounded-full border relative transition-colors duration-150 flex-shrink-0"
-                  style={{
-                    borderColor: isBlack ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)',
-                    backgroundColor: enabled
-                      ? (isBlack ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)')
-                      : 'transparent',
-                  }}
+                  className={cn(
+                    'w-9 h-5 rounded-full border border-fg/40 relative transition-colors duration-150 flex-shrink-0',
+                    enabled ? 'bg-fg' : 'bg-transparent',
+                  )}
                 >
                   <div
-                    className="absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform duration-150"
-                    style={{
-                      backgroundColor: enabled
-                        ? playerColor
-                        : (isBlack ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)'),
-                      transform: enabled ? 'translateX(16px)' : 'translateX(2px)',
-                    }}
+                    className={cn(
+                      'absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform duration-150',
+                      enabled ? 'translate-x-4 bg-surface' : 'translate-x-0.5 bg-fg/70',
+                    )}
                   />
                 </div>
               </button>
@@ -139,10 +137,7 @@ export default function QuickSettingsPopover({ textColor, playerColor, onQuitGam
           })}
 
           {/* Divider */}
-          <div
-            className="my-1 mx-3 border-t"
-            style={{ borderColor: isBlack ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)' }}
-          />
+          <div className="my-1 mx-3 border-t border-fg/20" />
 
           {/* Quit Game */}
           <button
@@ -150,8 +145,7 @@ export default function QuickSettingsPopover({ textColor, playerColor, onQuitGam
               setIsOpen(false);
               onQuitGame();
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors duration-100 hover:bg-white/10 dark:hover:bg-black/10"
-            style={{ color: textColor }}
+            className={MENU_ITEM}
             role="menuitem"
             type="button"
           >
@@ -170,7 +164,5 @@ export default function QuickSettingsPopover({ textColor, playerColor, onQuitGam
 }
 
 QuickSettingsPopover.propTypes = {
-  textColor: PropTypes.string.isRequired,
-  playerColor: PropTypes.string.isRequired,
   onQuitGame: PropTypes.func.isRequired,
 };

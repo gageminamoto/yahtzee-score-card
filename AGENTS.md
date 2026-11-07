@@ -1,39 +1,61 @@
 # Agent Guidelines
 
-## Creating New Components
+## Styling & Theming
 
-**Always include dark and light mode variants** using Tailwind's `dark:` prefix.
+Every screen sits on a bold colour (page colour or player colour), and text must
+be black or white depending on that colour. This is handled by two Tailwind
+colour tokens that are scoped per surface with CSS variables:
 
-### Quick Reference
+- `fg` - black or white, whichever reads best on the current surface
+- `surface` - the surface colour itself (use for text on a solid `bg-fg` fill)
+
+**Never** pick colours with `dark:` variants, `textColor` props, inline
+`style={{ color }}`, or `textColor === '#000000' ? ... : ...` ternaries.
+
+### Setting up a surface
 
 ```jsx
-// Backgrounds
-className="bg-black/20 dark:bg-white/20"
+import { usePageSurface, useSurface } from '../hooks/useSurface';
 
+// A page: themed background for a colour-rotation index (handles dark mode
+// and syncs the overscroll colour)
+const { style } = usePageSurface(colorIndex);
+<div className="min-h-dvh p-8 text-fg" style={style}>...</div>
+
+// Any other coloured area (player panel, modal, chip)
+const surface = useSurface();
+<div style={surface(player.color).style}>...</div>
+```
+
+Dark mode darkens surface colours; `fg` follows automatically.
+
+### Tokens
+
+```jsx
 // Text
-className="text-white dark:text-black"
-className="text-white/70 dark:text-black/70"
-
+className="text-fg"         // primary
+className="text-fg/70"      // secondary / descriptions
+// Fills - three levels only
+className="bg-fg/10"        // subtle (cards, inputs, panels)
+className="bg-fg/20"        // default (hover, selected, primary buttons)
+className="bg-fg/30"        // strong
+className="bg-fg text-surface"  // solid / active
 // Borders
-className="border-white dark:border-black"
-className="border-white/20 dark:border-black/20"
-
-// Hover states
-className="hover:bg-white/10 dark:hover:bg-black/10"
+className="border-2 border-fg/40"  // default, `border-fg` when focused/selected
+className="border-fg/20"           // dividers
 ```
 
-### Example
+- Corners are square. Use `rounded-full` only for pills, toggles, dots and avatars.
+- Type: `font-serif` for titles/numbers, `font-sans` for UI. Use the scale
+  `text-ui`, `text-body`, `text-body-lg`, `text-subtitle`, `text-title`,
+  `text-headline`, `text-display` (they respect the font-size setting).
+- Use Tailwind opacity syntax (`/20`), not `bg-opacity-20`.
 
-```jsx
-<div className="bg-black/20 dark:bg-white/20 p-4">
-  <h2 className="text-white dark:text-black">Title</h2>
-  <button className="bg-white dark:bg-black text-black dark:text-white">
-    Action
-  </button>
-</div>
-```
+### Shared components (`src/components`)
 
-**Note:** Use Tailwind opacity syntax (`/20`, `/50`) not `bg-opacity-20`.
+- `Button` - `variant`: `primary` | `solid` | `outline` | `ghost`; `size`: `large` | `medium` | `small` | `icon`. Use it instead of raw `<button>` for actions.
+- `PageHeader` - back link + title + description (+ `actions`). Every page with a back button uses it.
+- `Card`, `Input`, `Modal`, `ConfirmDialog`, `SettingRow` / `SettingToggle` / `SettingButtonGroup` / `SettingNumberInput`.
 
 ## Icon Usage
 
@@ -48,11 +70,7 @@ import { Icon } from '@iconify/react';
 ### Usage Example
 
 ```jsx
-<Icon 
-  icon="basil:icon-name-solid" 
-  className="w-6 h-6" 
-  style={{ color: textColor }}
-/>
+<Icon icon="basil:icon-name-solid" className="w-6 h-6" />
 ```
 
 ### Common Icons Used
@@ -77,4 +95,4 @@ import { Icon } from '@iconify/react';
 - Large icons: `w-6 h-6` (24px) - tab labels, prominent actions
 - Extra large: `w-8 h-8` (32px) - feature highlights
 
-**Note:** Icons automatically inherit text color when used with `style={{ color: textColor }}`. For dark/light mode, use the same color system as text.
+**Note:** Icons inherit `currentColor`, so `text-fg` on a parent (or the icon) is all that's needed.

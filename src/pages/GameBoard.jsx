@@ -3,7 +3,8 @@ import { Icon } from '@iconify/react';
 import Scorecard from '../components/Scorecard';
 import ScoreEntryModal from '../components/ScoreEntryModal';
 import QuickSettingsPopover from '../components/QuickSettingsPopover';
-import { ConfirmDialog, UpperBonusModal } from '../components';
+import { Button, ConfirmDialog, UpperBonusModal } from '../components';
+import { GameHeader, HeaderPill, PlayerTab, ScrollMore } from '../components/GameBoardParts';
 import {
   createEmptyScorecard,
   calculateTotalScore,
@@ -12,9 +13,9 @@ import {
   isGameComplete,
   isCategoryScored,
 } from '../utils/scoring';
-import { TOTAL_ROUNDS, UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
-import { getTextColorForBackground } from '../utils/colors';
+import { UPPER_SECTION_CATEGORIES, getUpperBonusThreshold, getUpperBonusPoints } from '../utils/gameConstants';
 import { useSettings } from '../context/SettingsContext';
+import { usePageSurface } from '../hooks/useSurface';
 import { isSoundEnabled, playScoreConfirm, playUpperBonus, playTurnChange } from '../utils/sounds';
 
 /**
@@ -49,6 +50,11 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
   const playerTabRefs = useRef([]);
   const tabContainerRef = useRef(null);
 
+  // Page surface follows the current player's colour (dark mode darkens it)
+  const { style: pageStyle } = usePageSurface(
+    players[currentPlayerIndex]?.color || players[0]?.color || '#000000'
+  );
+
   // Guard: If players array is empty (e.g., during quit transition), return null
   // This prevents crashes when the parent clears players before unmounting
   if (players.length === 0) {
@@ -62,13 +68,7 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
   }
 
   const backgroundColor = currentPlayer.color;
-  const textColor = getTextColorForBackground(backgroundColor);
   const currentRound = Math.floor(completedTurns / players.length) + 1;
-
-  // Sync background color to html/body for overscroll
-  useEffect(() => {
-    document.documentElement.style.setProperty('--page-bg', backgroundColor);
-  }, [backgroundColor]);
 
   // Lock body scroll to prevent double scrollbars
   useEffect(() => {
@@ -317,60 +317,44 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
 
   return (
     <div
-      className="h-dvh px-2 py-1.5 md:p-6 transition-colors duration-500 flex flex-col mobile-compact overflow-hidden"
-      style={{ backgroundColor }}
+      className="h-dvh px-2 py-1.5 md:p-6 transition-colors duration-500 flex flex-col mobile-compact overflow-hidden text-fg"
+      style={pageStyle}
     >
       <div className="max-w-6xl mx-auto w-full flex flex-col flex-1 min-h-0">
         {/* Header with Close, Finish Game, and Round */}
-        <div className="flex items-center mb-1.5 md:mb-2 flex-shrink-0">
-          <div className="flex-1 flex justify-start">
-            <button
+        <GameHeader
+          round={currentRound}
+          left={(
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onClose}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/15 dark:hover:bg-black/15 active:scale-95 transition-all duration-150"
-              style={{ color: textColor }}
+              className="w-9 h-9 rounded-full"
               aria-label="Close game"
             >
               <Icon icon="basil:cross-solid" className="w-6 h-6" />
-            </button>
-          </div>
-          {/* Round Display */}
-          <div
-            className="font-sans text-ui opacity-90"
-            style={{ color: textColor }}
-          >
-            R{currentRound}/{TOTAL_ROUNDS}
-          </div>
-          <div className="flex-1 flex items-center gap-2 justify-end">
-            <QuickSettingsPopover textColor={textColor} playerColor={backgroundColor} onQuitGame={onQuitGame} />
-            {/* Finish Game Button */}
-            <button
-              onClick={handleFinishGame}
-              disabled={!!selectedCategory}
-              className={`
-                font-sans text-ui font-bold
-                px-4 py-2 rounded-full
-                bg-white/15 dark:bg-black/15
-                hover:bg-white/25 dark:hover:bg-black/25
-                active:scale-95
-                transition-all duration-150
-                inline-flex items-center justify-center
-                ${selectedCategory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-              `}
-              style={{ color: textColor }}
-              aria-label="Finish game and see results"
-              title="End the game and see who won"
-            >
-              Finish
-            </button>
-          </div>
-        </div>
+            </Button>
+          )}
+          right={(
+            <>
+              <QuickSettingsPopover onQuitGame={onQuitGame} />
+              <HeaderPill
+                onClick={handleFinishGame}
+                disabled={!!selectedCategory}
+                aria-label="Finish game and see results"
+                title="End the game and see who won"
+              >
+                Finish
+              </HeaderPill>
+            </>
+          )}
+        />
 
         {/* Player Switcher */}
         <div className="relative flex justify-center mb-2 md:mb-4 flex-shrink-0">
           {/* Left fade */}
           <div
-            className={`tab-fade tab-fade-left ${showTabFadeLeft ? 'tab-fade-visible' : 'tab-fade-hidden'}`}
-            style={{ background: `linear-gradient(to right, ${backgroundColor}, transparent)` }}
+            className={`tab-fade tab-fade-left bg-gradient-to-r from-surface to-transparent ${showTabFadeLeft ? 'tab-fade-visible' : 'tab-fade-hidden'}`}
             aria-hidden="true"
           />
           <div
@@ -379,63 +363,23 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
             role="tablist"
             aria-label="Player switcher"
           >
-            {players.map((player, index) => {
-              const isActive = index === currentPlayerIndex;
-              const playerScore = calculateTotalScore(player.scorecard);
-
-              return (
-                <button
-                  key={player.id}
-                  ref={(el) => { playerTabRefs.current[index] = el; }}
-                  onClick={() => handlePlayerSwitch(index)}
-                  disabled={!!selectedCategory}
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`
-                    relative flex items-center gap-3 px-5 py-3 rounded-full min-w-fit min-h-[52px]
-                    transition-all duration-150 ease-out
-                    motion-reduce:transition-none
-                    ${isActive
-                      ? 'bg-white/25 dark:bg-black/25'
-                      : 'opacity-60 hover:opacity-100'
-                    }
-                    ${selectedCategory ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
-                    focus:outline-none focus:ring-2 focus:ring-white/50 dark:focus:ring-black/50
-                    active:scale-[0.97] motion-reduce:active:scale-100
-                  `}
-                  aria-label={`Switch to ${player.name || `Player ${index + 1}`}`}
-                  type="button"
-                >
-                  {/* Player Color Indicator */}
-                  <div
-                    className="w-9 h-9 md:w-10 md:h-10 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: player.color }}
-                  />
-
-                  {/* Player Info: Name and Score */}
-                  <span
-                    className="font-sans text-body font-bold uppercase tracking-wide truncate max-w-[60px] md:max-w-[80px]"
-                    style={{ color: textColor }}
-                  >
-                    {player.name || `P${index + 1}`}
-                  </span>
-
-                  {settings.visual.showHeaderTotals && (
-                    <span
-                      className="font-sans text-body font-bold tabular-nums"
-                      style={{ color: textColor }}
-                    >
-                      {playerScore}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+            {players.map((player, index) => (
+              <PlayerTab
+                key={player.id}
+                ref={(el) => { playerTabRefs.current[index] = el; }}
+                player={player}
+                index={index}
+                score={settings.visual.showHeaderTotals ? calculateTotalScore(player.scorecard) : undefined}
+                isActive={index === currentPlayerIndex}
+                onClick={() => handlePlayerSwitch(index)}
+                disabled={!!selectedCategory}
+                aria-label={`Switch to ${player.name || `Player ${index + 1}`}`}
+              />
+            ))}
           </div>
           {/* Right fade */}
           <div
-            className={`tab-fade tab-fade-right ${showTabFadeRight ? 'tab-fade-visible' : 'tab-fade-hidden'}`}
-            style={{ background: `linear-gradient(to left, ${backgroundColor}, transparent)` }}
+            className={`tab-fade tab-fade-right bg-gradient-to-l from-surface to-transparent ${showTabFadeRight ? 'tab-fade-visible' : 'tab-fade-hidden'}`}
             aria-hidden="true"
           />
         </div>
@@ -450,37 +394,12 @@ export default function GameBoard({ players: initialPlayers, initialPlayerIndex 
               scorecard={currentPlayer.scorecard}
               onCategoryClick={handleCategoryClick}
               isCurrentPlayer={true}
-              textColor={textColor}
               settings={settings}
             />
           </div>
 
-          {/* Bottom fade gradient - indicates more content below */}
-          <div
-            className={`scroll-fade-gradient ${showScrollIndicator ? 'scroll-fade-visible' : 'scroll-fade-hidden'}`}
-            style={{
-              background: `linear-gradient(to bottom, transparent, ${backgroundColor})`,
-            }}
-            aria-hidden="true"
-          />
-
-          {/* Scroll to bottom indicator */}
-          <button
-            onClick={scrollToBottom}
-            className={`
-              scroll-indicator absolute bottom-3
-              flex items-center justify-center w-10 h-10 rounded-full
-              bg-white/25 dark:bg-black/25 backdrop-blur-sm
-              shadow-lg
-              ${showScrollIndicator ? 'scroll-indicator-visible' : 'scroll-indicator-hidden'}
-            `}
-            style={{ color: textColor }}
-            aria-label="Scroll to see more categories"
-            aria-hidden={!showScrollIndicator}
-            tabIndex={showScrollIndicator ? 0 : -1}
-          >
-            <Icon icon="basil:arrow-down-solid" className="w-6 h-6" />
-          </button>
+          {/* Bottom fade + scroll-to-bottom indicator */}
+          <ScrollMore visible={showScrollIndicator} onClick={scrollToBottom} />
         </div>
       </div>
 

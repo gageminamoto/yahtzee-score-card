@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { colorSchemes, playerColors, getTextColorForBackground } from '../utils/colors';
+import { colorSchemes, playerColors } from '../utils/colors';
+import { cn } from '../utils/cn';
 
 /**
  * PlayerColorPicker Component
@@ -122,18 +123,16 @@ export default function PlayerColorPicker({
     };
   }, [isOpen]);
 
-  // Get text color for the current background (for border visibility)
-  const textColor = getTextColorForBackground(currentColor);
-
   return (
     <div className="relative" ref={containerRef}>
       {/* Main Color Circle - Clickable */}
       <button
         ref={buttonRef}
         onClick={handleCircleClick}
-        className="w-12 h-12 rounded-full flex-shrink-0 border-4 border-white transition-transform duration-150 ease-out hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 relative z-0"
+        className="w-12 h-12 rounded-full flex-shrink-0 border-4 border-fg transition-transform duration-150 ease-out hover:scale-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-fg focus-visible:ring-offset-2 relative z-0"
         style={{ backgroundColor: currentColor }}
         aria-label="Change player color"
+        aria-expanded={isOpen}
         type="button"
       />
 
@@ -141,7 +140,7 @@ export default function PlayerColorPicker({
       {isOpen && (
         <div
           ref={popupRef}
-          className="fixed z-[10000] bg-black/90 dark:bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-2xl"
+          className="fixed z-popover bg-fg text-surface p-4 shadow-2xl"
           style={{ 
             minWidth: '200px',
             top: `${popupPosition.top}px`,
@@ -152,7 +151,7 @@ export default function PlayerColorPicker({
         >
           {/* Popup Title */}
           <div className="mb-3">
-            <p className="font-sans text-body font-bold text-white dark:text-black">
+            <p className="font-sans text-body font-bold">
               Choose Color
             </p>
           </div>
@@ -168,16 +167,15 @@ export default function PlayerColorPicker({
                   key={index}
                   onClick={() => handleColorSelect(color)}
                   disabled={isTaken && !isCurrent}
-                  className={`
-                    w-12 h-12 rounded-full border-4 transition-all duration-150 relative
-                    ${isCurrent 
-                      ? 'border-white dark:border-black scale-110 ring-2 ring-white dark:ring-black ring-offset-2' 
-                      : isTaken && !isCurrent
-                      ? 'border-dashed cursor-not-allowed border-white dark:border-black border-opacity-60 dark:border-opacity-60'
-                      : 'border-transparent hover:scale-110 cursor-pointer hover:border-white/50 dark:hover:border-black/50'
-                    }
-                    focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-black
-                  `}
+                  className={cn(
+                    'w-12 h-12 rounded-full border-4 transition-all duration-150 relative',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-surface',
+                    isCurrent
+                      ? 'border-surface scale-110 ring-2 ring-surface ring-offset-2 ring-offset-fg'
+                      : isTaken
+                      ? 'border-dashed border-surface/70 cursor-not-allowed'
+                      : 'border-transparent hover:scale-110 hover:border-surface/40 cursor-pointer',
+                  )}
                   style={{ backgroundColor: color }}
                   aria-label={`Select ${color}${isTaken && !isCurrent ? ' (taken)' : ''}`}
                   type="button"
@@ -188,7 +186,7 @@ export default function PlayerColorPicker({
           </div>
 
           {/* Helper Text */}
-          <p className="font-sans text-ui text-white/70 dark:text-black/70 mt-3 text-center">
+          <p className="font-sans text-ui text-surface/70 mt-3 text-center">
             {availableColors.filter(c => {
               const otherPlayersColors = usedColors.filter(uc => uc !== currentColor);
               return !otherPlayersColors.includes(c);

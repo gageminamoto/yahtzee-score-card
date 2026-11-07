@@ -2,29 +2,23 @@
  * Settings page with comprehensive customization options
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Icon } from '@iconify/react';
-import { Button, Card } from '../components';
+import { Button, Card, PageHeader } from '../components';
 import SettingToggle from '../components/SettingToggle';
 import SettingButtonGroup from '../components/SettingButtonGroup';
 import SettingNumberInput from '../components/SettingNumberInput';
 import ColorSchemeCard from '../components/ColorSchemeCard';
 import { useSettings } from '../context/SettingsContext';
-import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
+import { usePageSurface } from '../hooks/useSurface';
+import { cn } from '../utils/cn';
 import { COLOR_SCHEMES, FONT_SIZE_OPTIONS, HEADER_STYLE_OPTIONS } from '../utils/defaultSettings';
 import { clearAllData, exportAllData } from '../utils/storage';
 
 export default function Settings({ onBack, colorIndex }) {
   const { settings, updateSetting, resetAllSettings } = useSettings();
   const [activeTab, setActiveTab] = useState('appearance');
-  const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
-  const textColor = getTextColorForBackground(backgroundColor);
-
-  // Sync background color to html/body for overscroll
-  useEffect(() => {
-    document.documentElement.style.setProperty('--page-bg', backgroundColor);
-  }, [backgroundColor]);
+  const { style: surfaceStyle } = usePageSurface(colorIndex);
 
   const handleExportData = () => {
     const data = exportAllData();
@@ -60,40 +54,25 @@ export default function Settings({ onBack, colorIndex }) {
 
   return (
     <div
-      className="min-h-dvh p-4 md:p-8 transition-colors duration-500"
-      style={{ backgroundColor }}
+      className="min-h-dvh p-4 md:p-8 text-fg transition-colors duration-500"
+      style={surfaceStyle}
     >
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={onBack}
-            className="font-sans text-body hover:opacity-70 transition-opacity flex items-center gap-2"
-            style={{ color: textColor }}
-          >
-            <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
-            Back
-          </button>
-          <h1
-            className="font-serif text-subtitle md:text-title text-balance"
-            style={{ color: textColor }}
-          >
-            SETTINGS
-          </h1>
-          <div className="w-20" /> {/* Spacer for centering */}
-        </div>
+        <PageHeader title="SETTINGS" onBack={onBack} className="mb-6" />
 
         {/* Tabs */}
-        <div className="flex mb-6">
+        <div className="flex gap-1 mb-6 bg-fg/10 p-1" role="tablist" aria-label="Settings sections">
           {tabs.map(tab => (
             <button
               key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 font-sans text-body font-bold whitespace-nowrap transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-white dark:bg-black text-black dark:text-white'
-                  : 'bg-black/30 dark:bg-white/30 hover:bg-black/40 dark:hover:bg-white/40 text-white dark:text-black'
-              }`}
+              className={cn(
+                'flex-1 py-3 font-sans text-body font-bold whitespace-nowrap transition-colors',
+                activeTab === tab.id ? 'bg-fg text-surface' : 'text-fg/70 hover:text-fg hover:bg-fg/10',
+              )}
             >
               {tab.label}
             </button>
@@ -104,7 +83,7 @@ export default function Settings({ onBack, colorIndex }) {
         {activeTab === 'appearance' && (
           <div className="space-y-6">
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 COLOR SCHEME
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -121,7 +100,7 @@ export default function Settings({ onBack, colorIndex }) {
             </Card>
 
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 DISPLAY
               </h2>
               <SettingButtonGroup
@@ -165,7 +144,7 @@ export default function Settings({ onBack, colorIndex }) {
             </Card>
 
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 EFFECTS
               </h2>
               <SettingToggle
@@ -194,7 +173,7 @@ export default function Settings({ onBack, colorIndex }) {
         {activeTab === 'rules' && (
           <div className="space-y-6">
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 SCORING
               </h2>
               <SettingNumberInput
@@ -224,7 +203,7 @@ export default function Settings({ onBack, colorIndex }) {
             </Card>
 
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 HOUSE RULES
               </h2>
               <SettingToggle
@@ -247,7 +226,7 @@ export default function Settings({ onBack, colorIndex }) {
         {activeTab === 'feedback' && (
           <div className="space-y-6">
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 FEEDBACK
               </h2>
               {'vibrate' in navigator && (
@@ -278,7 +257,7 @@ export default function Settings({ onBack, colorIndex }) {
         {activeTab === 'data' && (
           <div className="space-y-6">
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 SAVE & HISTORY
               </h2>
               <SettingToggle
@@ -304,7 +283,7 @@ export default function Settings({ onBack, colorIndex }) {
             </Card>
 
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 DATA MANAGEMENT
               </h2>
               <div className="space-y-4">
@@ -336,15 +315,15 @@ export default function Settings({ onBack, colorIndex }) {
             </Card>
 
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 ABOUT
               </h2>
-              <div className="space-y-3 font-sans text-body text-white dark:text-black">
+              <div className="space-y-3 font-sans text-body">
                 <p>
                   <strong>Yahtzee Score Tracker</strong>
                 </p>
-                <p className="opacity-70">Version 1.0.0</p>
-                <p className="opacity-70">
+                <p className="text-fg/70">Version 1.0.0</p>
+                <p className="text-fg/70">
                   A modern, colorful score tracking app for Yahtzee with customizable
                   settings and game rules.
                 </p>
@@ -352,10 +331,10 @@ export default function Settings({ onBack, colorIndex }) {
             </Card>
 
             <Card padding="medium">
-              <h2 className="font-serif text-subtitle text-white dark:text-black mb-4 text-balance">
+              <h2 className="font-serif text-subtitle mb-4 text-balance">
                 GAME RULES
               </h2>
-              <div className="space-y-3 font-sans text-body text-white/90 dark:text-black/90">
+              <div className="space-y-3 font-sans text-body">
                 <p>
                   <strong>Objective:</strong> Score the most points by rolling five dice
                   to make certain combinations.

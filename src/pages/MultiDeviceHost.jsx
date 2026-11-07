@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Icon } from '@iconify/react';
 import QRCode from 'qrcode';
-import { Button, Input, PlayerColorPicker } from '../components';
-import { getColorByScheme, getPlayerColorByScheme, getTextColorForBackground } from '../utils/colors';
+import { Button, Input, PageHeader, PlayerColorPicker } from '../components';
+import LobbyPlayerRow from '../components/LobbyPlayerRow';
+import { SessionCancelledOverlay, ConnectionLostBanner } from '../components/SessionNotices';
+import { getPlayerColorByScheme } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
 import { useSession } from '../context/SessionContext';
+import { usePageSurface } from '../hooks/useSurface';
 
 export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embedded = false }) {
   const { settings } = useSettings();
   const colorScheme = settings.visual.colorScheme;
-  const backgroundColor = getColorByScheme(colorIndex, colorScheme);
-  const textColor = getTextColorForBackground(backgroundColor);
+  const { style: pageStyle } = usePageSurface(colorIndex);
 
   const {
     sessionCode,
@@ -43,13 +44,6 @@ export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embed
     const missing = players.filter((player) => !turnOrder.includes(player.id));
     return [...ordered, ...missing];
   }, [players, turnOrder]);
-
-  // Sync background color to html/body for overscroll
-  useEffect(() => {
-    if (!embedded) {
-      document.documentElement.style.setProperty('--page-bg', backgroundColor);
-    }
-  }, [backgroundColor, embedded]);
 
   // Generate QR code when session is created
   useEffect(() => {
@@ -161,10 +155,7 @@ export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embed
   const wrapPage = (children) => {
     if (embedded) return children;
     return (
-      <div
-        className="min-h-dvh p-8 transition-colors duration-500"
-        style={{ backgroundColor }}
-      >
+      <div className="min-h-dvh p-8 text-fg transition-colors duration-500" style={pageStyle}>
         {children}
       </div>
     );
@@ -175,29 +166,12 @@ export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embed
     return wrapPage(
       <div className="max-w-2xl mx-auto">
         {!embedded && (
-          <>
-            <button
-              onClick={onBack}
-              className="font-sans text-body mb-8 hover:opacity-70 transition-opacity flex items-center gap-2"
-              style={{ color: textColor }}
-            >
-              <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
-              Back
-            </button>
-
-            <h1
-              className="font-serif text-title md:text-headline mb-4 text-balance"
-              style={{ color: textColor }}
-            >
-              HOST GAME
-            </h1>
-            <p
-              className="font-sans text-body opacity-90 mb-12 text-pretty"
-              style={{ color: textColor }}
-            >
-              Create a session for others to join
-            </p>
-          </>
+          <PageHeader
+            title="HOST GAME"
+            description="Create a session for others to join"
+            onBack={onBack}
+            className="mb-12"
+          />
         )}
 
         <div className="space-y-6 mb-8">
@@ -215,19 +189,13 @@ export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embed
                 onChange={(e) => setHostName(e.target.value)}
                 maxLength={20}
                 autoFocus
-                textColor={textColor}
               />
             </div>
           </div>
         </div>
 
         {error && (
-          <p
-            className="font-sans text-body mb-4 text-center"
-            style={{ color: textColor }}
-          >
-            {error}
-          </p>
+          <p className="font-sans text-body mb-4 text-center">{error}</p>
         )}
 
         <Button
@@ -247,59 +215,21 @@ export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embed
   return wrapPage(
     <div className="max-w-2xl mx-auto">
       {sessionStatus === 'cancelled' && (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-6 bg-white/95 dark:bg-black/90">
-          <div className="max-w-md w-full text-center">
-            <h1 className="font-serif text-title text-black dark:text-white mb-3">Session Cancelled</h1>
-            <p className="font-sans text-body text-black/70 dark:text-white/70 mb-6">
-              The host ended the session. You can return home to start a new game.
-            </p>
-            <Button variant="solid" size="large" fullWidth onClick={handleSessionCancelled}>
-              Return Home
-            </Button>
-          </div>
-        </div>
+        <SessionCancelledOverlay onReturnHome={handleSessionCancelled} />
       )}
-      {!isConnected && sessionCode && (
-        <div
-          className="mb-4 text-center py-2 px-4 rounded-lg bg-bright-red/90"
-          role="alert"
-          aria-live="assertive"
-        >
-          <p className="font-sans text-ui font-bold text-white">
-            Connection lost — reconnecting...
-          </p>
-        </div>
-      )}
+      {!isConnected && sessionCode && <ConnectionLostBanner />}
 
-      <button
-        onClick={handleBack}
-        className="font-sans text-body mb-8 hover:opacity-70 transition-opacity flex items-center gap-2"
-        style={{ color: textColor }}
-      >
-        <Icon icon="basil:arrow-left-solid" className="w-6 h-6" />
-        Cancel
-      </button>
+      <PageHeader onBack={handleBack} backLabel="Cancel" />
 
       {/* Session Code */}
       <div className="text-center mb-8">
-        <p
-          className="font-sans text-body-lg uppercase tracking-widest opacity-80 mb-2"
-          style={{ color: textColor }}
-        >
+        <p className="font-sans text-ui uppercase tracking-widest text-fg/70 mb-2">
           Session Code
         </p>
-        <p
-          className="font-mono text-[3rem] md:text-[4rem] font-bold tracking-[0.3em] leading-none mb-4 select-all"
-          style={{ color: textColor }}
-        >
+        <p className="font-mono text-subtitle md:text-title font-bold tracking-[0.3em] leading-none mb-4 select-all">
           {sessionCode}
         </p>
-        <Button
-          variant="outline"
-          size="small"
-          onClick={handleCopyCode}
-          textColor={textColor}
-        >
+        <Button variant="outline" size="small" onClick={handleCopyCode}>
           {copied ? 'Copied!' : 'Copy Code'}
         </Button>
       </div>
@@ -307,7 +237,7 @@ export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embed
       {/* QR Code */}
       {qrDataUrl && (
         <div className="flex justify-center mb-8">
-          <div className="bg-white p-3 rounded-lg">
+          <div className="bg-white p-3">
             <img
               src={qrDataUrl}
               alt={`QR code to join session ${sessionCode}`}
@@ -319,34 +249,24 @@ export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embed
 
       {/* Player List */}
       <div className="mb-8">
-        <p
-          className="font-sans text-body-lg font-bold uppercase tracking-wider mb-4"
-          style={{ color: textColor }}
-        >
+        <p className="font-sans text-body-lg font-bold uppercase tracking-wider mb-4">
           Players ({players.length}/6)
         </p>
         {canReorder && (
-          <p className="font-sans text-ui opacity-70 mb-3" style={{ color: textColor }}>
+          <p className="font-sans text-ui text-fg/70 mb-3">
             Drag the handle to set turn order
           </p>
         )}
         <div className="space-y-3">
           {orderedPlayers.map((player) => (
-            <div
+            <LobbyPlayerRow
               key={player.id}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-shadow ${
-                dropTargetId === player.id ? 'ring-2 ring-white/50 dark:ring-black/50' : ''
-              } ${draggedPlayerId === player.id ? 'opacity-60' : ''}`}
-              style={{
-                backgroundColor: textColor === '#000000'
-                  ? 'rgba(0, 0, 0, 0.08)'
-                  : 'rgba(255, 255, 255, 0.12)',
-              }}
+              player={player}
+              className={`transition-shadow ${dropTargetId === player.id ? 'ring-2 ring-fg/40' : ''} ${draggedPlayerId === player.id ? 'opacity-60' : ''}`}
               onDragOver={handleDragOver(player.id)}
               onDrop={handleDrop(player.id)}
               aria-grabbed={draggedPlayerId === player.id}
-            >
-              {canReorder && (
+              leading={canReorder && (
                 <div
                   className="flex flex-col gap-1 mr-1 cursor-grab active:cursor-grabbing"
                   aria-hidden="true"
@@ -355,52 +275,17 @@ export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embed
                   onDragEnd={handleDragEnd}
                 >
                   {[0, 1, 2].map((dot) => (
-                    <span
-                      key={dot}
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{
-                        backgroundColor: textColor === '#000000' ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.6)',
-                      }}
-                    />
+                    <span key={dot} className="w-1.5 h-1.5 rounded-full bg-fg/70" />
                   ))}
                 </div>
               )}
-              <div
-                className="w-8 h-8 rounded-full shrink-0"
-                style={{ backgroundColor: player.color }}
-              />
-              <span
-                className="font-sans text-body font-bold flex-1"
-                style={{ color: textColor }}
-              >
-                {player.name}
-              </span>
-              {player.isHost && (
-                <span
-                  className="font-sans text-ui uppercase opacity-60"
-                  style={{ color: textColor }}
-                >
-                  Host
-                </span>
-              )}
-              <div
-                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                  player.isConnected ? 'bg-bright-green' : 'bg-bright-red'
-                }`}
-                aria-label={player.isConnected ? 'Connected' : 'Disconnected'}
-              />
-            </div>
+            />
           ))}
         </div>
       </div>
 
       {error && (
-        <p
-          className="font-sans text-body mb-4 text-center"
-          style={{ color: textColor }}
-        >
-          {error}
-        </p>
+        <p className="font-sans text-body mb-4 text-center">{error}</p>
       )}
 
       {/* Start Game */}
@@ -415,10 +300,7 @@ export default function MultiDeviceHost({ onBack, onGameStart, colorIndex, embed
       </Button>
 
       {!canStart && (
-        <p
-          className="font-sans text-ui opacity-70 text-center mt-4"
-          style={{ color: textColor }}
-        >
+        <p className="font-sans text-ui text-fg/70 text-center mt-4">
           Waiting for at least 2 players to join...
         </p>
       )}

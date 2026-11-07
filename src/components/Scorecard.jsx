@@ -14,7 +14,7 @@ import { getUpperBonusThreshold } from '../utils/gameConstants';
 /**
  * Scorecard component displaying all Yahtzee categories
  */
-export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer, textColor = '#FFFFFF', settings = null }) {
+export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer, settings = null }) {
   const upperSum = calculateUpperSectionSum(scorecard);
   const upperBonus = calculateUpperBonus(scorecard, settings);
   const upperThreshold = getUpperBonusThreshold(settings);
@@ -23,10 +23,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-4 pb-16">
       {/* Upper Section */}
       <div className="flex flex-col">
-        <h3
-          className="font-sans text-body-lg uppercase tracking-wider opacity-60 mb-1 px-3"
-          style={{ color: textColor }}
-        >
+        <h3 className="font-sans text-body-lg uppercase tracking-wider text-fg/70 mb-1 px-3">
           Upper
         </h3>
         <div className="space-y-0">
@@ -38,17 +35,16 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
               isScored={isCategoryScored(scorecard, category.id)}
               onClick={() => onCategoryClick(category.id)}
               isClickable={isCurrentPlayer}
-              textColor={textColor}
             />
           ))}
         </div>
 
         {/* Upper Section Bonus */}
-        <div className="flex justify-between items-center py-2 px-3 mt-1 bg-white/10 dark:bg-black/10">
-          <span className="font-sans text-ui opacity-80" style={{ color: textColor }}>
+        <div className="flex justify-between items-center py-2 px-3 mt-1 bg-fg/10">
+          <span className="font-sans text-ui text-fg/70">
             Bonus ({upperSum}/{upperThreshold})
           </span>
-          <span className="font-sans text-body font-bold tabular-nums" style={{ color: textColor }}>
+          <span className="font-sans text-body font-bold tabular-nums">
             {upperBonus > 0 ? `+${upperBonus}` : '—'}
           </span>
         </div>
@@ -56,10 +52,7 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
 
       {/* Lower Section */}
       <div className="flex flex-col mt-2 lg:mt-0">
-        <h3
-          className="font-sans text-body-lg uppercase tracking-wider opacity-60 mb-1 px-3"
-          style={{ color: textColor }}
-        >
+        <h3 className="font-sans text-body-lg uppercase tracking-wider text-fg/70 mb-1 px-3">
           Lower
         </h3>
         <div className="space-y-0">
@@ -71,7 +64,6 @@ export default function Scorecard({ scorecard, onCategoryClick, isCurrentPlayer,
               isScored={isCategoryScored(scorecard, category.id)}
               onClick={() => onCategoryClick(category.id)}
               isClickable={isCurrentPlayer}
-              textColor={textColor}
             />
           ))}
         </div>
@@ -84,7 +76,6 @@ Scorecard.propTypes = {
   scorecard: PropTypes.object.isRequired,
   onCategoryClick: PropTypes.func.isRequired,
   isCurrentPlayer: PropTypes.bool,
-  textColor: PropTypes.string,
   settings: PropTypes.object,
 };
 
@@ -92,15 +83,15 @@ Scorecard.propTypes = {
  * Individual category row
  * Made keyboard accessible with tabIndex, role, and keyboard event handlers
  */
-function CategoryRow({ category, score, isScored, onClick, isClickable, textColor = '#FFFFFF' }) {
-  const baseStyles = "flex justify-between items-center py-2 md:py-2.5 px-3 min-h-[44px] transition-[background-color] duration-100 ease-out";
+function CategoryRow({ category, score, isScored, onClick, isClickable }) {
+  const baseStyles = "flex justify-between items-center text-fg py-2 md:py-2.5 px-3 min-h-[44px] transition-[background-color] duration-100 ease-out";
 
-  // Theme-aware interactive and scored styles
+  // Interactive and scored styles (fg tokens follow the surface)
   const interactiveStyles = isClickable
-    ? "cursor-pointer hover:bg-white/10 dark:hover:bg-black/10 active:bg-white/15 dark:active:bg-black/15 focus:outline-none focus:ring-2 focus:ring-white/50 dark:focus:ring-black/50"
+    ? "cursor-pointer hover:bg-fg/10 active:bg-fg/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-fg/40"
     : "";
 
-  const scoredStyles = isScored ? "bg-white/15 dark:bg-black/15" : "opacity-50";
+  const scoredStyles = isScored ? "bg-fg/20" : "opacity-50";
 
   // Handle keyboard events for accessibility
   // Enter or Space key will trigger the click action
@@ -121,7 +112,7 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
       aria-label={isClickable ? (isScored ? `Edit score for ${category.name.toLowerCase()}` : `Enter score for ${category.name.toLowerCase()}`) : `${category.name.toLowerCase()}`}
       aria-disabled={!isClickable}
     >
-      <span className="font-sans text-body font-bold uppercase" style={{ color: textColor }}>
+      <span className="font-sans text-body font-bold uppercase">
         {category.name}
       </span>
 
@@ -131,14 +122,14 @@ function CategoryRow({ category, score, isScored, onClick, isClickable, textColo
             <Icon
               icon={isClickable ? "basil:edit-solid" : "basil:check-solid"}
               className="w-5 h-5 opacity-50"
-              style={{ color: textColor }}
+             
             />
-            <span className="font-sans text-body font-bold min-w-[2.5rem] text-right tabular-nums" style={{ color: textColor }}>
+            <span className="font-sans text-body font-bold min-w-[2.5rem] text-right tabular-nums">
               {score}
             </span>
           </>
         ) : (
-          <span className="font-sans text-body opacity-30 min-w-[2.5rem] text-right" style={{ color: textColor }}>
+          <span className="font-sans text-body opacity-30 min-w-[2.5rem] text-right">
             —
           </span>
         )}
@@ -153,5 +144,4 @@ CategoryRow.propTypes = {
   isScored: PropTypes.bool.isRequired,
   onClick: PropTypes.func.isRequired,
   isClickable: PropTypes.bool.isRequired,
-  textColor: PropTypes.string,
 };

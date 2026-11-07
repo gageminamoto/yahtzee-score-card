@@ -1,8 +1,8 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import { Button, DiceAnimation, FooterMenu } from '../components';
-import { getColorByScheme, getTextColorForBackground } from '../utils/colors';
 import { useSettings } from '../context/SettingsContext';
+import { usePageSurface } from '../hooks/useSurface';
 
 // Import header letter images
 import letterY from '../assets/header/Y.png';
@@ -28,13 +28,7 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, on
   const [explosionCooldown, setExplosionCooldown] = useState(false);
   const [logoFallen, setLogoFallen] = useState(false);
   const clickCountRef = useRef(0);
-  const backgroundColor = getColorByScheme(colorIndex, settings.visual.colorScheme);
-  const textColor = getTextColorForBackground(backgroundColor);
-
-  // Sync background color to html/body for overscroll
-  useEffect(() => {
-    document.documentElement.style.setProperty('--page-bg', backgroundColor);
-  }, [backgroundColor]);
+  const { style: surfaceStyle } = usePageSurface(colorIndex);
   
   // Check for reduced motion preference
   const prefersReducedMotion = useMemo(() => {
@@ -160,8 +154,8 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, on
 
   return (
     <div
-      className="min-h-dvh flex flex-col items-center justify-center p-8 transition-colors duration-500"
-      style={{ backgroundColor }}
+      className="min-h-dvh flex flex-col items-center justify-center p-8 text-fg transition-colors duration-500"
+      style={surfaceStyle}
     >
       {/* Dice Animation Overlay */}
       {/* fromTop prop determines if dice start from top (button click) or default position (title click) */}
@@ -223,7 +217,6 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, on
         ) : (
           <h1
             className="font-serif text-headline md:text-display mb-4 cursor-pointer select-none active:scale-95 text-balance tracking-wide"
-            style={{ color: textColor }}
             onClick={handleTitleClick}
           >
             {'YAHTZEE'.split('').map((letter, index) => {
@@ -258,10 +251,7 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, on
             })}
           </h1>
         )}
-        <p
-          className="font-sans text-body-lg opacity-90 text-pretty"
-          style={{ color: textColor }}
-        >
+        <p className="font-sans text-body-lg text-pretty">
           Score Tracker
         </p>
       </div>
@@ -318,11 +308,8 @@ export default function Home({ onSelectMode, onOpenSettings, onOpenChangelog, on
 
       {/* Footer */}
       <div className="absolute bottom-8 text-center">
-        <p
-          className="font-sans text-ui opacity-70"
-          style={{ color: textColor }}
-        >
-          Free Forever • No Ads • <FooterMenu textColor={textColor} onOpenChangelog={onOpenChangelog} />
+        <p className="font-sans text-ui text-fg/70">
+          Free Forever • No Ads • <FooterMenu onOpenChangelog={onOpenChangelog} />
         </p>
       </div>
     </div>

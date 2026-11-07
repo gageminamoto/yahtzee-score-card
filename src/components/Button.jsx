@@ -1,66 +1,56 @@
 import { forwardRef } from 'react';
 import PropTypes from 'prop-types';
+import { cn } from '../utils/cn';
 
 /**
- * Button component following CMYK design principles:
- * - Bold, high-contrast styling
- * - Large tap targets (minimum 60px height)
- * - Clear visual states
- * - Keyboard accessible (Enter and Space keys work)
+ * Button following the CMYK design principles.
+ * Colours come from the surrounding surface (`fg` / `surface` tokens), so a
+ * Button reads correctly on any page or player colour with no colour props.
+ *
+ * Variants:
+ *   primary - translucent fill, inverts on hover (main menu actions)
+ *   solid   - full fg fill with surface-coloured text (the main call to action)
+ *   outline - bordered, for secondary actions next to a solid button
+ *   ghost   - text only, for back links, icon buttons and inline actions
  */
+const VARIANTS = {
+  primary: 'bg-fg/20 text-fg hover:bg-fg hover:text-surface uppercase font-bold',
+  solid: 'bg-fg text-surface hover:bg-fg/85 uppercase font-bold',
+  outline: 'border-2 border-fg/40 bg-fg/10 text-fg hover:bg-fg/20 hover:border-fg/60 uppercase font-bold',
+  ghost: 'text-fg hover:bg-fg/10',
+};
+
+const SIZES = {
+  large: 'text-body-lg py-5 px-8 min-h-[80px]',
+  medium: 'text-body py-4 px-6 min-h-[60px]',
+  small: 'text-ui py-3 px-4 min-h-[44px]',
+  icon: 'w-11 h-11 p-0',
+};
+
 const Button = forwardRef(function Button({
   children,
-  onClick,
   variant = 'primary',
   size = 'large',
-  disabled = false,
   fullWidth = false,
-  className = '',
-  textColor = null,
+  className,
+  type = 'button',
+  ...rest
 }, ref) {
-  const baseStyles = "font-sans font-bold uppercase cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-[transform,background-color,border-color,opacity] duration-150 ease-out active:scale-[0.97] hover:scale-[1.003]";
-
-  // Theme-aware button variants with proper contrast in both modes
-  const variants = {
-    primary: "bg-black/20 dark:bg-white/20 text-white dark:text-black hover:bg-black/100 dark:hover:bg-white/100 hover:text-white dark:hover:text-black",
-    solid: "bg-black dark:bg-white text-white dark:text-black hover:bg-black/80 dark:hover:bg-white/80",
-    outline: "border-2 hover:bg-[var(--btn-hover-bg)] hover:border-[var(--btn-hover-border)]",
-  };
-
-  const sizes = {
-    large: "text-body-lg py-5 px-8 min-h-[80px]",
-    medium: "text-body py-4 px-6 min-h-[60px]",
-    small: "text-ui py-3 px-5 min-h-[48px]",
-    xs: "text-xs py-2 px-4 min-h-[36px]",
-  };
-
-  const widthClass = fullWidth ? "w-full" : "";
-
-  // For outline variant, use semi-transparent borders and fills
-  const outlineStyle = variant === 'outline' ? (() => {
-    const resolvedColor = textColor || '#ffffff';
-    const isBlack = resolvedColor === '#000000';
-    return {
-      color: resolvedColor,
-      borderColor: isBlack ? 'rgba(0, 0, 0, 0.35)' : 'rgba(255, 255, 255, 0.45)',
-      backgroundColor: isBlack ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)',
-      '--btn-hover-bg': isBlack ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.2)',
-      '--btn-hover-border': isBlack ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.6)',
-    };
-  })() : {};
-
-  // For solid variant with explicit textColor, override via inline style
-  const solidStyle = variant === 'solid' && textColor ? { color: textColor } : {};
-
-  const inlineStyle = { ...outlineStyle, ...solidStyle };
-
   return (
     <button
       ref={ref}
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${className}`}
-      style={inlineStyle}
+      type={type}
+      className={cn(
+        'inline-flex items-center justify-center gap-2 font-sans cursor-pointer',
+        'transition-[transform,background-color,border-color,color,opacity] duration-150 ease-out active:scale-[0.97]',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-fg focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
+        'disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100',
+        VARIANTS[variant],
+        SIZES[size],
+        fullWidth && 'w-full',
+        className,
+      )}
+      {...rest}
     >
       {children}
     </button>
@@ -70,13 +60,12 @@ const Button = forwardRef(function Button({
 Button.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func,
-  variant: PropTypes.oneOf(['primary', 'solid', 'outline']),
-  size: PropTypes.oneOf(['small', 'medium', 'large', 'xs']),
+  variant: PropTypes.oneOf(['primary', 'solid', 'outline', 'ghost']),
+  size: PropTypes.oneOf(['large', 'medium', 'small', 'icon']),
   disabled: PropTypes.bool,
   fullWidth: PropTypes.bool,
   className: PropTypes.string,
-  textColor: PropTypes.string,
+  type: PropTypes.oneOf(['button', 'submit', 'reset']),
 };
 
-// Export Button as the default export so it can be imported via index.js
 export default Button;
