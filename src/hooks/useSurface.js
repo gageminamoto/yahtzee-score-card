@@ -13,7 +13,8 @@ export function useSurface() {
   const dark = settings.visual.enableDarkMode;
   return useCallback((hex) => {
     const color = themedColor(hex, dark);
-    return { color, fg: fgFor(color), style: surfaceStyle(color) };
+    const fg = fgFor(color, { bestContrast: dark });
+    return { color, fg, style: surfaceStyle(color, { fg }) };
   }, [dark]);
 }
 
