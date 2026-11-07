@@ -86,6 +86,12 @@ function migrateSettings(loadedSettings) {
     settings.visual = { ...settings.visual, reducedMotion: true };
   }
 
+  // The High Contrast toggle was retired in favour of the High Contrast colour
+  // scheme; carry the accessibility preference over rather than dropping it
+  if (loadedSettings.accessibility?.highContrast === true) {
+    settings.visual = { ...settings.visual, colorScheme: 'high-contrast' };
+  }
+
   // Version-specific migrations
   if (version < 1) {
     // Initial version - no migration needed
