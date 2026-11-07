@@ -30,7 +30,8 @@ export default function Onboarding({ onComplete, colorIndex }) {
       className="min-h-dvh flex flex-col text-fg transition-colors duration-500"
       style={surfaceStyle}
     >
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 pt-8 md:px-8">
+      {/* Bottom padding reserves room for the fixed footer below */}
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 pt-8 pb-[calc(8rem+env(safe-area-inset-bottom))] md:px-8">
         <PageHeader
           title="WELCOME"
           description="Pick a colour scheme. You can change it any time in Settings."
@@ -60,8 +61,10 @@ export default function Onboarding({ onComplete, colorIndex }) {
         </div>
       </main>
 
-      {/* Pinned so the single call to action is always visible */}
-      <div className="sticky bottom-0 bg-surface transition-colors duration-500">
+      {/* Pinned to the viewport (fixed, not sticky: App's overflow-hidden
+          wrapper would otherwise become the sticky container and let the
+          footer scroll away when the content overflows) */}
+      <div className="fixed inset-x-0 bottom-0 z-sticky bg-surface transition-colors duration-500">
         <div className="max-w-4xl mx-auto px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-8">
           <Button
             variant="solid"
