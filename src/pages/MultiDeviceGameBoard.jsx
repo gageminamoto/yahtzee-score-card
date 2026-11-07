@@ -303,7 +303,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
                 Scores
               </HeaderPill>
               {isHost && (
-                <HeaderPill onClick={handleFinishGame} disabled={!!selectedCategory} aria-label="Finish game">
+                <HeaderPill variant="ghost" onClick={handleFinishGame} disabled={!!selectedCategory} aria-label="Finish game">
                   Finish
                 </HeaderPill>
               )}
@@ -313,27 +313,27 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
 
         {/* Turn Banner */}
         <div
-          className="text-center py-2 mb-2 bg-fg/10 flex-shrink-0"
+          className={`text-center py-1 mb-1 flex-shrink-0 ${turnMode === 'strict' && isMyTurn ? 'bg-fg text-surface' : 'bg-fg/10'}`}
           role="status"
           aria-live="polite"
         >
           {turnMode === 'strict' ? (
-            <p className="font-sans text-body font-bold uppercase">
+            <p className="font-sans text-ui font-bold uppercase tracking-wider">
               {isMyTurn
                 ? 'Your Turn'
                 : `${currentTurnPlayer?.name || 'Player'}'s Turn`}
             </p>
           ) : (
-            <p className="font-sans text-body font-bold uppercase">
+            <p className="font-sans text-ui font-bold uppercase tracking-wider">
               Free Play — Score Anytime
             </p>
           )}
         </div>
 
         {/* Player Switcher (view-only in multi-device — shows all players) */}
-        <div className="flex justify-center mb-2 md:mb-4 flex-shrink-0">
+        <div className="flex justify-center mb-1 md:mb-3 flex-shrink-0">
           <div
-            className="inline-flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full p-2"
+            className="inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full p-1"
             role="tablist"
             aria-label="Players"
           >
@@ -350,6 +350,7 @@ export default function MultiDeviceGameBoard({ onGameComplete, onQuit, onSession
                   score={settings.visual.showHeaderTotals ? playerScore : undefined}
                   isActive={isMe}
                   highlight={isActiveTurn && turnMode === 'strict'}
+                  autoScroll={turnMode === 'strict' ? isActiveTurn : isMe}
                   onClick={isMe ? undefined : () => setViewingPlayer(player)}
                   aria-label={`${player.name || `Player ${index + 1}`}${isMe ? ' (you)' : ''}${isActiveTurn && turnMode === 'strict' ? ' — current turn' : ''}`}
                   badge={!player.isConnected && (
