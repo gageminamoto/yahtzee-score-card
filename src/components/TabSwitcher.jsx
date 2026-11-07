@@ -17,7 +17,7 @@ export default function TabSwitcher({ activeTab, onTabChange, firstTabRef }) {
       onChange={onTabChange}
       firstRef={firstTabRef}
       ariaLabel="Input method selection"
-      className="mb-6"
+      className="mb-4"
     />
   );
 }
